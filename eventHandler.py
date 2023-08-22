@@ -6,54 +6,70 @@ client = None
 #####################################################################
 ############################## Helpers ##############################
 #####################################################################
+
+
 def init(c):
     global client
     client = c
 
+
 async def sendMessage(message, content):
-  try:
-    res = str(content)
-    await message.channel.send(res)
-  except Exception as e:
-    print(e)
+    try:
+        res = str(content)
+        await message.channel.send(res)
+    except Exception as e:
+        print(e)
+
 
 async def sendEmbeddedMessage(message, col, mainContent, fields, inline=False):
-    embedVar = discord.Embed(title=mainContent['title'], description=mainContent['desc'], color=col)
+    embedVar = discord.Embed(
+        title=mainContent['title'], description=mainContent['desc'], color=col)
 
     for field in fields:
-        embedVar.add_field(name=field['name'], value=field['value'], inline=inline)
+        embedVar.add_field(name=field['name'],
+                           value=field['value'], inline=inline)
 
     await message.channel.send(embed=embedVar)
 
 #####################################################################
 ############################# Handlers ##############################
 #####################################################################
+
+
 async def handleReady():
     print("Bot connected")
+
 
 async def handleAdd(ctx, bot, msg):
     id = 127391823812793
     await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': f"Message added to schedule!\n\nThe ID is {id}."}, [])
 
+
 async def handleRemove(ctx, bot, msg):
     id = 127391823812793
     await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': f"Message with ID {id} was removed from the schedule!"}, [])
 
+
 async def handleSet(ctx, bot, msg):
     await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': 'The message has been set!'}, [])
+
 
 async def handleAddReaction(ctx, bot, msg):
     reaction = 'smile'
     await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': f"Reaction :{reaction}: added to message!"}, [])
 
+
 async def handleReset(ctx, bot, args):
     await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': 'The message has been reset!'}, [])
+
 
 async def handleClear(ctx, bot, args):
     await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': 'The schedule was cleared!'}, [])
 
+
 async def handlePrint(ctx, bot, args):
     await sendMessage(ctx, 'Pretend this is the created message...')
+
 
 async def handleSchedule(ctx, bot, cmd, args):
     try:
@@ -72,9 +88,10 @@ async def handleSchedule(ctx, bot, cmd, args):
         elif cmd == 'view':
             await handlePrint(ctx, bot, args)
         else:
-            await sendEmbeddedMessage(ctx, 0xFFFF00, {'title': 'Warning', 'desc': 'Unrecognized command. Try !scheduleHelp for the list of commands!'}, [])
+            await sendEmbeddedMessage(ctx, 0xFFFF00, {'title': 'Warning', 'desc': 'Unrecognized command. Type !scheduleHelp for the list of commands!'}, [])
     except Exception as e:  # this only throws if the user provided invalid arguments
         await sendEmbeddedMessage(ctx, 0xFF0000, {'title': 'ERROR', 'desc': 'The provided arguments are invalid. Command will be ignored.'}, [])
+
 
 async def handleHelp(ctx):
     helpDesc = '''The Message Scheduler works based on the message that you set via the 'set' command (and any modifications made with appropriate commands. E.g. 'reaction').
