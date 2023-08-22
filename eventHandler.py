@@ -17,11 +17,11 @@ async def sendMessage(message, content):
   except Exception as e:
     print(e)
 
-async def sendEmbeddedMessage(message, col, mainContent, fields):
+async def sendEmbeddedMessage(message, col, mainContent, fields, inline=False):
     embedVar = discord.Embed(title=mainContent['title'], description=mainContent['desc'], color=col)
 
     for field in fields:
-        embedVar.add_field(name=field['name'], value=field['value'], inline=False)
+        embedVar.add_field(name=field['name'], value=field['value'], inline=inline)
 
     await message.channel.send(embed=embedVar)
 
