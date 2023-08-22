@@ -21,8 +21,8 @@ def runDiscordBot():
   # commands
   @bot.command(name='schedule')
   @commands.check(isAdmin)
-  async def schedule(ctx, cmd, *args):
-    await eventHandler.handleSchedule(ctx, bot, cmd, *args)
+  async def schedule(ctx, cmd, *, args):
+    await eventHandler.handleSchedule(ctx, bot, cmd, args)
 
 
   @bot.command(name='scheduleHelp')
