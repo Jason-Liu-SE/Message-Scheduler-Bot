@@ -21,14 +21,14 @@ def runDiscordBot():
     eventHandler.init(bot)
 
     # commands
-    @bot.command(name='schedule')
+    @bot.command(name='poster')
     @commands.check(isAdmin)
-    async def schedule(ctx, cmd=None, *, args=None):
-        await eventHandler.handleSchedule(ctx, bot, cmd, args)
+    async def poster(ctx, cmd=None, *, args=None):
+        await eventHandler.handlePoster(ctx, bot, cmd, args)
 
-    @bot.command(name='scheduleHelp')
+    @bot.command(name='posterHelp')
     @commands.check(isAdmin)
-    async def scheduleHelp(ctx):
+    async def posterHelp(ctx):
         await eventHandler.handleHelp(ctx)
 
     # trigger declaration
