@@ -21,8 +21,14 @@ def runDiscordBot():
   # commands
   @bot.command(name='schedule')
   @commands.check(isAdmin)
-  async def scheduleAdd(ctx):
-    await eventHandler.handleScheduleAdd(ctx, bot)
+  async def schedule(ctx, cmd, *args):
+    await eventHandler.handleSchedule(ctx, bot, cmd, *args)
+
+
+  @bot.command(name='scheduleHelp')
+  @commands.check(isAdmin)
+  async def scheduleHelp(ctx):
+    await eventHandler.handleHelp(ctx)
 
   # trigger declaration
   @bot.event
