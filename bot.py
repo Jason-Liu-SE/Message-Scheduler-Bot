@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 import os
 import eventHandler
-from keep_alive import keep_alive
 
 
 def isAdmin(ctx):
@@ -21,15 +20,10 @@ def runDiscordBot():
     eventHandler.init(bot)
 
     # commands
-    @bot.command(name='poster')
+    @bot.command(name='ms')
     @commands.check(isAdmin)
-    async def poster(ctx, cmd=None, *, args=None):
-        await eventHandler.handlePoster(ctx, bot, cmd, args)
-
-    @bot.command(name='posterHelp')
-    @commands.check(isAdmin)
-    async def posterHelp(ctx):
-        await eventHandler.handleHelp(ctx)
+    async def messageScheduler(ctx, cmd=None, *, args=None):
+        await eventHandler.handleSchedule(ctx, bot, cmd, args)
 
     # trigger declaration
     @bot.event
@@ -37,5 +31,4 @@ def runDiscordBot():
         await eventHandler.handleReady()
 
     # execution
-    keep_alive()
     bot.run(os.environ['TOKEN'])
