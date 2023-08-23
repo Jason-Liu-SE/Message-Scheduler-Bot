@@ -15,10 +15,25 @@ async def sendMessage(message, bot, content, channel=None, attachments=None):
     try:
         res = str(content)
 
+        # content can't be empty
+        if not content:
+            raise ValueError('No message is set.')
+
+        # specified channel
         if channel:
-            return await bot.get_channel(channel).send(content=res, files=attachments)
+            c = bot.get_channel(channel)
+
+            # non-existent channel
+            if not c:
+                raise RuntimeError(f"Could not find channel '{channel}' to send the message to.")
+
+            return await c.send(content=res, files=attachments)
 
         return await message.channel.send(content=res, files=attachments)
+    except RuntimeError as e:
+        raise e
+    except ValueError as e:
+        raise e
     except Exception as e:
         print(e)
 
@@ -33,11 +48,48 @@ async def sendEmbeddedMessage(message, col, mainContent, fields, inline=False):
 
     await message.channel.send(embed=embedVar)
 
+
 async def getMessageObject(ctx):
     return pymongoManager.find_in_collection('messages', ctx.message.guild.id)
 
+
 async def updateMessageObject(ctx, data):
     pymongoManager.update_collection('messages', ctx.message.guild.id, data)
+
+
+async def handlePrint(ctx, bot, channel=None):
+    # getting the message
+    messageObj = await getMessageObject(ctx)
+
+    if not messageObj:
+        raise RuntimeError(f"Could not find an DB entry for server. Name:'{ctx.message.guild.name}'. ID: '{ctx.message.guild.id}'")
+
+    # adding attachments
+    attachments = []
+
+    for filename in messageObj['attachments']:
+        with open(filename, 'rb') as f:  # discord file objects must be opened in binary and read mode
+            attachments.append(discord.File(f))
+
+    # sending the message
+    try:
+        msg = await sendMessage(ctx, bot, messageObj['message'], channel, attachments)
+    except RuntimeError as e:
+        raise e
+    except ValueError as e:
+        raise e
+
+    # adding emojis
+    for reaction in messageObj['reactions']:
+        try:
+            emoji = discord.utils.get(ctx.message.guild.emojis, name=reaction)  # set to a custom emoji by default
+
+            if not emoji:  # standard emojis
+                emoji = reaction
+
+            await msg.add_reaction(emoji)
+        except:
+            print(f"Unknown emoji: {reaction}")
 
 #####################################################################
 ############################# Handlers ##############################
@@ -65,7 +117,7 @@ async def handleAddReaction(ctx, bot, msg):
     await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': f"Reaction :{reaction}: added to message!"}, [])
 
 
-async def handleReset(ctx, bot, args):
+async def handleReset(ctx):
     await updateMessageObject(ctx, {'message': '', 'reactions': [], 'attachments': []})
     await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': 'The message has been reset!'}, [])
 
@@ -74,40 +126,26 @@ async def handleClear(ctx):
     await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': 'The post schedule was cleared!'}, [])
 
 
-async def handlePrint(ctx, bot, rawArgs, channel=None):
+async def handleView(ctx, bot, rawArgs):
     # getting the type of print operation
     args = rawArgs.strip().split(' ')
 
-    if len(args) != 1 or (args[0] != 'current' and not args[0].isdigit()):
-        raise ValueError(f"In handlePrint, the provided args are invalid: {args}")
+    channel = args[0]
 
-    # getting the message
-    messageObj = await getMessageObject(ctx)
+    if len(args) != 1 or (channel != 'current' and not channel.isdigit()):
+        print(f"In handleView the provided args are invalid: {args}")
+        raise ValueError('The provided arguments are invalid. Command will be ignored.')
 
-    if not messageObj:
-      raise RuntimeError(f"Could not find an DB entry for server. Name:'{ctx.message.guild.name}'. ID: '{ctx.message.guild.id}'")
-
-    # adding attachments
-    attachments = []
-
-    for filename in messageObj['attachments']:
-      with open(filename, 'rb') as f:  # discord file objects must be opened in binary and read mode
-          attachments.append(discord.File(f))
-
-    # sending the message
-    msg = await sendMessage(ctx, bot, messageObj['message'], channel, attachments)
-
-    # adding emojis
-    for reaction in messageObj['reactions']:
-        try:
-            emoji = discord.utils.get(ctx.message.guild.emojis, name=reaction)  # set to a custom emoji by default
-
-            if not emoji:   # standard emojis
-                emoji = reaction
-
-            await msg.add_reaction(emoji)
-        except:
-            print(f"Unknown emoji: {reaction}")
+    # determining which message to print
+    try:
+        if channel == 'current':
+            await handlePrint(ctx, bot)
+        else:
+            await handlePrint(ctx, bot, int(channel))
+    except RuntimeError as e:
+        raise e
+    except ValueError as e:
+        raise e
 
 
 async def handleHelp(ctx):
@@ -181,21 +219,21 @@ async def handleSchedule(ctx, bot, cmd, args):
         elif cmd == 'reaction':
             await handleAddReaction(ctx, bot, args)
         elif cmd == 'reset':
-            await handleReset(ctx, bot, args)
+            await handleReset(ctx)
         elif cmd == 'clear':
             await handleClear(ctx)
         elif cmd == 'view':
-            await handlePrint(ctx, bot, args)
+            await handleView(ctx, bot, args)
         elif cmd == 'help':
             await handleHelp(ctx)
         else:
             await sendEmbeddedMessage(ctx, 0xFFFF00, {'title': 'Warning', 'desc': "Unrecognized command. Type '!ms help' for the list of commands!"}, [])
     except ValueError as e:  # this only throws if the user provided invalid arguments
         print(e)
-        await sendEmbeddedMessage(ctx, 0xFF0000, {'title': 'ERROR', 'desc': 'The provided arguments are invalid. Command will be ignored.'}, [])
+        await sendEmbeddedMessage(ctx, 0xFF0000, {'title': 'ERROR', 'desc': e}, [])
     except RuntimeError as e:
         print(e)
-        await sendEmbeddedMessage(ctx, 0xFF0000, {'title': 'ERROR', 'desc': 'No message has been created yet!'}, [])
+        await sendEmbeddedMessage(ctx, 0xFF0000, {'title': 'ERROR', 'desc': e}, [])
     except Exception as e:
         print(e)
         await sendEmbeddedMessage(ctx, 0xFF0000, {'title': 'ERROR', 'desc': 'An error occurred. Command will be ignored.'}, [])
