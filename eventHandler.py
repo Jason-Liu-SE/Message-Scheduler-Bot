@@ -1,5 +1,7 @@
 import pymongoManager
 import discord
+from datetime import datetime
+import math
 
 client = None
 
@@ -9,6 +11,20 @@ client = None
 def init(c):
     global client
     client = c
+
+
+async def registerServerWithDB(ctx):
+    # instantiating a schedule and message collection entry if one doesn't exist
+    msgObj = await getMessageObject(ctx)
+    scheduleObj = await getSchedule(ctx)
+
+    try:
+        if not msgObj:
+            await updateMessageObject(ctx, {'message': '', 'reactions': [], 'attachments': []})
+        if not scheduleObj:
+            await updateScheduleObject(ctx, {})
+    except RuntimeError as e:
+        raise Exception(e)
 
 
 async def sendMessage(message, bot, content, channel=None, attachments=None):
@@ -38,13 +54,14 @@ async def sendMessage(message, bot, content, channel=None, attachments=None):
         print(e)
 
 
-async def sendEmbeddedMessage(message, col, mainContent, fields, inline=False):
+async def sendEmbeddedMessage(message, col, mainContent, fields=None, inline=False):
     embedVar = discord.Embed(
         title=mainContent['title'], description=mainContent['desc'], color=col)
 
-    for field in fields:
-        embedVar.add_field(name=field['name'],
-                           value=field['value'], inline=inline)
+    if fields:
+        for field in fields:
+            embedVar.add_field(name=field['name'],
+                               value=field['value'], inline=inline)
 
     await message.channel.send(embed=embedVar)
 
@@ -53,8 +70,21 @@ async def getMessageObject(ctx):
     return pymongoManager.find_in_collection('messages', ctx.message.guild.id)
 
 
+async def getSchedule(ctx):
+    return pymongoManager.find_in_collection('schedules', ctx.message.guild.id)
+
+
 async def updateMessageObject(ctx, data):
-    pymongoManager.update_collection('messages', ctx.message.guild.id, data)
+    try:
+        pymongoManager.update_collection('messages', ctx.message.guild.id, data)
+    except RuntimeError as e:
+        raise e
+
+async def updateScheduleObject(ctx, data):
+    try:
+        pymongoManager.update_collection('schedules', ctx.message.guild.id, {'schedule': data})
+    except RuntimeError as e:
+        raise e
 
 
 async def handlePrint(ctx, bot, channel=None):
@@ -91,6 +121,22 @@ async def handlePrint(ctx, bot, channel=None):
         except:
             print(f"Unknown emoji: {reaction}")
 
+
+async def validateChannel(channel):
+    if not channel.isdigit():  # ensure that the provided value could be a channel
+        raise ValueError("The channel must be a numerical value")
+
+# dateData has 2 fields, date and time. date is in dd/mm/yyyy format and
+# time is in hh:mm:ss format
+async def validateDate(dateData):
+    date = dateData['date'].split('/')
+    time = dateData['time'].split(':')
+
+    if not (len(date) == 3 and date[0].isdigit() and date[1].isdigit() and date[2].isdigit() and len(date[0]) == 2 and len(date[1]) == 2 and len(date[2]) == 4):      # dd/mm/yyyy format check
+        raise ValueError("The date was not provided in dd/mm/yyyy format.")
+    elif not (len(time) == 3 and time[0].isdigit() and time[1].isdigit() and time[2].isdigit() and len(time[0]) == 2 and len(time[1]) == 2 and len(time[2]) == 2):  # hh:mm:ss format check
+        raise ValueError("The time was not provided in hh:mm:ss format.")
+
 #####################################################################
 ############################# Handlers ##############################
 #####################################################################
@@ -98,14 +144,54 @@ async def handleReady():
     print("Bot connected")
 
 
-async def handleAdd(ctx, bot, msg):
-    id = 127391823812793
-    await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': f"Message added to post schedule!\n\n**Post ID**: {id}."}, [])
+async def handleAdd(ctx, rawArgs):
+    dateFormat = '%d/%m/%YT%H:%M:%S%z'
+
+    # argument validation
+    args = rawArgs.strip().split(' ')
+
+    try:
+        if len(args) != 3:
+            raise ValueError("Please provide exactly 3 arguments to the 'add' command.")
+
+        await validateChannel(args[0])
+        await validateDate({'date': args[1], 'time': args[2]})
+    except ValueError as e:
+        raise e
+
+    # formatting the data
+    channel = int(args[0])
+    dateObj = datetime.strptime(args[1] + 'T' + args[2] + '+00:00', dateFormat)
+
+    # getting stored message
+    msgObj = await getMessageObject(ctx)
+
+    # no message was set
+    if msgObj['message'] == '':
+        raise ValueError('No message was set! This command was ignored.')
+
+    # generate the associated message ID
+    postID = str(math.floor((datetime.now() - datetime(1970, 1, 1)).total_seconds()*10000))
+
+    # db updates
+    schedule = await getSchedule(ctx)
+
+    schedule['schedule'][postID] = {'channel': channel, 'message': msgObj['message'], 'reactions': msgObj['reactions'], 'attachments': msgObj['attachments'], 'time': dateObj}
+
+    try:
+        await updateScheduleObject(ctx, schedule['schedule'])  # schedule the current message
+        await updateMessageObject(ctx, {'message': '', 'reactions': [], 'attachments': []})  # reset the current message
+
+        # informing the user
+        await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': f"Message added to post schedule!\n\n**Post ID**: {postID}"})
+    except RuntimeError as e:
+        print(e)
+        raise RuntimeError("Could not add the message to the schedule.")
 
 
 async def handleRemove(ctx, bot, msg):
     id = 127391823812793
-    await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': f"Post with ID {id} was removed from the post schedule!"}, [])
+    await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': f"Post with ID {id} was removed from the post schedule!"})
 
 
 async def handleSet(ctx, msg):
@@ -117,10 +203,10 @@ async def handleSet(ctx, msg):
 
     # no text was provided
     if msg == '':
-        await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': 'The message was cleared!'}, [])
+        await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': 'The message was cleared!'})
         return
 
-    await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': 'The message has been set!'}, [])
+    await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': 'The message has been set!'})
 
 
 async def handleSetReaction(ctx, msg):
@@ -134,19 +220,20 @@ async def handleSetReaction(ctx, msg):
 
     # no emojis specified
     if len(emojis) == 1 and emojis[0] == '':
-        await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': f"Reactions were cleared!"}, [])
+        await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': f"Reactions were cleared!"})
         return
 
-    await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': f"Reaction(s) {msg} added to message!"}, [])
+    await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': f"Reaction(s) {msg} added to message!"})
 
 
 async def handleReset(ctx):
     await updateMessageObject(ctx, {'message': '', 'reactions': [], 'attachments': []})
-    await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': 'The message has been reset!'}, [])
+    await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': 'The message has been reset!'})
 
 
 async def handleClear(ctx):
-    await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': 'The post schedule was cleared!'}, [])
+    await updateScheduleObject(ctx, {})
+    await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': 'The post schedule was cleared!'})
 
 
 async def handleView(ctx, bot, rawArgs):
@@ -181,11 +268,16 @@ async def handleHelp(ctx):
 
                           The commands are as follows:'''
 
-    addMsg = '''Adds the proceeding message to the schedule in the provided channel (by ID).
-                        Format: !ms add <channel> <post date> <post time>
+    addMsg = '''Adds the created message to the schedule. Note that a message must be created before it can be added to the schedule, and times are specified in UTC.
+                
+                BTW:
+                UTC Time = EST Time + 4 hours
+                UTC Time = EDT Time + 5 hours
+                
+                Format: !ms add <channel> <post date> <post time>
 
-                        E.g. !ms add 1143322446909407323 30/01/2023 23/59
-                        This would post the message on January 30, 2023 at 11:59 PM to the channel with ID 1143322446909407323'''
+                E.g. !ms add 1143322446909407323 30/01/2023 23:59:00
+                This would post the message on January 30, 2023 at 11:59 PM to the channel with ID 1143322446909407323'''
 
     removeMsg = '''Removes a message from the schedule based on a post ID.
                            Format: !ms remove <message post id>
@@ -231,9 +323,13 @@ async def handleHelp(ctx):
 
 
 async def handleSchedule(ctx, bot, cmd, args):
+    # creating a schedule and message object for new servers
+    await registerServerWithDB(ctx)
+
+    # interpreting commands
     try:
         if cmd == 'add':
-            await handleAdd(ctx, bot, args)
+            await handleAdd(ctx, args)
         elif cmd == 'remove':
             await handleRemove(ctx, bot, args)
         elif cmd == 'set':
@@ -249,10 +345,10 @@ async def handleSchedule(ctx, bot, cmd, args):
         elif cmd == 'help':
             await handleHelp(ctx)
         else:
-            await sendEmbeddedMessage(ctx, 0xFFFF00, {'title': 'Warning', 'desc': "Unrecognized command. Type '!ms help' for the list of commands!"}, [])
+            await sendEmbeddedMessage(ctx, 0xFFFF00, {'title': 'Warning', 'desc': "Unrecognized command. Type '!ms help' for the list of commands!"})
     except ValueError as e:  # this only throws if the user provided invalid arguments
-        await sendEmbeddedMessage(ctx, 0xFF0000, {'title': 'ERROR', 'desc': e}, [])
+        await sendEmbeddedMessage(ctx, 0xFF0000, {'title': 'ERROR', 'desc': e})
     except RuntimeError as e:
-        await sendEmbeddedMessage(ctx, 0xFF0000, {'title': 'ERROR', 'desc': e}, [])
-    except Exception as e:
-        await sendEmbeddedMessage(ctx, 0xFF0000, {'title': 'ERROR', 'desc': 'An error occurred. Command will be ignored.'}, [])
+        await sendEmbeddedMessage(ctx, 0xFF0000, {'title': 'ERROR', 'desc': e})
+    except Exception:
+        await sendEmbeddedMessage(ctx, 0xFF0000, {'title': 'ERROR', 'desc': 'An error occurred. Command will be ignored.'})

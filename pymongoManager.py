@@ -14,7 +14,7 @@ def connect():
 
         print('Connected to MongoDB')
     except:
-        print('Could not connect to MongoDB')
+        raise RuntimeError('Could not connect to MongoDB')
 
 def insert_to_collection(collectionName, data):
     try:
@@ -22,7 +22,7 @@ def insert_to_collection(collectionName, data):
 
         collection.insert_one(data)
     except:
-        print(f"Failed to insert into collection '{collectionName}'")
+        raise RuntimeError(f"Failed to insert into collection '{collectionName}'")
 
 # returns all data in a particular collection
 def get_collection(collectionName):
@@ -57,4 +57,4 @@ def update_collection(collectionName, id, data):
 
         collection.update_one({'_id': id}, {"$set": data}, upsert=True)
     except:
-        print(f"Failed to update the collection '{collectionName}'")
+        raise RuntimeError(f"Failed to update the collection '{collectionName}'")
