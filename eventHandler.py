@@ -11,9 +11,13 @@ def init(c):
     client = c
 
 
-async def sendMessage(message, content, attachments=None):
+async def sendMessage(message, bot, content, channel=None, attachments=None):
     try:
         res = str(content)
+
+        if channel:
+            return await bot.get_channel(channel).send(content=res, files=attachments)
+
         return await message.channel.send(content=res, files=attachments)
     except Exception as e:
         print(e)
@@ -66,7 +70,7 @@ async def handleClear(ctx, bot, args):
     await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': 'The post schedule was cleared!'}, [])
 
 
-async def handlePrint(ctx, rawArgs, channel):
+async def handlePrint(ctx, bot, rawArgs, channel=None):
     # getting the type of print operation
     args = rawArgs.strip().split(' ')
 
@@ -87,7 +91,7 @@ async def handlePrint(ctx, rawArgs, channel):
           attachments.append(discord.File(f))
 
     # sending the message
-    msg = await sendMessage(ctx, messageObj['message'], attachments)
+    msg = await sendMessage(ctx, bot, messageObj['message'], channel, attachments)
 
     # adding emojis
     for reaction in messageObj['reactions']:
@@ -100,6 +104,7 @@ async def handlePrint(ctx, rawArgs, channel):
             await msg.add_reaction(emoji)
         except:
             print(f"Unknown emoji: {reaction}")
+
 
 async def handleHelp(ctx):
     helpDesc = '''The Message Scheduler is used to schedule your posts based on the message that you set via the 'set' command (and any modifications made with appropriate commands. E.g. 'reaction').
@@ -176,7 +181,7 @@ async def handleSchedule(ctx, bot, cmd, args):
         elif cmd == 'clear':
             await handleClear(ctx, bot, args)
         elif cmd == 'view':
-            await handlePrint(ctx, args, ctx.message.channel.id)
+            await handlePrint(ctx, bot, args)
         elif cmd == 'help':
             await handleHelp(ctx)
         else:
