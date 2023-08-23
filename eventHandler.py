@@ -36,6 +36,9 @@ async def sendEmbeddedMessage(message, col, mainContent, fields, inline=False):
 async def getMessageObject(ctx):
     return pymongoManager.find_in_collection('messages', ctx.message.guild.id)
 
+async def updateMessageObject(ctx, data):
+    pymongoManager.update_collection('messages', ctx.message.guild.id, data)
+
 #####################################################################
 ############################# Handlers ##############################
 #####################################################################
@@ -63,10 +66,11 @@ async def handleAddReaction(ctx, bot, msg):
 
 
 async def handleReset(ctx, bot, args):
+    await updateMessageObject(ctx, {'message': '', 'reactions': [], 'attachments': []})
     await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': 'The message has been reset!'}, [])
 
 
-async def handleClear(ctx, bot, args):
+async def handleClear(ctx):
     await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': 'The post schedule was cleared!'}, [])
 
 
@@ -179,7 +183,7 @@ async def handleSchedule(ctx, bot, cmd, args):
         elif cmd == 'reset':
             await handleReset(ctx, bot, args)
         elif cmd == 'clear':
-            await handleClear(ctx, bot, args)
+            await handleClear(ctx)
         elif cmd == 'view':
             await handlePrint(ctx, bot, args)
         elif cmd == 'help':
