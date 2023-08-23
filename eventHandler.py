@@ -189,9 +189,21 @@ async def handleAdd(ctx, rawArgs):
         raise RuntimeError("Could not add the message to the schedule.")
 
 
-async def handleRemove(ctx, bot, msg):
-    id = 127391823812793
-    await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': f"Post with ID {id} was removed from the post schedule!"})
+async def handleRemove(ctx, msg):
+    postID = msg.strip().split(' ')[0]
+
+    scheduleObj = await getSchedule(ctx)
+
+    # no scheduled post corresponds with the provided one
+    if postID not in scheduleObj['schedule'].keys():
+        raise ValueError(f"There is no scheduled post with the corresponding postID: {postID}")
+
+    # deleting the msg
+    del scheduleObj['schedule'][postID]
+
+    await updateScheduleObject(ctx, scheduleObj['schedule'])
+
+    await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': f"Post with ID {postID} was removed from the post schedule!"})
 
 
 async def handleSet(ctx, msg):
@@ -331,7 +343,7 @@ async def handleSchedule(ctx, bot, cmd, args):
         if cmd == 'add':
             await handleAdd(ctx, args)
         elif cmd == 'remove':
-            await handleRemove(ctx, bot, args)
+            await handleRemove(ctx, args)
         elif cmd == 'set':
             await handleSet(ctx, args)
         elif cmd == 'reaction':
