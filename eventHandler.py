@@ -1,16 +1,18 @@
 import pymongoManager
 import discord
-from datetime import datetime
+from datetime import datetime, timedelta
 import math
+import asyncio
+from discord.ext import tasks
 
-client = None
+bot = None
 
 #####################################################################
 ############################## Helpers ##############################
 #####################################################################
-def init(c):
-    global client
-    client = c
+def init(b):
+    global bot
+    bot = b
 
 
 async def registerServerWithDB(ctx):
@@ -80,6 +82,7 @@ async def updateMessageObject(ctx, data):
     except RuntimeError as e:
         raise e
 
+
 async def updateScheduleObject(ctx, data):
     try:
         pymongoManager.update_collection('schedules', ctx.message.guild.id, {'schedule': data})
@@ -106,9 +109,14 @@ async def handlePrint(ctx, bot, channel=None, postID=None):
     # adding attachments
     attachments = []
 
-    for filename in messageObj['attachments']:
-        with open(filename, 'rb') as f:  # discord file objects must be opened in binary and read mode
-            attachments.append(discord.File(f))
+    try:
+        msg = await ctx.fetch_message(messageObj['attachments'][0]['message_id'])
+
+        for f in msg.attachments:
+            file = await f.to_file()
+            attachments.append(file)
+    except Exception as e:
+        print(e)
 
     # sending the message
     try:
@@ -135,22 +143,58 @@ async def validateChannel(channel):
     if not channel.isdigit():  # ensure that the provided value could be a channel
         raise ValueError("The channel must be a numerical value")
 
+
 # dateData has 2 fields, date and time. date is in dd/mm/yyyy format and
-# time is in hh:mm:ss format
+# time is in hh:mm format
 async def validateDate(dateData):
     date = dateData['date'].split('/')
     time = dateData['time'].split(':')
 
     if not (len(date) == 3 and date[0].isdigit() and date[1].isdigit() and date[2].isdigit() and len(date[0]) == 2 and len(date[1]) == 2 and len(date[2]) == 4):      # dd/mm/yyyy format check
         raise ValueError("The date was not provided in dd/mm/yyyy format.")
-    elif not (len(time) == 3 and time[0].isdigit() and time[1].isdigit() and time[2].isdigit() and len(time[0]) == 2 and len(time[1]) == 2 and len(time[2]) == 2):  # hh:mm:ss format check
-        raise ValueError("The time was not provided in hh:mm:ss format.")
+    elif not (len(time) == 2 and time[0].isdigit() and time[1].isdigit() and len(time[0]) == 2 and len(time[1]) == 2):  # hh:mm format check
+        raise ValueError("The time was not provided in hh:mm format.")
+
+
+# async def manageScheduleLoop():
+#     while True:
+#         now = datetime.now()
+#         future = now + timedelta(seconds=10)
+#
+#         delay = (future - now).total_seconds()
+#
+#         await asyncio.sleep(delay)
+#
+#         channel = bot.get_channel(1143699152258207815)
+#
+#         await channel.send('Hey, this is an automated message!')
+
+def secondsUntil():
+    now = datetime.now()
+    future = now + timedelta(seconds=10)
+
+    return (future - now).total_seconds()
+
+
+# @tasks.loop(minutes=1)
+# async def manageScheduleLoop():
+#     await asyncio.sleep(secondsUntil())
+#
+#     channel = bot.get_channel(1143699152258207815)
+#
+#     await channel.send('Hey, this is an automated message!')
+
+# @manageScheduleLoop.before_loop
+# async def beforeLoop():
+#     await bot.wait_until_ready()
+#     print("Scheduling loop started")
 
 #####################################################################
 ############################# Handlers ##############################
 #####################################################################
 async def handleReady():
     print("Bot connected")
+    # await manageScheduleLoop()
 
 
 async def handleAdd(ctx, rawArgs):
@@ -170,7 +214,7 @@ async def handleAdd(ctx, rawArgs):
 
     # formatting the data
     channel = int(args[0])
-    dateObj = datetime.strptime(args[1] + 'T' + args[2] + '+00:00', dateFormat)
+    dateObj = datetime.strptime(args[1] + 'T' + args[2] + ':00+00:00', dateFormat)
 
     # getting stored message
     msgObj = await getMessageObject(ctx)
@@ -218,7 +262,10 @@ async def handleRemove(ctx, msg):
 async def handleSet(ctx, msg):
     msgObj = await getMessageObject(ctx)
 
+    print(ctx.message.attachments)
+
     msgObj['message'] = msg
+    msgObj['attachments'] = [{'message_id': ctx.message.id, 'filename': attachment.filename, 'url': attachment.url, 'id': attachment.id} for attachment in ctx.message.attachments]
 
     await updateMessageObject(ctx, msgObj)
 
@@ -330,7 +377,7 @@ async def handleHelp(ctx):
                 
                 Format: !ms add <channel> <post date> <post time>
 
-                E.g. !ms add 1143322446909407323 30/01/2023 23:59:00
+                E.g. !ms add 1143322446909407323 30/01/2023 23:59
                 This would post the message on January 30, 2023 at 11:59 PM to the channel with ID 1143322446909407323'''
 
     removeMsg = '''Removes a message from the schedule based on a post ID.
@@ -354,9 +401,9 @@ async def handleHelp(ctx):
                           E.g. !ms reset'''
 
     clearMsg = '''Un-schedules all previously scheduled messages
-                          Format: !ms clear
+                          Format: !ms clearSchedule
 
-                          E.g. !ms clear'''
+                          E.g. !ms clearSchedule'''
 
     previewMsg = '''Displays either the message that is currently being worked on or a particular scheduled post.
                               Format: !ms preview <current|post ID>
@@ -374,7 +421,7 @@ async def handleHelp(ctx):
         {'name': 'set', 'value': setMsg},
         {'name': 'reaction', 'value': reactionMsg},
         {'name': 'reset', 'value': resetMsg},
-        {'name': 'clear', 'value': clearMsg},
+        {'name': 'clearSchedule', 'value': clearMsg},
         {'name': 'preview', 'value': previewMsg},
         {'name': 'list', 'value': listMsg}
     ]
@@ -398,7 +445,7 @@ async def handleSchedule(ctx, bot, cmd, args):
             await handleSetReaction(ctx, args)
         elif cmd == 'reset':
             await handleReset(ctx)
-        elif cmd == 'clear':
+        elif cmd == 'clearSchedule':
             await handleClear(ctx)
         elif cmd == 'preview':
             await handlePreview(ctx, bot, args)
