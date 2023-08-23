@@ -11,10 +11,10 @@ def init(c):
     client = c
 
 
-async def sendMessage(message, content):
+async def sendMessage(message, content, attachments=None):
     try:
         res = str(content)
-        await message.channel.send(res)
+        return await message.channel.send(content=res, files=attachments)
     except Exception as e:
         print(e)
 
@@ -28,6 +28,9 @@ async def sendEmbeddedMessage(message, col, mainContent, fields, inline=False):
                            value=field['value'], inline=inline)
 
     await message.channel.send(embed=embedVar)
+
+async def getMessageObject(ctx):
+    return pymongoManager.find_in_collection('messages', ctx.message.guild.id)
 
 #####################################################################
 ############################# Handlers ##############################
@@ -63,9 +66,40 @@ async def handleClear(ctx, bot, args):
     await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': 'The post schedule was cleared!'}, [])
 
 
-async def handlePrint(ctx, bot, args):
-    await sendMessage(ctx, 'Pretend this is the created message...')
+async def handlePrint(ctx, rawArgs, channel):
+    # getting the type of print operation
+    args = rawArgs.strip().split(' ')
 
+    if len(args) != 1 or (args[0] != 'current' and not args[0].isdigit()):
+        raise ValueError(f"In handlePrint, the provided args are invalid: {args}")
+
+    # getting the message
+    messageObj = await getMessageObject(ctx)
+
+    if not messageObj:
+      raise RuntimeError(f"Could not find an DB entry for server. Name:'{ctx.message.guild.name}'. ID: '{ctx.message.guild.id}'")
+
+    # adding attachments
+    attachments = []
+
+    for filename in messageObj['attachments']:
+      with open(filename, 'rb') as f:  # discord file objects must be opened in binary and read mode
+          attachments.append(discord.File(f))
+
+    # sending the message
+    msg = await sendMessage(ctx, messageObj['message'], attachments)
+
+    # adding emojis
+    for reaction in messageObj['reactions']:
+        try:
+            emoji = discord.utils.get(ctx.message.guild.emojis, name=reaction)  # set to a custom emoji by default
+
+            if not emoji:   # standard emojis
+                emoji = reaction
+
+            await msg.add_reaction(emoji)
+        except:
+            print(f"Unknown emoji: {reaction}")
 
 async def handleHelp(ctx):
     helpDesc = '''The Message Scheduler is used to schedule your posts based on the message that you set via the 'set' command (and any modifications made with appropriate commands. E.g. 'reaction').
@@ -95,9 +129,9 @@ async def handleHelp(ctx):
                         E.g. !ms set This is an announcement'''
 
     reactionMsg = '''Adds a reaction to the message.
-                             Format: !ms reaction <reaction name>
+                             Format: !ms reaction [<emoji>]
 
-                             E.g. !ms reaction happy'''
+                             E.g. !ms reaction 😄 😢 🥯'''
 
     resetMsg = '''Resets the message and all modifications made to it
                           Format: !ms reset
@@ -109,8 +143,8 @@ async def handleHelp(ctx):
 
                           E.g. !ms clear'''
 
-    viewMsg = '''Displays either the message that is currently being worked on or all scheduled posts.
-                              Format: !ms view <current|all>
+    viewMsg = '''Displays either the message that is currently being worked on or a particular scheduled post.
+                              Format: !ms view <current|post ID>
 
                               E.g. !ms view current'''
 
@@ -142,10 +176,17 @@ async def handleSchedule(ctx, bot, cmd, args):
         elif cmd == 'clear':
             await handleClear(ctx, bot, args)
         elif cmd == 'view':
-            await handlePrint(ctx, bot, args)
+            await handlePrint(ctx, args, ctx.message.channel.id)
         elif cmd == 'help':
             await handleHelp(ctx)
         else:
             await sendEmbeddedMessage(ctx, 0xFFFF00, {'title': 'Warning', 'desc': "Unrecognized command. Type '!ms help' for the list of commands!"}, [])
-    except Exception as e:  # this only throws if the user provided invalid arguments
+    except ValueError as e:  # this only throws if the user provided invalid arguments
+        print(e)
         await sendEmbeddedMessage(ctx, 0xFF0000, {'title': 'ERROR', 'desc': 'The provided arguments are invalid. Command will be ignored.'}, [])
+    except RuntimeError as e:
+        print(e)
+        await sendEmbeddedMessage(ctx, 0xFF0000, {'title': 'ERROR', 'desc': 'No message has been created yet!'}, [])
+    except Exception as e:
+        print(e)
+        await sendEmbeddedMessage(ctx, 0xFF0000, {'title': 'ERROR', 'desc': 'An error occurred. Command will be ignored.'}, [])

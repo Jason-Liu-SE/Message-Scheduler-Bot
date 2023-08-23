@@ -22,7 +22,7 @@ def runDiscordBot():
     # commands
     @bot.command(name='ms')
     @commands.check(isAdmin)
-    async def messageScheduler(ctx, cmd=None, *, args=None):
+    async def messageScheduler(ctx, cmd='', *, args=''):
         await eventHandler.handleSchedule(ctx, bot, cmd, args)
 
     # trigger declaration
