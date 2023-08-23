@@ -112,9 +112,21 @@ async def handleSet(ctx, bot, msg):
     await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': 'The message has been set!'}, [])
 
 
-async def handleAddReaction(ctx, bot, msg):
-    reaction = 'smile'
-    await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': f"Reaction :{reaction}: added to message!"}, [])
+async def handleAddReaction(ctx, msg):
+    modifiedMsg = msg.strip().split(' ')
+
+    # exiting on empty message
+    if len(modifiedMsg) == 1 and modifiedMsg[0] == '':
+        await sendEmbeddedMessage(ctx, 0xFFFF00, {'title': "Warning", 'desc': f"No reactions were specified"}, [])
+        return
+
+    msgObj = await getMessageObject(ctx)
+
+    for emoji in modifiedMsg:
+        msgObj['reactions'].append(emoji)
+
+    await updateMessageObject(ctx, msgObj)
+    await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': f"Reaction(s) :{msg}: added to message!"}, [])
 
 
 async def handleReset(ctx):
@@ -133,7 +145,6 @@ async def handleView(ctx, bot, rawArgs):
     channel = args[0]
 
     if len(args) != 1 or (channel != 'current' and not channel.isdigit()):
-        print(f"In handleView the provided args are invalid: {args}")
         raise ValueError('The provided arguments are invalid. Command will be ignored.')
 
     # determining which message to print
@@ -217,7 +228,7 @@ async def handleSchedule(ctx, bot, cmd, args):
         elif cmd == 'set':
             await handleSet(ctx, bot, args)
         elif cmd == 'reaction':
-            await handleAddReaction(ctx, bot, args)
+            await handleAddReaction(ctx, args)
         elif cmd == 'reset':
             await handleReset(ctx)
         elif cmd == 'clear':
@@ -229,11 +240,8 @@ async def handleSchedule(ctx, bot, cmd, args):
         else:
             await sendEmbeddedMessage(ctx, 0xFFFF00, {'title': 'Warning', 'desc': "Unrecognized command. Type '!ms help' for the list of commands!"}, [])
     except ValueError as e:  # this only throws if the user provided invalid arguments
-        print(e)
         await sendEmbeddedMessage(ctx, 0xFF0000, {'title': 'ERROR', 'desc': e}, [])
     except RuntimeError as e:
-        print(e)
         await sendEmbeddedMessage(ctx, 0xFF0000, {'title': 'ERROR', 'desc': e}, [])
     except Exception as e:
-        print(e)
         await sendEmbeddedMessage(ctx, 0xFF0000, {'title': 'ERROR', 'desc': 'An error occurred. Command will be ignored.'}, [])
