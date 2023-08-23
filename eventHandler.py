@@ -269,6 +269,38 @@ async def handleView(ctx, bot, rawArgs):
         raise e
 
 
+async def handleList(ctx):
+    scheduleObj = await getSchedule(ctx)
+    schedule = scheduleObj['schedule']
+
+    # no scheduled posts
+    if len(schedule) == 0:
+        await sendEmbeddedMessage(ctx, 0xFFFF00, {'title': "Warning", 'desc': f"You don't have any scheduled posts!"})
+        return
+
+    msg = ""
+    count = 1
+
+    msgList = []
+
+    for postID in schedule.keys():
+        msg += f"**#{count}**\n" \
+                   f"**Post ID**: {postID}\n" \
+                   f"**Post Time**: {schedule[postID]['time']}\n" \
+                   f"**Preview**: {schedule[postID]['message'] if len(schedule[postID]['message']) < 50 else schedule[postID]['message'][0:47] + '...'}\n\n"
+
+        if len(msg) > 1500:
+            msgList.append(msg)
+            msg = ''
+
+        count += 1
+
+    msgList.append(msg)
+
+    for message in msgList:
+        await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Posts", 'desc': message})
+
+
 async def handleHelp(ctx):
     helpDesc = '''The Message Scheduler is used to schedule your posts based on the message that you set via the 'set' command (and any modifications made with appropriate commands. E.g. 'reaction').
 
@@ -321,6 +353,11 @@ async def handleHelp(ctx):
 
                               E.g. !ms view current'''
 
+    listMsg = '''Lists all the currently scheduled messages, with their postID, post time, and a preview of their content.
+                                  Format: !ms list
+
+                                  E.g. !ms list'''
+
     fields = [
         {'name': 'add', 'value': addMsg},
         {'name': 'remove', 'value': removeMsg},
@@ -328,7 +365,8 @@ async def handleHelp(ctx):
         {'name': 'reaction', 'value': reactionMsg},
         {'name': 'reset', 'value': resetMsg},
         {'name': 'clear', 'value': clearMsg},
-        {'name': 'view', 'value': viewMsg}
+        {'name': 'view', 'value': viewMsg},
+        {'name': 'list', 'value': listMsg}
     ]
 
     await sendEmbeddedMessage(ctx, 0x7e42f5, {'title': "Message Scheduler Commands", 'desc': helpDesc}, fields)
@@ -354,6 +392,8 @@ async def handleSchedule(ctx, bot, cmd, args):
             await handleClear(ctx)
         elif cmd == 'view':
             await handleView(ctx, bot, args)
+        elif cmd == 'list':
+            await handleList(ctx)
         elif cmd == 'help':
             await handleHelp(ctx)
         else:
