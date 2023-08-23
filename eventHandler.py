@@ -108,25 +108,36 @@ async def handleRemove(ctx, bot, msg):
     await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': f"Post with ID {id} was removed from the post schedule!"}, [])
 
 
-async def handleSet(ctx, bot, msg):
+async def handleSet(ctx, msg):
+    msgObj = await getMessageObject(ctx)
+
+    msgObj['message'] = msg
+
+    await updateMessageObject(ctx, msgObj)
+
+    # no text was provided
+    if msg == '':
+        await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': 'The message was cleared!'}, [])
+        return
+
     await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': 'The message has been set!'}, [])
 
 
-async def handleAddReaction(ctx, msg):
-    modifiedMsg = msg.strip().split(' ')
-
-    # exiting on empty message
-    if len(modifiedMsg) == 1 and modifiedMsg[0] == '':
-        await sendEmbeddedMessage(ctx, 0xFFFF00, {'title': "Warning", 'desc': f"No reactions were specified"}, [])
-        return
+async def handleSetReaction(ctx, msg):
+    emojis = msg.strip().split(' ')
 
     msgObj = await getMessageObject(ctx)
 
-    for emoji in modifiedMsg:
-        msgObj['reactions'].append(emoji)
+    msgObj['reactions'] = emojis
 
     await updateMessageObject(ctx, msgObj)
-    await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': f"Reaction(s) :{msg}: added to message!"}, [])
+
+    # no emojis specified
+    if len(emojis) == 1 and emojis[0] == '':
+        await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': f"Reactions were cleared!"}, [])
+        return
+
+    await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': f"Reaction(s) {msg} added to message!"}, [])
 
 
 async def handleReset(ctx):
@@ -186,7 +197,7 @@ async def handleHelp(ctx):
 
                         E.g. !ms set This is an announcement'''
 
-    reactionMsg = '''Adds a reaction to the message.
+    reactionMsg = '''Sets the reactions for the message.
                              Format: !ms reaction [<emoji>]
 
                              E.g. !ms reaction 😄 😢 🥯'''
@@ -226,9 +237,9 @@ async def handleSchedule(ctx, bot, cmd, args):
         elif cmd == 'remove':
             await handleRemove(ctx, bot, args)
         elif cmd == 'set':
-            await handleSet(ctx, bot, args)
+            await handleSet(ctx, args)
         elif cmd == 'reaction':
-            await handleAddReaction(ctx, args)
+            await handleSetReaction(ctx, args)
         elif cmd == 'reset':
             await handleReset(ctx)
         elif cmd == 'clear':
