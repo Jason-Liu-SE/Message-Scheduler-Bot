@@ -87,9 +87,18 @@ async def updateScheduleObject(ctx, data):
         raise e
 
 
-async def handlePrint(ctx, bot, channel=None):
-    # getting the message
-    messageObj = await getMessageObject(ctx)
+async def handlePrint(ctx, bot, channel=None, postID=None):
+    # determining which message object to use
+    if not postID:
+        messageObj = await getMessageObject(ctx)
+    else:
+        scheduleObj = await getSchedule(ctx)
+        schedule = scheduleObj['schedule']
+
+        if postID not in schedule.keys():
+            raise ValueError(f"Could not find a post with post ID: {postID}")
+
+        messageObj = schedule[postID]
 
     if not messageObj:
         raise RuntimeError(f"Could not find an DB entry for server. Name:'{ctx.message.guild.name}'. ID: '{ctx.message.guild.id}'")
@@ -248,21 +257,21 @@ async def handleClear(ctx):
     await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': 'The post schedule was cleared!'})
 
 
-async def handleView(ctx, bot, rawArgs):
+async def handlePreview(ctx, bot, rawArgs):
     # getting the type of print operation
     args = rawArgs.strip().split(' ')
 
-    channel = args[0]
+    postType = args[0]
 
-    if len(args) != 1 or (channel != 'current' and not channel.isdigit()):
+    if len(args) != 1 or (postType != 'current' and not postType.isdigit()):
         raise ValueError('The provided arguments are invalid. Command will be ignored.')
 
     # determining which message to print
     try:
-        if channel == 'current':
+        if postType == 'current':
             await handlePrint(ctx, bot)
         else:
-            await handlePrint(ctx, bot, int(channel))
+            await handlePrint(ctx, bot, postID=postType)
     except RuntimeError as e:
         raise e
     except ValueError as e:
@@ -278,6 +287,7 @@ async def handleList(ctx):
         await sendEmbeddedMessage(ctx, 0xFFFF00, {'title': "Warning", 'desc': f"You don't have any scheduled posts!"})
         return
 
+    # returning a list of the schedule
     msg = ""
     count = 1
 
@@ -348,10 +358,10 @@ async def handleHelp(ctx):
 
                           E.g. !ms clear'''
 
-    viewMsg = '''Displays either the message that is currently being worked on or a particular scheduled post.
-                              Format: !ms view <current|post ID>
+    previewMsg = '''Displays either the message that is currently being worked on or a particular scheduled post.
+                              Format: !ms preview <current|post ID>
 
-                              E.g. !ms view current'''
+                              E.g. !ms preview current'''
 
     listMsg = '''Lists all the currently scheduled messages, with their postID, post time, and a preview of their content.
                                   Format: !ms list
@@ -365,7 +375,7 @@ async def handleHelp(ctx):
         {'name': 'reaction', 'value': reactionMsg},
         {'name': 'reset', 'value': resetMsg},
         {'name': 'clear', 'value': clearMsg},
-        {'name': 'view', 'value': viewMsg},
+        {'name': 'preview', 'value': previewMsg},
         {'name': 'list', 'value': listMsg}
     ]
 
@@ -390,8 +400,8 @@ async def handleSchedule(ctx, bot, cmd, args):
             await handleReset(ctx)
         elif cmd == 'clear':
             await handleClear(ctx)
-        elif cmd == 'view':
-            await handleView(ctx, bot, args)
+        elif cmd == 'preview':
+            await handlePreview(ctx, bot, args)
         elif cmd == 'list':
             await handleList(ctx)
         elif cmd == 'help':
