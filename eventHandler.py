@@ -359,61 +359,63 @@ async def handleList(ctx):
 
 
 async def handleHelp(ctx):
-    helpDesc = '''The Message Scheduler is used to schedule your posts based on the message that you set via the 'set' command (and any modifications made with appropriate commands. E.g. 'reaction').
-
-                          If you don't like your message, you can override it with another message via the 'set' command, or if you have made other modifications to the message
-                          (e.g. via 'reaction'), you can use the 'reset' command to reset the message entirely.
-
-                          Once you are happy with the message, you can schedule it via the 'add' command. If you want to delete the message after it has been scheduled, simply use
-                          the 'remove' command with the ID that you were provided when the messaged was scheduled.
-
-                          The commands are as follows:'''
+    helpDesc = '''The Message Scheduler is used to schedule your posts based on the message that you set via the 'set' command (and any modifications made with appropriate commands. E.g. 'reaction'). If you don't like your message, you can override it with another message via the 'set' command, or if you have made other modifications to the message (e.g. via 'reaction'), you can use the 'reset' command to reset the message entirely.
+Once you are happy with the message, you can schedule it via the 'add' command. If you want to delete the message after it has been scheduled, simply use the 'remove' command with the ID that you were provided when the messaged was scheduled.
+    
+The commands are as follows:'''
 
     addMsg = '''Adds the created message to the schedule. Note that a message must be created before it can be added to the schedule, and times are specified in UTC.
-                
-                BTW:
-                UTC Time = EST Time + 4 hours
-                UTC Time = EDT Time + 5 hours
-                
-                Format: !ms add <channel> <post date> <post time>
-
-                E.g. !ms add 1143322446909407323 30/01/2023 23:59
-                This would post the message on January 30, 2023 at 11:59 PM to the channel with ID 1143322446909407323'''
+    
+BTW:
+UTC Time = EST Time + 4 hours
+UTC Time = EDT Time + 5 hours
+    
+Format: !ms add <channel> <post date> <post time>
+    
+E.g. !ms add 1143322446909407323 30/01/2023 23:59
+This would post the message on January 30, 2023 at 11:59 PM to the channel with ID 1143322446909407323'''
 
     removeMsg = '''Removes a message from the schedule based on a post ID.
-                           Format: !ms remove <message post id>
-
-                           E.g. !ms remove 123'''
+    
+Format: !ms remove <message post id>
+    
+E.g. !ms remove 123'''
 
     setMsg = '''Sets the message to be scheduled.
-                        Format: !ms set <message>
-
-                        E.g. !ms set This is an announcement'''
+    
+Format: !ms set <message>
+    
+E.g. !ms set This is an announcement'''
 
     reactionMsg = '''Sets the reactions for the message.
-                             Format: !ms reaction [<emoji>]
-
-                             E.g. !ms reaction 😄 😢 🥯'''
+    
+Format: !ms reaction [<emoji>]
+    
+E.g. !ms reaction 😄 😢 🥯'''
 
     resetMsg = '''Resets the message and all modifications made to it
-                          Format: !ms reset
-
-                          E.g. !ms reset'''
+    
+Format: !ms reset
+    
+E.g. !ms reset'''
 
     clearMsg = '''Un-schedules all previously scheduled messages
-                          Format: !ms clearSchedule
-
-                          E.g. !ms clearSchedule'''
+    
+Format: !ms clearSchedule
+    
+E.g. !ms clearSchedule'''
 
     previewMsg = '''Displays either the message that is currently being worked on or a particular scheduled post.
-                              Format: !ms preview <current|post ID>
-
-                              E.g. !ms preview current'''
+    
+Format: !ms preview <current|post ID>
+    
+E.g. !ms preview current'''
 
     listMsg = '''Lists all the currently scheduled messages, with their postID, post time, and a preview of their content.
-                                  Format: !ms list
-
-                                  E.g. !ms list'''
+    
+Format: !ms list
+    
+E.g. !ms list'''
 
     fields = [
         {'name': 'add', 'value': addMsg},
