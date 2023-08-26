@@ -470,7 +470,7 @@ Once you are happy with the message, you can schedule it via the 'add' command. 
     
 The commands are as follows:'''
 
-    addMsg = '''Adds the created message to the schedule. Note that a message must be created before it can be added to the schedule, and times are specified in UTC.
+    addMsg = '''Adds the created message to the schedule. Note that a message must be created before it can be added to the schedule, times are specified in UTC, and you can only schedule posts for the future (e.g. if the time is 5:04, you can't schedule a post for any time prior to or equal to 5:04).
     
 BTW:
 UTC Time = EST Time + 4 hours
