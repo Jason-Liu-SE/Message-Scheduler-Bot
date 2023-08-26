@@ -349,7 +349,7 @@ async def handleRemove(ctx, msg):
     postID = msg.strip().split(' ')[0]
 
     if not postID.isdigit():
-        raise TypeError("Invalid post ID: {postID}. Post IDs may only contain numbers.")
+        raise TypeError(f"Invalid post ID: {postID}. Post IDs may only contain numbers.")
 
     post = await getPostById(int(postID))
 
