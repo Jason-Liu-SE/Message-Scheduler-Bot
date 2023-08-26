@@ -239,10 +239,14 @@ async def sendPost(post):
 
 
 def getSecondsFromNextMinute():
-    now = datetime.now()
-    nextMinute = datetime(now.year, now.month, now.day, now.hour, now.minute+1, 0, 0)
+    try:
+        now = datetime.now()
+        nextMinute = datetime(now.year, now.month, now.day, now.hour, now.minute, 0, 0) + timedelta(minutes=1)
 
-    return (nextMinute-now).seconds
+        return (nextMinute - now).seconds
+    except Exception as e:
+        print(e)
+        return 0
 
 
 @tasks.loop(seconds=0)
