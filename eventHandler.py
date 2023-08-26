@@ -251,25 +251,28 @@ def getSecondsFromNextMinute():
 
 @tasks.loop(seconds=0)
 async def manageScheduleLoop():
-    delay = getSecondsFromNextMinute()
+    try:
+        delay = getSecondsFromNextMinute()
 
-    if delay == 0:
-        return
+        if delay == 0:
+            return
 
-    await asyncio.sleep(delay)
+        await asyncio.sleep(delay)
 
-    # determining if there are any posts to be posted for the current minute
-    date = datetime.now().astimezone(timezone.utc)
+        # determining if there are any posts to be posted for the current minute
+        date = datetime.now().astimezone(timezone.utc)
 
-    posts = pymongoManager.get_posts_in_date_range(date + timedelta(seconds=-90), date + timedelta(seconds=1))
+        posts = pymongoManager.get_posts_in_date_range(date + timedelta(seconds=-90), date + timedelta(seconds=1))
 
-    # posting the posts if there are any
-    for post in posts:
-        try:
-            await sendPost(post)
-            await deletePostById(post['_id'])
-        except Exception as e:
-            print(e)
+        # posting the posts if there are any
+        for post in posts:
+            try:
+                await sendPost(post)
+                await deletePostById(post['_id'])
+            except Exception as e:
+                print(e)
+    except Exception as e:
+        print(e)
 
 
 @manageScheduleLoop.before_loop
