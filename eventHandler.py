@@ -21,7 +21,7 @@ async def registerServerWithDB(ctx):
 
     try:
         if not msgObj:
-            await updateMessageObject(ctx, {'message': '', 'reactions': [], 'attachments': []})
+            await updateMessageObject(ctx, {'message': '', 'reactions': [], 'attachments': {'message_id': '', 'channel_id': ''}})
     except RuntimeError as e:
         raise Exception(e)
 
@@ -45,6 +45,29 @@ async def sendMessage(message, bot, content, channel=None, attachments=None):
             return await c.send(content=res, files=attachments)
 
         return await message.channel.send(content=res, files=attachments)
+    except RuntimeError as e:
+        raise e
+    except ValueError as e:
+        raise e
+    except Exception as e:
+        print(e)
+
+
+async def sendMessageByChannelID(content, channelID: int, attachments=None):
+    try:
+        res = str(content)
+
+        # content can't be empty
+        if not content:
+            raise ValueError('No message is set.')
+
+        channel = bot.get_channel(channelID)
+
+        # non-existent channel
+        if not channel:
+            raise RuntimeError(f"Could not find channel '{channelID}' to send the message to.")
+
+        return await channel.send(content=res, files=attachments)
     except RuntimeError as e:
         raise e
     except ValueError as e:
@@ -108,17 +131,17 @@ async def handlePrint(ctx, bot, channel=None, postID=None):
     else:
         schedule = await getScheduleByServerId(ctx.message.guild.id)
 
-        if postID not in schedule.keys():
+        if int(postID) not in schedule.keys():
             raise ValueError(f"Could not find a post with post ID: {postID}")
 
-        messageObj = schedule[postID]
+        messageObj = schedule[int(postID)]
 
     # adding attachments
     attachments = []
 
     try:
-        if len(messageObj['attachments']) > 0:
-            msg = await ctx.fetch_message(messageObj['attachments'][0]['message_id'])
+        if messageObj['attachments']['message_id'] != '':
+            msg = await ctx.fetch_message(messageObj['attachments']['message_id'])
 
             for f in msg.attachments:
                 file = await f.to_file()
@@ -171,30 +194,74 @@ async def validateDate(dateData):
         raise ValueError("The time was not provided in hh:mm format.")
 
 
-def getPostDelay():
+async def sendPost(post):
+    server = await bot.fetch_guild(int(post['server_id']))
+
+    # adding attachments
+    attachments = []
+
+    try:
+        if post['attachments']['message_id'] != '' and post['attachments']['channel_id'] != '':
+            channel = await bot.fetch_channel(int(post['attachments']['channel_id']))
+            msg = await channel.fetch_message(int(post['attachments']['message_id']))
+
+            for f in msg.attachments:
+                file = await f.to_file()
+                attachments.append(file)
+    except Exception as e:
+        print(e)
+
+    # sending the message
+    try:
+        msg = await sendMessageByChannelID(post['message'], int(post['channel']), attachments)
+    except RuntimeError as e:
+        raise e
+    except ValueError as e:
+        raise e
+
+    # adding emojis
+    if server:
+        for reaction in post['reactions']:
+            try:
+                emoji = discord.utils.get(server.emojis, name=reaction)  # set to a custom emoji by default
+
+                if not emoji:  # standard emojis
+                    emoji = reaction
+
+                await msg.add_reaction(emoji)
+            except:
+                print(f"Unknown emoji: {reaction}")
+
+
+def getSecondsFromNextMinute():
     now = datetime.now()
-    future = now + timedelta(seconds=10)
+    nextMinute = datetime(now.year, now.month, now.day, now.hour, now.minute+1, 0, 0)
 
-    return (future - now).total_seconds()
+    return (nextMinute-now).seconds
 
 
-@tasks.loop(seconds=10)
+@tasks.loop(seconds=0)
 async def manageScheduleLoop():
+    delay = getSecondsFromNextMinute()
+
+    if delay == 0:
+        return
+
+    await asyncio.sleep(delay)
+
     # determining if there are any posts to be posted for the current minute
-    print("looping...")
+    date = datetime.now().astimezone(timezone.utc)
 
-    date = datetime(2023, 8, 25, 4, 1, 0, 0)
-
-    posts = pymongoManager.get_posts_in_date_range(date, (date + timedelta(minutes=1)))
-
-    print(posts)
+    posts = pymongoManager.get_posts_in_date_range(date + timedelta(minutes=-2), date)
 
     # posting the posts if there are any
-    # await asyncio.sleep(secondsUntil())
+    for post in posts:
+        try:
+            await sendPost(post)
+            await deletePostById(post['_id'])
+        except Exception as e:
+            print(e)
 
-    # channel = bot.get_channel(1143699152258207815)
-
-    # await channel.send('Hey, this is an automated message!')
 
 @manageScheduleLoop.before_loop
 async def beforeLoop():
@@ -251,7 +318,7 @@ async def handleAdd(ctx, rawArgs):
         raise RuntimeError("Could not add the message to the schedule.")
 
     try:
-        await updateMessageObject(ctx, {'message': '', 'reactions': [], 'attachments': []})  # reset the current message
+        await updateMessageObject(ctx, {'message': '', 'reactions': [], 'attachments': {'message_id': '', 'channel_id': ''}})  # reset the current message
     except:
         print(e)
         raise RuntimeError("Schedule updated, but the message was not reset.")
@@ -286,7 +353,7 @@ async def handleRemove(ctx, msg):
 async def handleSet(ctx, msg):
     msgObj = await getMessageObject(ctx)
     msgObj['message'] = msg
-    msgObj['attachments'] = [{'message_id': ctx.message.id, 'filename': attachment.filename, 'url': attachment.url, 'id': attachment.id} for attachment in ctx.message.attachments]
+    msgObj['attachments'] = {'message_id': ctx.message.id, 'channel_id': ctx.message.channel.id}
 
     await updateMessageObject(ctx, msgObj)
 
@@ -317,7 +384,7 @@ async def handleSetReaction(ctx, msg):
 
 async def handleReset(ctx):
     try:
-        await updateMessageObject(ctx, {'message': '', 'reactions': [], 'attachments': []})
+        await updateMessageObject(ctx, {'message': '', 'reactions': [], 'attachments': {'message_id': '', 'channel_id': ''}})
     except RuntimeError as e:
         print(e)
         raise RuntimeError(f"Could not reset the message. The command will be ignored.")

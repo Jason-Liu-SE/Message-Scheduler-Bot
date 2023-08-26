@@ -1,3 +1,4 @@
+import pymongo
 from pymongo import MongoClient
 import os
 from datetime import datetime
@@ -71,14 +72,10 @@ def update_collection(collectionName, id, data):
 
 def get_posts_in_date_range(start, end):
     try:
-        print(f"start: {start}\tend:{end}")
-
         collection = db['schedules']
 
-        # rawData = collection.find({'_id': 1142203767513690193, 'schedule': {'16929812110499': {'time': datetime.strptime('2023-08-25T04:01:00.000+00:00', '%d/%m/%YT%H:%M:%S%z')}}})
-        # rawData = collection.find({'_id': 1142203767513690193, 'schedule': {
-        #     '16929812110499': {'message': 'msg1'}}})
-        rawData = collection.find({'_id': 1142203767513690193, 'schedule.16929812110499.message': 'msg1'})
+        rawData = collection.find({'time': {'$gte': start, '$lte': end}})
+        rawData.sort([('server_id', pymongo.ASCENDING), ('channel', pymongo.ASCENDING)])
 
         data = []
 
