@@ -1,6 +1,6 @@
 import pymongoManager
 import discord
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import math
 import asyncio
 from discord.ext import tasks
@@ -18,13 +18,10 @@ def init(b):
 async def registerServerWithDB(ctx):
     # instantiating a schedule and message collection entry if one doesn't exist
     msgObj = await getMessageObject(ctx)
-    scheduleObj = await getSchedule(ctx)
 
     try:
         if not msgObj:
             await updateMessageObject(ctx, {'message': '', 'reactions': [], 'attachments': []})
-        if not scheduleObj:
-            await updateScheduleObject(ctx, {})
     except RuntimeError as e:
         raise Exception(e)
 
@@ -69,11 +66,32 @@ async def sendEmbeddedMessage(message, col, mainContent, fields=None, inline=Fal
 
 
 async def getMessageObject(ctx):
-    return pymongoManager.find_in_collection('messages', ctx.message.guild.id)
+    return pymongoManager.find_in_collection_by_id('messages', ctx.message.guild.id)
 
 
-async def getSchedule(ctx):
-    return pymongoManager.find_in_collection('schedules', ctx.message.guild.id)
+async def getScheduleByServerId(serverID):
+    return pymongoManager.find_all_in_collection('schedules', {'server_id': serverID})
+
+
+async def getPostById(postID: int):
+    try:
+        return pymongoManager.find_in_collection_by_id('schedules', int(postID))
+    except RuntimeError as e:
+        raise e
+
+
+async def deletePostById(postID: int):
+    try:
+        pymongoManager.delete_by_id('schedules', int(postID))
+    except RuntimeError as e:
+        raise e
+
+
+async def deleteServerPosts(serverID):
+    try:
+        pymongoManager.delete_all_by_query('schedules', {'server_id': serverID})
+    except RuntimeError as e:
+        raise e
 
 
 async def updateMessageObject(ctx, data):
@@ -83,38 +101,28 @@ async def updateMessageObject(ctx, data):
         raise e
 
 
-async def updateScheduleObject(ctx, data):
-    try:
-        pymongoManager.update_collection('schedules', ctx.message.guild.id, {'schedule': data})
-    except RuntimeError as e:
-        raise e
-
-
 async def handlePrint(ctx, bot, channel=None, postID=None):
     # determining which message object to use
     if not postID:
         messageObj = await getMessageObject(ctx)
     else:
-        scheduleObj = await getSchedule(ctx)
-        schedule = scheduleObj['schedule']
+        schedule = await getScheduleByServerId(ctx.message.guild.id)
 
         if postID not in schedule.keys():
             raise ValueError(f"Could not find a post with post ID: {postID}")
 
         messageObj = schedule[postID]
 
-    if not messageObj:
-        raise RuntimeError(f"Could not find an DB entry for server. Name:'{ctx.message.guild.name}'. ID: '{ctx.message.guild.id}'")
-
     # adding attachments
     attachments = []
 
     try:
-        msg = await ctx.fetch_message(messageObj['attachments'][0]['message_id'])
+        if len(messageObj['attachments']) > 0:
+            msg = await ctx.fetch_message(messageObj['attachments'][0]['message_id'])
 
-        for f in msg.attachments:
-            file = await f.to_file()
-            attachments.append(file)
+            for f in msg.attachments:
+                file = await f.to_file()
+                attachments.append(file)
     except Exception as e:
         print(e)
 
@@ -139,6 +147,13 @@ async def handlePrint(ctx, bot, channel=None, postID=None):
             print(f"Unknown emoji: {reaction}")
 
 
+async def updateSchedule(id, data):
+    try:
+        pymongoManager.update_collection('schedules', id, data)
+    except RuntimeError as e:
+        raise e
+
+
 async def validateChannel(channel):
     if not channel.isdigit():  # ensure that the provided value could be a channel
         raise ValueError("The channel must be a numerical value")
@@ -156,45 +171,41 @@ async def validateDate(dateData):
         raise ValueError("The time was not provided in hh:mm format.")
 
 
-# async def manageScheduleLoop():
-#     while True:
-#         now = datetime.now()
-#         future = now + timedelta(seconds=10)
-#
-#         delay = (future - now).total_seconds()
-#
-#         await asyncio.sleep(delay)
-#
-#         channel = bot.get_channel(1143699152258207815)
-#
-#         await channel.send('Hey, this is an automated message!')
-
-def secondsUntil():
+def getPostDelay():
     now = datetime.now()
     future = now + timedelta(seconds=10)
 
     return (future - now).total_seconds()
 
 
-# @tasks.loop(minutes=1)
-# async def manageScheduleLoop():
-#     await asyncio.sleep(secondsUntil())
-#
-#     channel = bot.get_channel(1143699152258207815)
-#
-#     await channel.send('Hey, this is an automated message!')
+@tasks.loop(seconds=10)
+async def manageScheduleLoop():
+    # determining if there are any posts to be posted for the current minute
+    print("looping...")
 
-# @manageScheduleLoop.before_loop
-# async def beforeLoop():
-#     await bot.wait_until_ready()
-#     print("Scheduling loop started")
+    date = datetime(2023, 8, 25, 4, 1, 0, 0)
+
+    posts = pymongoManager.get_posts_in_date_range(date, (date + timedelta(minutes=1)))
+
+    print(posts)
+
+    # posting the posts if there are any
+    # await asyncio.sleep(secondsUntil())
+
+    # channel = bot.get_channel(1143699152258207815)
+
+    # await channel.send('Hey, this is an automated message!')
+
+@manageScheduleLoop.before_loop
+async def beforeLoop():
+    await bot.wait_until_ready()
+    print("Scheduling loop started")
 
 #####################################################################
 ############################# Handlers ##############################
 #####################################################################
 async def handleReady():
     print("Bot connected")
-    # await manageScheduleLoop()
 
 
 async def handleAdd(ctx, rawArgs):
@@ -223,47 +234,57 @@ async def handleAdd(ctx, rawArgs):
     if msgObj['message'] == '':
         raise ValueError('No message was set! This command was ignored.')
 
-    # generate the associated message ID
-    postID = str(math.floor((datetime.now() - datetime(1970, 1, 1)).total_seconds()*10000))
+    # setting the postID to the message id of the message that called the 'add' command
+    postID = ctx.message.id
 
     # db updates
-    schedule = await getSchedule(ctx)
-
-    schedule['schedule'][postID] = {'channel': channel, 'message': msgObj['message'], 'reactions': msgObj['reactions'], 'attachments': msgObj['attachments'], 'time': dateObj}
+    try:
+        scheduleData = {'server_id': ctx.message.guild.id, 'channel': channel, 'message': msgObj['message'],
+                        'reactions': msgObj['reactions'], 'attachments': msgObj['attachments'], 'time': dateObj}
+    except Exception as e:
+        print(e)
 
     try:
-        await updateScheduleObject(ctx, schedule['schedule'])  # schedule the current message
-        await updateMessageObject(ctx, {'message': '', 'reactions': [], 'attachments': []})  # reset the current message
-
-        # informing the user
-        await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': f"Message added to post schedule!\n\n**Post ID**: {postID}"})
+        await updateSchedule(postID, scheduleData)  # schedule the current message
     except RuntimeError as e:
         print(e)
         raise RuntimeError("Could not add the message to the schedule.")
 
+    try:
+        await updateMessageObject(ctx, {'message': '', 'reactions': [], 'attachments': []})  # reset the current message
+    except:
+        print(e)
+        raise RuntimeError("Schedule updated, but the message was not reset.")
+
+    # informing the user
+    await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success",
+                                              'desc': f"Message added to post schedule!\n\n**Post ID**: {postID}"})
 
 async def handleRemove(ctx, msg):
     postID = msg.strip().split(' ')[0]
 
-    scheduleObj = await getSchedule(ctx)
+    if not postID.isdigit():
+        raise TypeError("Invalid post ID: {postID}. Post IDs may only contain numbers.")
+
+    post = await getPostById(int(postID))
 
     # no scheduled post corresponds with the provided one
-    if postID not in scheduleObj['schedule'].keys():
-        raise ValueError(f"There is no scheduled post with the corresponding postID: {postID}")
+    if not post:
+        raise ValueError(f"There is no scheduled post with the corresponding post ID: {postID}")
 
     # deleting the msg
-    del scheduleObj['schedule'][postID]
+    try:
+       await deletePostById(int(postID))
+    except RuntimeError as e:
+        print(e)
+        raise RuntimeError(f"Could not delete the post with ID: {postID}. The command will be ignored.")
 
-    await updateScheduleObject(ctx, scheduleObj['schedule'])
-
-    await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': f"Post with ID {postID} was removed from the post schedule!"})
+    await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success",
+                                              'desc': f"Post with ID {postID} was removed from the post schedule!"})
 
 
 async def handleSet(ctx, msg):
     msgObj = await getMessageObject(ctx)
-
-    print(ctx.message.attachments)
-
     msgObj['message'] = msg
     msgObj['attachments'] = [{'message_id': ctx.message.id, 'filename': attachment.filename, 'url': attachment.url, 'id': attachment.id} for attachment in ctx.message.attachments]
 
@@ -295,14 +316,22 @@ async def handleSetReaction(ctx, msg):
 
 
 async def handleReset(ctx):
-    await updateMessageObject(ctx, {'message': '', 'reactions': [], 'attachments': []})
+    try:
+        await updateMessageObject(ctx, {'message': '', 'reactions': [], 'attachments': []})
+    except RuntimeError as e:
+        print(e)
+        raise RuntimeError(f"Could not reset the message. The command will be ignored.")
+
     await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': 'The message has been reset!'})
 
-
 async def handleClear(ctx):
-    await updateScheduleObject(ctx, {})
-    await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': 'The post schedule was cleared!'})
+    try:
+        await deleteServerPosts(ctx.message.guild.id)
+    except RuntimeError as e:
+        print(e)
+        raise RuntimeError(f"Could not delete all scheduled posts for this server. This command will be ignored.")
 
+    await sendEmbeddedMessage(ctx, 0x00FF00, {'title': "Success", 'desc': 'The post schedule was cleared!'})
 
 async def handlePreview(ctx, bot, rawArgs):
     # getting the type of print operation
@@ -326,11 +355,10 @@ async def handlePreview(ctx, bot, rawArgs):
 
 
 async def handleList(ctx):
-    scheduleObj = await getSchedule(ctx)
-    schedule = scheduleObj['schedule']
+    schedule = await getScheduleByServerId(ctx.message.guild.id)
 
     # no scheduled posts
-    if len(schedule) == 0:
+    if not schedule or len(schedule) == 0:
         await sendEmbeddedMessage(ctx, 0xFFFF00, {'title': "Warning", 'desc': f"You don't have any scheduled posts!"})
         return
 
@@ -458,6 +486,8 @@ async def handleSchedule(ctx, bot, cmd, args):
         else:
             await sendEmbeddedMessage(ctx, 0xFFFF00, {'title': 'Warning', 'desc': "Unrecognized command. Type '!ms help' for the list of commands!"})
     except ValueError as e:  # this only throws if the user provided invalid arguments
+        await sendEmbeddedMessage(ctx, 0xFF0000, {'title': 'ERROR', 'desc': e})
+    except TypeError as e:
         await sendEmbeddedMessage(ctx, 0xFF0000, {'title': 'ERROR', 'desc': e})
     except RuntimeError as e:
         await sendEmbeddedMessage(ctx, 0xFF0000, {'title': 'ERROR', 'desc': e})
