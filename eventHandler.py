@@ -194,6 +194,11 @@ async def validateDate(dateData):
         raise ValueError("The time was not provided in hh:mm format.")
 
 
+async def validateTime(dateObj):
+    if dateObj <= datetime.now().astimezone(timezone.utc):
+        raise ValueError(f"The time must be in the future.")
+
+
 async def sendPost(post):
     server = await bot.fetch_guild(int(post['server_id']))
 
@@ -252,7 +257,7 @@ async def manageScheduleLoop():
     # determining if there are any posts to be posted for the current minute
     date = datetime.now().astimezone(timezone.utc)
 
-    posts = pymongoManager.get_posts_in_date_range(date + timedelta(minutes=-2), date)
+    posts = pymongoManager.get_posts_in_date_range(date + timedelta(seconds=-90), date + timedelta(seconds=1))
 
     # posting the posts if there are any
     for post in posts:
@@ -293,6 +298,12 @@ async def handleAdd(ctx, rawArgs):
     # formatting the data
     channel = int(args[0])
     dateObj = datetime.strptime(args[1] + 'T' + args[2] + ':00+00:00', dateFormat)
+
+    # validating the user's desired time
+    try:
+        await validateTime(dateObj)
+    except ValueError as e:
+        raise e
 
     # getting stored message
     msgObj = await getMessageObject(ctx)
