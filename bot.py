@@ -21,14 +21,20 @@ def runDiscordBot():
 
     # commands
     @bot.command(name='ms')
-    @commands.check(isAdmin)
+    @commands.has_any_role(807340774781878333, 838169320461697085, 807340024088625192, '👁‍🗨 Head Moderator 👁‍🗨', 'Moderator', 'Administrator')
     async def messageScheduler(ctx, cmd='', *, args=''):
-        await eventHandler.handleSchedule(ctx, bot, cmd, args)
+        try:
+            await eventHandler.handleSchedule(ctx, bot, cmd, args)
+        except Exception as e:
+            print(e)
 
     # trigger declaration
     @bot.event
     async def on_ready():
-        await eventHandler.handleReady()
+        try:
+            await eventHandler.handleReady()
+        except Exception as e:
+            print(e)
 
     # execution
     eventHandler.manageScheduleLoop.start()
