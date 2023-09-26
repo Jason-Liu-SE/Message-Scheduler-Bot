@@ -171,23 +171,23 @@ async def validateDate(dateData):
 
 def secondsUntil():
     now = datetime.now()
-    future = now + timedelta(seconds=10)
+    future = now + timedelta(seconds=5)
 
     return (future - now).total_seconds()
 
 
-# @tasks.loop(minutes=1)
-# async def manageScheduleLoop():
-#     await asyncio.sleep(secondsUntil())
-#
-#     channel = bot.get_channel(1143699152258207815)
-#
-#     await channel.send('Hey, this is an automated message!')
+@tasks.loop(seconds=0)
+async def manageScheduleLoop():
+    await asyncio.sleep(secondsUntil())
 
-# @manageScheduleLoop.before_loop
-# async def beforeLoop():
-#     await bot.wait_until_ready()
-#     print("Scheduling loop started")
+    channel = bot.get_channel(1143699152258207815)
+
+    await channel.send('Hey, this is an automated message!')
+
+@manageScheduleLoop.before_loop
+async def beforeLoop():
+    await bot.wait_until_ready()
+    print("Scheduling loop started")
 
 #####################################################################
 ############################# Handlers ##############################

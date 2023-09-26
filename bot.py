@@ -31,5 +31,5 @@ def runDiscordBot():
         await eventHandler.handleReady()
 
     # execution
-    # eventHandler.manageScheduleLoop.start()
+    eventHandler.manageScheduleLoop.start()
     bot.run(os.environ['TOKEN'])
