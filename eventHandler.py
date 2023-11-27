@@ -260,7 +260,7 @@ def getSecondsFromNextMinute():
         return 0
 
 
-@tasks.loop(seconds=0)
+@tasks.loop(seconds=5)
 async def manageScheduleLoop():
     try:
         delay = getSecondsFromNextMinute()
