@@ -22,6 +22,7 @@ async def registerServerWithDB(ctx):
     msgObj = await getMessageObject(ctx)
 
     try:
+        # adding the msgObj if a corresponding server doesn't already exist in the DB
         if not msgObj:
             await updateMessageObject(ctx, {'message': '', 'reactions': [], 'attachments': {'message_id': '', 'channel_id': ''}})
     except RuntimeError as e:
