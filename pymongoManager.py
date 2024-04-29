@@ -17,7 +17,7 @@ def connect():
 
         print('Connected to MongoDB')
     except:
-        raise RuntimeError('Could not connect to MongoDB')
+        raise RuntimeError('ERROR: Could not connect to MongoDB')
 
 
 def insert_to_collection(collectionName, data):
@@ -26,7 +26,7 @@ def insert_to_collection(collectionName, data):
 
         collection.insert_one(data)
     except:
-        raise RuntimeError(f"Failed to insert into collection '{collectionName}'")
+        raise RuntimeError(f"ERROR: Failed to insert into collection '{collectionName}'")
 
 
 # returns a  item in a collection, by id
@@ -37,7 +37,7 @@ def find_in_collection_by_id(collectionName, id):
 
         return data
     except:
-        print(f"Failed while fetching single query from '{collectionName}'")
+        print(f"ERROR: Failed while fetching single query from '{collectionName}'")
 
     return None
 
@@ -58,7 +58,7 @@ def find_all_in_collection(collectionName, query):
 
         return data
     except:
-        print(f"Failed while fetching all from '{collectionName}' with query '{query}'")
+        print(f"ERROR: Failed while fetching all from '{collectionName}' with query '{query}'")
 
 
 def update_collection(collectionName, id, data):
@@ -67,7 +67,7 @@ def update_collection(collectionName, id, data):
 
         collection.update_one({'_id': id}, {"$set": data}, upsert=True)
     except:
-        raise RuntimeError(f"Failed to update the collection '{collectionName}'")
+        raise RuntimeError(f"ERROR: Failed to update the collection '{collectionName}'")
 
 
 def get_posts_in_date_range(start, end):
@@ -85,7 +85,7 @@ def get_posts_in_date_range(start, end):
 
         return data
     except:
-        raise RuntimeError(f"Failed to retrieve entries in collection 'schedules' for date range {start} to {end}")
+        raise RuntimeError(f"ERROR: Failed to retrieve entries in collection 'schedules' for date range {start} to {end}")
 
 
 def delete_by_id(collection, id):
@@ -94,7 +94,7 @@ def delete_by_id(collection, id):
 
         collection.delete_one({'_id': id})
     except:
-        raise RuntimeError(f"Failed to delete entry in collection '{collection}' with id '{id}'")
+        raise RuntimeError(f"ERROR: Failed to delete entry in collection '{collection}' with id '{id}'")
 
 def delete_all_by_query(collection, query):
     try:
@@ -102,4 +102,4 @@ def delete_all_by_query(collection, query):
 
         collection.delete_many(query)
     except:
-        raise RuntimeError(f"Failed to delete entries in collection '{collection}' with query '{query}'")
+        raise RuntimeError(f"ERROR: Failed to delete entries in collection '{collection}' with query '{query}'")
