@@ -1,6 +1,10 @@
 import subprocess
 import time
 
+def delay_restart():
+    print("Restarting in 1 minute")
+    time.sleep(60)
+
 if __name__ == '__main__':
     while True:
         try:
@@ -8,7 +12,6 @@ if __name__ == '__main__':
             bot_process = subprocess.Popen(["python", "bot_main.py"])
             bot_process.wait()
             print("Exiting message scheduler bot subprocess")
-            time.sleep(5)
         except Exception as e:
             print(f"FATAL ERROR: Bot crashed with error: {e}")
-            time.sleep(5)
+        delay_restart()
