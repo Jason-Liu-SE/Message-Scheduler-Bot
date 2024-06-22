@@ -22,7 +22,6 @@ async def registerServerWithDB(ctx):
     msgObj = await getMessageObject(ctx)
 
     try:
-        # adding the msgObj if a corresponding server doesn't already exist in the DB
         if not msgObj:
             await updateMessageObject(ctx, {'message': '', 'reactions': [], 'attachments': {'message_id': '', 'channel_id': ''}})
     except RuntimeError as e:
@@ -274,8 +273,9 @@ async def manageScheduleLoop():
         # determining if there are any posts to be posted for the current minute
         date = datetime.now().astimezone(timezone.utc)
 
-        posts = pymongoManager.get_posts_in_date_range(
-            date + timedelta(seconds=-90), date + timedelta(seconds=1))
+        epoch = datetime.utcfromtimestamp(0)
+
+        posts = pymongoManager.get_posts_in_date_range(epoch, date + timedelta(seconds=1))
 
         # posting the posts if there are any
         for post in posts:
@@ -509,8 +509,8 @@ The commands are as follows:'''
     addMsg = '''Adds the created message to the schedule. Note that a message must be created before it can be added to the schedule, times are specified in UTC, and you can only schedule posts for the future (e.g. if the time is 5:04, you can't schedule a post for any time prior to or equal to 5:04).
     
 BTW:
-UTC Time = EST Time + 4 hours
-UTC Time = EDT Time + 5 hours
+UTC Time = EDT Time + 4 hours
+UTC Time = EST Time + 5 hours
     
 Format: !ms add <channel> <post date> <post time>
     
