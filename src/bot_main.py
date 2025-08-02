@@ -1,10 +1,10 @@
 import bot
 from dotenv import load_dotenv
-import helpers.pymongoManager as pymongoManager
+import helpers.pymongo_manager as pymongo_manager
 
 try:
     load_dotenv()
-    pymongoManager.connect()
+    pymongo_manager.connect()
     bot.runDiscordBot()
 except Exception as e:
     raise e

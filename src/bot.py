@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 import os
-import helpers.eventHandler as eventHandler
+import managers.event_manager as event_manager
 
 
 def isAdmin(ctx):
@@ -9,8 +9,6 @@ def isAdmin(ctx):
 
 
 # main bot driver function
-
-
 def runDiscordBot():
     # initialization
     intents = discord.Intents.default()
@@ -18,7 +16,7 @@ def runDiscordBot():
     intents.messages = True
 
     bot = commands.Bot(command_prefix="!", intents=intents)
-    eventHandler.init(bot)
+    event_manager.init(bot)
 
     # commands
     @bot.command(name="ms")
@@ -32,7 +30,7 @@ def runDiscordBot():
     )
     async def messageScheduler(ctx, cmd="", *, args=""):
         try:
-            await eventHandler.handleSchedule(ctx, bot, cmd, args)
+            await event_manager.handleMessageSchedule(ctx, bot, cmd, args)
         except Exception as e:
             print(e)
 
@@ -40,10 +38,10 @@ def runDiscordBot():
     @bot.event
     async def on_ready():
         try:
-            await eventHandler.handleReady()
+            await event_manager.handleReady()
         except Exception as e:
             print(e)
 
     # execution
-    eventHandler.manageScheduleLoop.start()
+    event_manager.manageScheduleLoop.start()
     bot.run(os.environ["TOKEN"])
