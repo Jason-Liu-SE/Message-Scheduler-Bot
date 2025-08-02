@@ -1,3 +1,4 @@
+from functools import cmp_to_key
 import discord
 from helpers.message_utils import *
 from helpers.validate import *
@@ -281,15 +282,21 @@ async def handleList(ctx):
 
     # returning a list of the schedule
     msg = ""
-
     msgList = []
 
-    for index, postID in enumerate(schedule.keys()):
+    sorted_items = dict(
+        sorted(
+            schedule.items(),
+            key=cmp_to_key(lambda a, b: 1 if a[1]["time"] > b[1]["time"] else -1),
+        )
+    )
+
+    for index, postId in enumerate(sorted_items):
         msg += (
             f"**#{index + 1}**\n"
-            f"**Post ID**: {postID}\n"
-            f"**Post Time**: {schedule[postID]['time']}\n"
-            f"**Preview**: {schedule[postID]['message'] if len(schedule[postID]['message']) < 50 else schedule[postID]['message'][0:47] + '...'}\n\n"
+            f"**Post ID**: {postId}\n"
+            f"**Post Time**: {schedule[postId]['time']}\n"
+            f"**Preview**: {schedule[postId]['message'] if len(schedule[postId]['message']) < 50 else schedule[postId]['message'][0:47] + '...'}\n\n"
         )
 
         if len(msg) > 1500:
