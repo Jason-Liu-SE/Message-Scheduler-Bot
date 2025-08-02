@@ -12,8 +12,8 @@ def isAdmin(ctx):
 def run_discord_bot():
     # initialization
     intents = discord.Intents.default()
+    intents.message_content = True
     intents.typing = True
-    intents.messages = True
 
     bot = commands.Bot(command_prefix="!", intents=intents)
     event_manager.init(bot)
@@ -39,9 +39,11 @@ def run_discord_bot():
     async def on_ready():
         try:
             await event_manager.handle_ready()
+
+            if not event_manager.manage_schedule_loop.is_running():
+                event_manager.manage_schedule_loop.start()
         except Exception as e:
             print(e)
 
     # execution
-    event_manager.manage_schedule_loop.start()
     bot.run(os.environ["TOKEN"])
