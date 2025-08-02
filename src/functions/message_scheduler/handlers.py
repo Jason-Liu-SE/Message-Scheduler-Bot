@@ -281,13 +281,12 @@ async def handleList(ctx):
 
     # returning a list of the schedule
     msg = ""
-    count = 1
 
     msgList = []
 
-    for postID in schedule.keys():
+    for index, postID in enumerate(schedule.keys()):
         msg += (
-            f"**#{count}**\n"
+            f"**#{index + 1}**\n"
             f"**Post ID**: {postID}\n"
             f"**Post Time**: {schedule[postID]['time']}\n"
             f"**Preview**: {schedule[postID]['message'] if len(schedule[postID]['message']) < 50 else schedule[postID]['message'][0:47] + '...'}\n\n"
@@ -296,8 +295,6 @@ async def handleList(ctx):
         if len(msg) > 1500:
             msgList.append(msg)
             msg = ""
-
-        count += 1
 
     msgList.append(msg)
 
