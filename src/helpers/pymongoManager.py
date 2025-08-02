@@ -8,16 +8,16 @@ db = None
 
 def connect():
     try:
-        CONNECTION_STRING = os.environ['MONGO_ID']
+        CONNECTION_STRING = os.environ["MONGO_ID"]
 
         client = MongoClient(CONNECTION_STRING)
 
         global db
-        db = client[os.environ['DBNAME']]
+        db = client[os.environ["DBNAME"]]
 
-        print('Connected to MongoDB')
+        print("Connected to MongoDB")
     except:
-        raise RuntimeError('ERROR: Could not connect to MongoDB')
+        raise RuntimeError("ERROR: Could not connect to MongoDB")
 
 
 def insert_to_collection(collectionName, data):
@@ -26,14 +26,16 @@ def insert_to_collection(collectionName, data):
 
         collection.insert_one(data)
     except:
-        raise RuntimeError(f"ERROR: Failed to insert into collection '{collectionName}'")
+        raise RuntimeError(
+            f"ERROR: Failed to insert into collection '{collectionName}'"
+        )
 
 
 # returns a  item in a collection, by id
 def find_in_collection_by_id(collectionName, id):
     try:
         collection = db[collectionName]
-        data = collection.find_one({'_id': id})
+        data = collection.find_one({"_id": id})
 
         return data
     except:
@@ -51,31 +53,33 @@ def find_all_in_collection(collectionName, query):
 
         for item in rawData:
             temp = item
-            itemId = temp['_id']
-            del temp['_id']
+            itemId = temp["_id"]
+            del temp["_id"]
 
             data[itemId] = temp
 
         return data
     except:
-        print(f"ERROR: Failed while fetching all from '{collectionName}' with query '{query}'")
+        print(
+            f"ERROR: Failed while fetching all from '{collectionName}' with query '{query}'"
+        )
 
 
 def update_collection(collectionName, id, data):
     try:
         collection = db[collectionName]
 
-        collection.update_one({'_id': id}, {"$set": data}, upsert=True)
+        collection.update_one({"_id": id}, {"$set": data}, upsert=True)
     except:
         raise RuntimeError(f"ERROR: Failed to update the collection '{collectionName}'")
 
 
 def get_posts_in_date_range(start, end):
     try:
-        collection = db['schedules']
+        collection = db["schedules"]
 
-        rawData = collection.find({'time': {'$gte': start, '$lte': end}})
-        rawData.sort([('server_id', pymongo.ASCENDING), ('channel', pymongo.ASCENDING)])
+        rawData = collection.find({"time": {"$gte": start, "$lte": end}})
+        rawData.sort([("server_id", pymongo.ASCENDING), ("channel", pymongo.ASCENDING)])
 
         data = []
 
@@ -85,16 +89,21 @@ def get_posts_in_date_range(start, end):
 
         return data
     except:
-        raise RuntimeError(f"ERROR: Failed to retrieve entries in collection 'schedules' for date range {start} to {end}")
+        raise RuntimeError(
+            f"ERROR: Failed to retrieve entries in collection 'schedules' for date range {start} to {end}"
+        )
 
 
 def delete_by_id(collection, id):
     try:
         collection = db[collection]
 
-        collection.delete_one({'_id': id})
+        collection.delete_one({"_id": id})
     except:
-        raise RuntimeError(f"ERROR: Failed to delete entry in collection '{collection}' with id '{id}'")
+        raise RuntimeError(
+            f"ERROR: Failed to delete entry in collection '{collection}' with id '{id}'"
+        )
+
 
 def delete_all_by_query(collection, query):
     try:
@@ -102,4 +111,6 @@ def delete_all_by_query(collection, query):
 
         collection.delete_many(query)
     except:
-        raise RuntimeError(f"ERROR: Failed to delete entries in collection '{collection}' with query '{query}'")
+        raise RuntimeError(
+            f"ERROR: Failed to delete entries in collection '{collection}' with query '{query}'"
+        )
