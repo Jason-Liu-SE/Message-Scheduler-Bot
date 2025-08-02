@@ -94,7 +94,8 @@ async def handleMessageSchedule(ctx, bot, cmd, args):
         await sendEmbeddedMessage(ctx, 0xFF0000, {"title": "ERROR", "desc": e})
     except RuntimeError as e:
         await sendEmbeddedMessage(ctx, 0xFF0000, {"title": "ERROR", "desc": e})
-    except Exception:
+    except Exception as e:
+        print(f"Error: {e}")
         await sendEmbeddedMessage(
             ctx,
             0xFF0000,
