@@ -5,6 +5,6 @@ import helpers.pymongo_manager as pymongo_manager
 try:
     load_dotenv()
     pymongo_manager.connect()
-    bot.runDiscordBot()
+    bot.run_discord_bot()
 except Exception as e:
     raise e

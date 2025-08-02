@@ -16,9 +16,9 @@ def init(b):
 
 
 @tasks.loop(seconds=5)
-async def manageScheduleLoop():
+async def manage_schedule_loop():
     try:
-        delay = getSecondsFromNextMinute()
+        delay = get_seconds_from_next_minute()
 
         if delay == 0:
             return
@@ -37,50 +37,50 @@ async def manageScheduleLoop():
         # posting the posts if there are any
         for post in posts:
             try:
-                await sendPost(post, bot)
-                await deletePostById(post["_id"])
+                await send_post(post, bot)
+                await delete_post_by_id(post["_id"])
             except Exception as e:
                 print(e)
     except Exception as e:
         print(e)
 
 
-@manageScheduleLoop.before_loop
-async def beforeLoop():
+@manage_schedule_loop.before_loop
+async def before_loop():
     await bot.wait_until_ready()
     print("Scheduling loop started")
 
 
-async def handleReady():
+async def handle_ready():
     print("Bot connected")
 
 
-async def handleMessageSchedule(ctx, bot, cmd, args):
+async def handle_message_schedule(ctx, bot, cmd, args):
     # creating a schedule and message object for new servers
-    await registerServerWithDB(ctx)
+    await register_server_with_DB(ctx)
 
     # interpreting commands
     try:
         if cmd == "add":
-            await handleAdd(ctx, args)
+            await handle_add(ctx, args)
         elif cmd == "remove":
-            await handleRemove(ctx, args)
+            await handle_remove(ctx, args)
         elif cmd == "set":
-            await handleSet(ctx, args)
+            await handle_set(ctx, args)
         elif cmd == "reaction":
-            await handleSetReaction(ctx, args)
+            await handle_set_reaction(ctx, args)
         elif cmd == "reset":
-            await handleReset(ctx)
+            await handle_reset(ctx)
         elif cmd == "clearSchedule":
-            await handleClear(ctx)
+            await handle_clear(ctx)
         elif cmd == "preview":
-            await handlePreview(ctx, bot, args)
+            await handle_preview(ctx, bot, args)
         elif cmd == "list":
-            await handleList(ctx)
+            await handle_list(ctx)
         elif cmd == "help":
-            await handleHelp(ctx)
+            await handle_help(ctx)
         else:
-            await sendEmbeddedMessage(
+            await send_embedded_message(
                 ctx,
                 0xFFFF00,
                 {
@@ -89,14 +89,14 @@ async def handleMessageSchedule(ctx, bot, cmd, args):
                 },
             )
     except ValueError as e:  # this only throws if the user provided invalid arguments
-        await sendEmbeddedMessage(ctx, 0xFF0000, {"title": "ERROR", "desc": e})
+        await send_embedded_message(ctx, 0xFF0000, {"title": "ERROR", "desc": e})
     except TypeError as e:
-        await sendEmbeddedMessage(ctx, 0xFF0000, {"title": "ERROR", "desc": e})
+        await send_embedded_message(ctx, 0xFF0000, {"title": "ERROR", "desc": e})
     except RuntimeError as e:
-        await sendEmbeddedMessage(ctx, 0xFF0000, {"title": "ERROR", "desc": e})
+        await send_embedded_message(ctx, 0xFF0000, {"title": "ERROR", "desc": e})
     except Exception as e:
         print(f"Error: {e}")
-        await sendEmbeddedMessage(
+        await send_embedded_message(
             ctx,
             0xFF0000,
             {"title": "ERROR", "desc": "An error occurred. Command will be ignored."},

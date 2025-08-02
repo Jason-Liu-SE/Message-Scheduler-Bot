@@ -9,7 +9,7 @@ def isAdmin(ctx):
 
 
 # main bot driver function
-def runDiscordBot():
+def run_discord_bot():
     # initialization
     intents = discord.Intents.default()
     intents.typing = True
@@ -28,9 +28,9 @@ def runDiscordBot():
         "Moderator",
         "Administrator",
     )
-    async def messageScheduler(ctx, cmd="", *, args=""):
+    async def message_scheduler(ctx, cmd="", *, args=""):
         try:
-            await event_manager.handleMessageSchedule(ctx, bot, cmd, args)
+            await event_manager.handle_message_schedule(ctx, bot, cmd, args)
         except Exception as e:
             print(e)
 
@@ -38,10 +38,10 @@ def runDiscordBot():
     @bot.event
     async def on_ready():
         try:
-            await event_manager.handleReady()
+            await event_manager.handle_ready()
         except Exception as e:
             print(e)
 
     # execution
-    event_manager.manageScheduleLoop.start()
+    event_manager.manage_schedule_loop.start()
     bot.run(os.environ["TOKEN"])

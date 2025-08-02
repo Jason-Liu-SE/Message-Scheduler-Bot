@@ -1,14 +1,14 @@
 from helpers import pymongo_manager
 
 
-async def registerServerWithDB(ctx):
+async def register_server_with_DB(ctx):
     # instantiating a schedule and message collection entry if one doesn't exist
-    msgObj = await getMessageObject(ctx)
+    msgObj = await get_message_object(ctx)
 
     try:
         # adding the msgObj if a corresponding server doesn't already exist in the DB
         if not msgObj:
-            await updateMessageObject(
+            await update_message_object(
                 ctx,
                 {
                     "message": "",
@@ -20,43 +20,43 @@ async def registerServerWithDB(ctx):
         raise Exception(e)
 
 
-async def getMessageObject(ctx):
+async def get_message_object(ctx):
     return pymongo_manager.find_in_collection_by_id("messages", ctx.message.guild.id)
 
 
-async def getScheduleByServerId(serverID):
+async def get_schedule_by_server_id(serverID):
     return pymongo_manager.find_all_in_collection("schedules", {"server_id": serverID})
 
 
-async def getPostById(postID: int):
+async def get_post_by_id(postID: int):
     try:
         return pymongo_manager.find_in_collection_by_id("schedules", int(postID))
     except RuntimeError as e:
         raise e
 
 
-async def deletePostById(postID: int):
+async def delete_post_by_id(postID: int):
     try:
         pymongo_manager.delete_by_id("schedules", int(postID))
     except RuntimeError as e:
         raise e
 
 
-async def deleteServerPosts(serverID):
+async def delete_server_posts(serverID):
     try:
         pymongo_manager.delete_all_by_query("schedules", {"server_id": serverID})
     except RuntimeError as e:
         raise e
 
 
-async def updateMessageObject(ctx, data):
+async def update_message_object(ctx, data):
     try:
         pymongo_manager.update_collection("messages", ctx.message.guild.id, data)
     except RuntimeError as e:
         raise e
 
 
-async def updateSchedule(id, data):
+async def update_schedule(id, data):
     try:
         pymongo_manager.update_collection("schedules", id, data)
     except RuntimeError as e:

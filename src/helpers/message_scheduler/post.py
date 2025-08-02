@@ -2,7 +2,7 @@ import discord
 from helpers.message_utils import *
 
 
-async def sendPost(post, bot):
+async def send_post(post, bot):
     server = await bot.fetch_guild(int(post["server_id"]))
 
     # adding attachments
@@ -24,7 +24,7 @@ async def sendPost(post, bot):
 
     # sending the message
     try:
-        msg = await sendMessageByChannelID(
+        msg = await send_message_by_channel_id(
             post["message"], int(post["channel"]), bot, attachments
         )
     except RuntimeError as e:

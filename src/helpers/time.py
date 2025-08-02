@@ -3,9 +3,9 @@ from datetime import datetime, timedelta, timezone
 
 # dateData has 2 fields, date and time. date is in dd/mm/yyyy format and
 # time is in hh:mm format
-async def validateDate(dateData):
-    date = dateData["date"].split("/")
-    time = dateData["time"].split(":")
+async def validate_date(date_data):
+    date = date_data["date"].split("/")
+    time = date_data["time"].split(":")
 
     # dd/mm/yyyy format check
     if not (
@@ -29,19 +29,19 @@ async def validateDate(dateData):
         raise ValueError("The time was not provided in hh:mm format.")
 
 
-async def validateTime(dateObj):
-    if dateObj <= datetime.now().astimezone(timezone.utc):
+async def validate_time(date_obj):
+    if date_obj <= datetime.now().astimezone(timezone.utc):
         raise ValueError(f"The time must be in the future.")
 
 
-def getSecondsFromNextMinute():
+def get_seconds_from_next_minute():
     try:
         now = datetime.now()
-        nextMinute = datetime(
+        next_minute = datetime(
             now.year, now.month, now.day, now.hour, now.minute, 0, 0
         ) + timedelta(minutes=1)
 
-        return (nextMinute - now).seconds
+        return (next_minute - now).seconds
     except Exception as e:
         print(e)
         return 0

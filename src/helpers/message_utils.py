@@ -1,7 +1,7 @@
 import discord
 
 
-async def sendMessage(message, bot, content, channel=None, attachments=None):
+async def send_message(message, bot, content, channel=None, attachments=None):
     try:
         res = str(content)
 
@@ -30,7 +30,7 @@ async def sendMessage(message, bot, content, channel=None, attachments=None):
         print(e)
 
 
-async def sendMessageByChannelID(content, channelID: int, bot, attachments=None):
+async def send_message_by_channel_id(content, channel_id: int, bot, attachments=None):
     try:
         res = str(content)
 
@@ -38,12 +38,12 @@ async def sendMessageByChannelID(content, channelID: int, bot, attachments=None)
         if not content:
             raise ValueError("No message is set.")
 
-        channel = bot.get_channel(channelID)
+        channel = bot.get_channel(channel_id)
 
         # non-existent channel
         if not channel:
             raise RuntimeError(
-                f"Could not find channel '{channelID}' to send the message to."
+                f"Could not find channel '{channel_id}' to send the message to."
             )
 
         return await channel.send(content=res, files=attachments)
@@ -55,13 +55,13 @@ async def sendMessageByChannelID(content, channelID: int, bot, attachments=None)
         print(e)
 
 
-async def sendEmbeddedMessage(message, col, mainContent, fields=None, inline=False):
-    embedVar = discord.Embed(
-        title=mainContent["title"], description=mainContent["desc"], color=col
+async def send_embedded_message(message, col, main_content, fields=None, inline=False):
+    embed_var = discord.Embed(
+        title=main_content["title"], description=main_content["desc"], color=col
     )
 
     if fields:
         for field in fields:
-            embedVar.add_field(name=field["name"], value=field["value"], inline=inline)
+            embed_var.add_field(name=field["name"], value=field["value"], inline=inline)
 
-    await message.channel.send(embed=embedVar)
+    await message.channel.send(embed=embed_var)
