@@ -85,7 +85,7 @@ class MessageScheduler(commands.Cog):
     async def handle_print(self, ctx, bot, channel=None, post_id=None):
         # determining which message object to use
         if not post_id:
-            message_obj = await get_message_object(ctx)
+            message_obj = await get_message_object(ctx.message.guild.id)
         else:
             schedule = await get_schedule_by_server_id(ctx.message.guild.id)
 
@@ -158,7 +158,7 @@ class MessageScheduler(commands.Cog):
             raise e
 
         # getting stored message
-        msg_obj = await get_message_object(ctx)
+        msg_obj = await get_message_object(ctx.message.guild.id)
 
         # no message was set
         if msg_obj["message"] == "":
@@ -190,7 +190,7 @@ class MessageScheduler(commands.Cog):
         try:
             # reset the current message
             await update_message_object(
-                ctx,
+                ctx.message.guild.id,
                 {
                     "message": "",
                     "reactions": [],
@@ -246,14 +246,14 @@ class MessageScheduler(commands.Cog):
         )
 
     async def handle_set(self, ctx, msg):
-        msg_obj = await get_message_object(ctx)
+        msg_obj = await get_message_object(ctx.message.guild.id)
         msg_obj["message"] = msg
         msg_obj["attachments"] = {
             "message_id": ctx.message.id,
             "channel_id": ctx.message.channel.id,
         }
 
-        await update_message_object(ctx, msg_obj)
+        await update_message_object(ctx.message.guild.id, msg_obj)
 
         # no text was provided
         if msg == "":
@@ -269,11 +269,11 @@ class MessageScheduler(commands.Cog):
     async def handle_set_reaction(self, ctx, msg):
         emojis = msg.strip().split(" ")
 
-        msg_obj = await get_message_object(ctx)
+        msg_obj = await get_message_object(ctx.message.guild.id)
 
         msg_obj["reactions"] = emojis
 
-        await update_message_object(ctx, msg_obj)
+        await update_message_object(ctx.message.guild.id, msg_obj)
 
         # no emojis specified
         if len(emojis) == 1 and emojis[0] == "":
@@ -291,7 +291,7 @@ class MessageScheduler(commands.Cog):
     async def handle_reset(self, ctx):
         try:
             await update_message_object(
-                ctx,
+                ctx.message.guild.id,
                 {
                     "message": "",
                     "reactions": [],
