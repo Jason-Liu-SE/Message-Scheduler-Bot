@@ -6,7 +6,9 @@ from helpers.message_scheduler.mongo_utils import *
 from helpers.message_utils import *
 
 
-async def handle_command(cmd, interaction: discord.Interaction, allowed_roles):
+async def handle_command(
+    cmd, interaction: discord.Interaction, allowed_roles, *cmd_args
+):
     # role check
     if not any(role.id in allowed_roles for role in interaction.user.roles):
         await interaction.response.send_message(
@@ -19,7 +21,7 @@ async def handle_command(cmd, interaction: discord.Interaction, allowed_roles):
     await interaction.response.send_message("Add")
     # interpreting commands
     try:
-        cmd()
+        cmd(interaction, cmd_args)
     except ValueError as e:  # this only throws if the user provided invalid arguments
         await send_embedded_message(ctx, 0xFF0000, {"title": "ERROR", "desc": e})
     except TypeError as e:
