@@ -35,7 +35,7 @@ def run_discord_bot():
                     guild=discord.Object(id=int(os.environ["TEST_DISCORD_SERVER"]))
                 )
             else:
-                await bot.tree.sync(guild=discord.Object())
+                await bot.tree.sync()
 
             Logger.info("Bot connected")
 

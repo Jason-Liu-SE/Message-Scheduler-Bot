@@ -5,9 +5,8 @@ from discord import app_commands
 
 
 msAdmin = app_commands.Group(
-    name="ms admin",
+    name="ms",
     description="Admin Message Scheduler commands",
-    guild_ids=[1142203767513690193],
 )
 
 
