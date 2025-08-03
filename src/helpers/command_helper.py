@@ -17,7 +17,7 @@ async def handle_command(
         return
 
     # creating a schedule and message object for new servers
-    await register_server_with_DB(ctx)
+    await register_server_with_DB(interaction)
     await interaction.response.send_message("Add")
     # interpreting commands
     try:
