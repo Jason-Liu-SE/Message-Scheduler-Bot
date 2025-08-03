@@ -1,10 +1,9 @@
 from functools import cmp_to_key
-import discord
-from helpers.message_utils import *
-from helpers.validate import *
-from helpers.time import *
-from helpers.message_utils import *
+from helpers.logger import Logger
 from helpers.message_scheduler.mongo_utils import *
+from helpers.message_utils import *
+from helpers.time import *
+from helpers.validate import *
 
 
 async def handle_print(ctx, bot, channel=None, post_id=None):
@@ -30,7 +29,7 @@ async def handle_print(ctx, bot, channel=None, post_id=None):
                 file = await f.to_file()
                 attachments.append(file)
     except Exception as e:
-        print(e)
+        Logger.error(e)
 
     # sending the message
     try:
@@ -51,7 +50,7 @@ async def handle_print(ctx, bot, channel=None, post_id=None):
 
             await msg.add_reaction(emoji)
         except:
-            print(f"Unknown emoji: {reaction}")
+            Logger.error(f"Unknown emoji: {reaction}")
 
 
 async def handle_add(ctx, rawArgs):
@@ -100,13 +99,13 @@ async def handle_add(ctx, rawArgs):
             "time": date_obj,
         }
     except Exception as e:
-        print(e)
+        Logger.error(e)
 
     try:
         # schedule the current message
         await update_schedule(post_id, schedule_data)
     except RuntimeError as e:
-        print(e)
+        Logger.error(e)
         raise RuntimeError("Could not add the message to the schedule.")
 
     try:
@@ -120,7 +119,7 @@ async def handle_add(ctx, rawArgs):
             },
         )
     except:
-        print(e)
+        Logger.error(e)
         raise RuntimeError("Schedule updated, but the message was not reset.")
 
     # informing the user
@@ -154,7 +153,7 @@ async def handle_remove(ctx, msg):
     try:
         await delete_post_by_id(int(post_id))
     except RuntimeError as e:
-        print(e)
+        Logger.error(e)
         raise RuntimeError(
             f"Could not delete the post with ID: {post_id}. The command will be ignored."
         )
@@ -225,7 +224,7 @@ async def handle_reset(ctx):
             },
         )
     except RuntimeError as e:
-        print(e)
+        Logger.error(e)
         raise RuntimeError(f"Could not reset the message. The command will be ignored.")
 
     await send_embedded_message(
@@ -237,7 +236,7 @@ async def handle_clear(ctx):
     try:
         await delete_server_posts(ctx.message.guild.id)
     except RuntimeError as e:
-        print(e)
+        Logger.error(e)
         raise RuntimeError(
             f"Could not delete all scheduled posts for this server. This command will be ignored."
         )

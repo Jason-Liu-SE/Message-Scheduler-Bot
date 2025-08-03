@@ -1,11 +1,9 @@
+from helpers.logger import *
 import discord
 from discord.ext import commands
 import os
-import managers.event_manager as event_manager
-
-
-def isAdmin(ctx):
-    return ctx.author.guild_permissions.administrator
+from managers.event_manager import *
+from commands.message_scheduler.message_scheduler import *
 
 
 # main bot driver function
@@ -16,34 +14,35 @@ def run_discord_bot():
     intents.typing = True
 
     bot = commands.Bot(command_prefix="!", intents=intents)
-    event_manager.init(bot)
-
-    # commands
-    @bot.command(name="ms")
-    @commands.has_any_role(
-        807340774781878333,
-        838169320461697085,
-        807340024088625192,
-        "👁‍🗨 Head Moderator 👁‍🗨",
-        "Moderator",
-        "Administrator",
-    )
-    async def message_scheduler(ctx, cmd="", *, args=""):
-        try:
-            await event_manager.handle_message_schedule(ctx, bot, cmd, args)
-        except Exception as e:
-            print(e)
+    event_manager = EventManager(bot)
 
     # trigger declaration
     @bot.event
     async def on_ready():
         try:
-            await event_manager.handle_ready()
+            Logger.info("Adding commands...")
+
+            ms = MessageScheduler(bot)
+            await bot.add_cog(ms)
+            await ms.init()
+
+            is_dev = os.getenv("IS_DEV")
+
+            if is_dev != None and is_dev.lower() == "true":
+                Logger.info("In development mode")
+
+                await bot.tree.sync(
+                    guild=discord.Object(id=int(os.environ["TEST_DISCORD_SERVER"]))
+                )
+            else:
+                await bot.tree.sync(guild=discord.Object())
+
+            Logger.info("Bot connected")
 
             if not event_manager.manage_schedule_loop.is_running():
                 event_manager.manage_schedule_loop.start()
         except Exception as e:
-            print(e)
+            Logger.error(e)
 
     # execution
     bot.run(os.environ["TOKEN"])
