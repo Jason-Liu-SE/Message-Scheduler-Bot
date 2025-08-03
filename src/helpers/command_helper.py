@@ -1,6 +1,4 @@
 import discord
-from discord.ext import commands
-from discord import app_commands
 
 from helpers.message_scheduler.mongo_utils import *
 from helpers.message_utils import *
