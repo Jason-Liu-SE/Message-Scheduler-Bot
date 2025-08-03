@@ -1,9 +1,9 @@
+from commands.message_scheduler import MessageScheduler
 from helpers.logger import *
 import discord
 from discord.ext import commands
 import os
 from managers.event_manager import *
-from commands.message_scheduler.message_scheduler import *
 
 
 # main bot driver function
