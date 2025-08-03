@@ -20,7 +20,7 @@ async def handle_command(
 
     # interpreting commands
     try:
-        cmd(interaction, cmd_args)
+        cmd(interaction, *cmd_args)
     except ValueError as e:  # this only throws if the user provided invalid arguments
         Logger.error(e)
         await send_embedded_message(
