@@ -17,22 +17,29 @@ async def handle_command(
     # creating a schedule and message object for new servers
     await register_server_with_db(interaction)
     await interaction.response.send_message("Add")
+
     # interpreting commands
     try:
         cmd(interaction, cmd_args)
     except ValueError as e:  # this only throws if the user provided invalid arguments
         Logger.error(e)
-        await send_embedded_message(ctx, 0xFF0000, {"title": "ERROR", "desc": e})
+        await send_embedded_message(
+            interaction, 0xFF0000, {"title": "ERROR", "desc": e}
+        )
     except TypeError as e:
         Logger.error(e)
-        await send_embedded_message(ctx, 0xFF0000, {"title": "ERROR", "desc": e})
+        await send_embedded_message(
+            interaction, 0xFF0000, {"title": "ERROR", "desc": e}
+        )
     except RuntimeError as e:
         Logger.error(e)
-        await send_embedded_message(ctx, 0xFF0000, {"title": "ERROR", "desc": e})
+        await send_embedded_message(
+            interaction, 0xFF0000, {"title": "ERROR", "desc": e}
+        )
     except Exception as e:
         Logger.error(e)
         await send_embedded_message(
-            ctx,
+            interaction,
             0xFF0000,
             {
                 "title": "ERROR",

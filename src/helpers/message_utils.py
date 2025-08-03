@@ -56,13 +56,15 @@ async def send_message_by_channel_id(content, channel_id: int, bot, attachments=
         Logger.error(e)
 
 
-async def send_embedded_message(message, col, main_content, fields=None, inline=False):
+async def send_embedded_message(
+    interaction, color, main_content, fields=None, inline=False
+):
     embed_var = discord.Embed(
-        title=main_content["title"], description=main_content["desc"], color=col
+        title=main_content["title"], description=main_content["desc"], color=color
     )
 
     if fields:
         for field in fields:
             embed_var.add_field(name=field["name"], value=field["value"], inline=inline)
 
-    await message.channel.send(embed=embed_var)
+    await interaction.channel.send(embed=embed_var)
