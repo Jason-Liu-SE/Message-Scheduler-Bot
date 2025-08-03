@@ -99,7 +99,7 @@ class MessageScheduler(commands.Cog):
     async def handle_print(
         self,
         interaction: discord.Interaction,
-        channel: str | None = None,
+        channel: int | None = None,
         post_id: None | str = None,
     ) -> None:
         # determining which message object to use
@@ -364,7 +364,7 @@ class MessageScheduler(commands.Cog):
             if target.lower() == "current":
                 await self.handle_print(interaction)
             else:
-                await self.handle_print(interaction, post_id=target)
+                await self.handle_print(interaction, post_id=int(target))
         except RuntimeError as e:
             raise e
         except ValueError as e:
