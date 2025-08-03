@@ -26,12 +26,14 @@ class Logger:
     def warn(message):
         print(
             f"{Logger.__colours["BOLD"]}{Logger.__colours["DARKGRAY"]}{Logger.__get_date()} "
-            + f"{Logger.__colours["YELLOW"]}WARNING\t{message}{Logger.__colours["ENDC"]}"
+            + f"{Logger.__colours["YELLOW"]}WARNING{Logger.__colours["ENDC"]}\t"
+            + f"{Logger.__colours["YELLOW"]}{message}{Logger.__colours["ENDC"]}"
         )
 
     @staticmethod
     def error(message):
         print(
             f"{Logger.__colours["BOLD"]}{Logger.__colours["DARKGRAY"]}{Logger.__get_date()} "
-            + f"{Logger.__colours["RED"]}ERROR\t{message}{Logger.__colours["ENDC"]}"
+            + f"{Logger.__colours["RED"]}ERROR{Logger.__colours["ENDC"]}\t"
+            + f"{Logger.__colours["RED"]}{message}{Logger.__colours["ENDC"]}"
         )
