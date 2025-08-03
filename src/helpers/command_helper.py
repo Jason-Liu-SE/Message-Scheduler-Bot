@@ -12,12 +12,11 @@ async def handle_command(cmd, interaction, allowed_roles, *cmd_args):
         )
         return
 
-    # creating a schedule and message object for new servers
-    await register_server_with_db(interaction)
-    await interaction.response.send_message("Add")
-
-    # interpreting commands
     try:
+        # creating a schedule and message object for new servers
+        await register_server_with_db(interaction)
+
+        # handling command
         cmd(interaction, *cmd_args)
     except ValueError as e:  # this only throws if the user provided invalid arguments
         Logger.error(e)
