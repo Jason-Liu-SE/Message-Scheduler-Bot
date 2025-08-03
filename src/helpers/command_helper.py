@@ -7,7 +7,7 @@ from helpers.message_utils import *
 
 
 async def handle_command(
-    cmd, interaction: discord.Interaction, allowed_roles, *cmd_args
+    cmd, interaction: discord.Interaction, allowed_roles, **cmd_args
 ):
     # role check
     if not any(role.id in allowed_roles for role in interaction.user.roles):
