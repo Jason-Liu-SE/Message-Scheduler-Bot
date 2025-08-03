@@ -1,4 +1,5 @@
 import discord
+from helpers.logger import Logger
 
 
 async def send_message(message, bot, content, channel=None, attachments=None):
@@ -27,7 +28,7 @@ async def send_message(message, bot, content, channel=None, attachments=None):
     except ValueError as e:
         raise e
     except Exception as e:
-        print(e)
+        Logger.error(e)
 
 
 async def send_message_by_channel_id(content, channel_id: int, bot, attachments=None):
@@ -52,7 +53,7 @@ async def send_message_by_channel_id(content, channel_id: int, bot, attachments=
     except ValueError as e:
         raise e
     except Exception as e:
-        print(e)
+        Logger.error(e)
 
 
 async def send_embedded_message(message, col, main_content, fields=None, inline=False):

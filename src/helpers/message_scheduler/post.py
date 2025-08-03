@@ -20,7 +20,7 @@ async def send_post(post, bot):
                 file = await f.to_file()
                 attachments.append(file)
     except Exception as e:
-        print(e)
+        Logger.error(e)
 
     # sending the message
     try:
@@ -44,4 +44,4 @@ async def send_post(post, bot):
 
                 await msg.add_reaction(emoji)
             except:
-                print(f"Unknown emoji: {reaction}")
+                Logger.error(f"Unknown emoji: {reaction}")

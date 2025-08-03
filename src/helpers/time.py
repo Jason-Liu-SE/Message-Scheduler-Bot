@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from helpers.logger import Logger
 
 
 # dateData has 2 fields, date and time. date is in dd/mm/yyyy format and
@@ -43,5 +44,5 @@ def get_seconds_from_next_minute():
 
         return (next_minute - now).seconds
     except Exception as e:
-        print(e)
+        Logger.error(e)
         return 0

@@ -1,3 +1,4 @@
+from helpers.logger import Logger
 import pymongo
 from pymongo import MongoClient
 import os
@@ -15,7 +16,7 @@ def connect():
         global db
         db = client[os.environ["DBNAME"]]
 
-        print("Connected to MongoDB")
+        Logger.info("Connected to MongoDB")
     except:
         raise RuntimeError("ERROR: Could not connect to MongoDB")
 
@@ -39,7 +40,7 @@ def find_in_collection_by_id(collectionName, id):
 
         return data
     except:
-        print(f"ERROR: Failed while fetching single query from '{collectionName}'")
+        Logger.error(f"Failed while fetching single query from '{collectionName}'")
 
     return None
 
@@ -60,8 +61,8 @@ def find_all_in_collection(collectionName, query):
 
         return data
     except:
-        print(
-            f"ERROR: Failed while fetching all from '{collectionName}' with query '{query}'"
+        Logger.error(
+            f"Failed while fetching all from '{collectionName}' with query '{query}'"
         )
 
 
