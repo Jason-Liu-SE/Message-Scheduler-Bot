@@ -1,7 +1,7 @@
 from helpers import pymongo_manager
 
 
-async def register_server_with_DB(interaction):
+async def register_server_with_db(interaction):
     # instantiating a schedule and message collection entry if one doesn't exist
     msgObj = await get_message_object(interaction.message.guild.id)
 
