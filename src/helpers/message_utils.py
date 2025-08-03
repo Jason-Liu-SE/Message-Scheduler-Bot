@@ -2,7 +2,7 @@ import discord
 from helpers.logger import Logger
 
 
-async def send_message(message, bot, content, channel=None, attachments=None):
+async def send_message(interaction, bot, content, channel=None, attachments=None):
     try:
         res = str(content)
 
@@ -22,7 +22,7 @@ async def send_message(message, bot, content, channel=None, attachments=None):
 
             return await c.send(content=res, files=attachments)
 
-        return await message.channel.send(content=res, files=attachments)
+        return await interaction.channel.send(content=res, files=attachments)
     except RuntimeError as e:
         raise e
     except ValueError as e:

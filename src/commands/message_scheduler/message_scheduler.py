@@ -82,12 +82,14 @@ class MessageScheduler(commands.Cog):
     ####################################################################################
     ################################### HANDLERS #######################################
     ####################################################################################
-    async def handle_print(self, ctx, bot, channel=None, post_id=None):
+    async def handle_print(
+        self, interaction: discord.Interaction, bot, channel=None, post_id=None
+    ):
         # determining which message object to use
         if not post_id:
-            message_obj = await get_message_object(ctx.message.guild.id)
+            message_obj = await get_message_object(interaction.message.guild.id)
         else:
-            schedule = await get_schedule_by_server_id(ctx.message.guild.id)
+            schedule = await get_schedule_by_server_id(interaction.message.guild.id)
 
             if int(post_id) not in schedule.keys():
                 raise ValueError(f"Could not find a post with post ID: {post_id}")
@@ -99,7 +101,9 @@ class MessageScheduler(commands.Cog):
 
         try:
             if message_obj["attachments"]["message_id"] != "":
-                msg = await ctx.fetch_message(message_obj["attachments"]["message_id"])
+                msg = await interaction.channel.fetch_message()(
+                    message_obj["attachments"]["message_id"]
+                )
 
                 for f in msg.attachments:
                     file = await f.to_file()
@@ -110,7 +114,7 @@ class MessageScheduler(commands.Cog):
         # sending the message
         try:
             msg = await send_message(
-                ctx, bot, message_obj["message"], channel, attachments
+                interaction, bot, message_obj["message"], channel, attachments
             )
         except RuntimeError as e:
             raise e
@@ -121,7 +125,9 @@ class MessageScheduler(commands.Cog):
         for reaction in message_obj["reactions"]:
             try:
                 # set to a custom emoji by default
-                emoji = discord.utils.get(ctx.message.guild.emojis, name=reaction)
+                emoji = discord.utils.get(
+                    interaction.message.guild.emojis, name=reaction
+                )
 
                 if not emoji:  # standard emojis
                     emoji = reaction
@@ -130,7 +136,7 @@ class MessageScheduler(commands.Cog):
             except:
                 Logger.error(f"Unknown emoji: {reaction}")
 
-    async def handle_add(self, ctx, rawArgs):
+    async def handle_add(self, interaction: discord.Interaction, rawArgs):
         date_format = "%d/%m/%YT%H:%M:%S%z"
 
         # argument validation
@@ -158,19 +164,19 @@ class MessageScheduler(commands.Cog):
             raise e
 
         # getting stored message
-        msg_obj = await get_message_object(ctx.message.guild.id)
+        msg_obj = await get_message_object(interaction.message.guild.id)
 
         # no message was set
         if msg_obj["message"] == "":
             raise ValueError("No message was set! This command was ignored.")
 
         # setting the postID to the message id of the message that called the 'add' command
-        post_id = ctx.message.id
+        post_id = interaction.message.id
 
         # db updates
         try:
             schedule_data = {
-                "server_id": ctx.message.guild.id,
+                "server_id": interaction.message.guild.id,
                 "channel": channel,
                 "message": msg_obj["message"],
                 "reactions": msg_obj["reactions"],
@@ -190,7 +196,7 @@ class MessageScheduler(commands.Cog):
         try:
             # reset the current message
             await update_message_object(
-                ctx.message.guild.id,
+                interaction.message.guild.id,
                 {
                     "message": "",
                     "reactions": [],
@@ -203,7 +209,7 @@ class MessageScheduler(commands.Cog):
 
         # informing the user
         await send_embedded_message(
-            ctx,
+            interaction,
             0x00FF00,
             {
                 "title": "Success",
@@ -211,7 +217,7 @@ class MessageScheduler(commands.Cog):
             },
         )
 
-    async def handle_remove(self, ctx, msg):
+    async def handle_remove(self, interaction, msg):
         post_id = msg.strip().split(" ")[0]
 
         if not post_id.isdigit():
@@ -237,7 +243,7 @@ class MessageScheduler(commands.Cog):
             )
 
         await send_embedded_message(
-            ctx,
+            interaction,
             0x00FF00,
             {
                 "title": "Success",
@@ -245,53 +251,59 @@ class MessageScheduler(commands.Cog):
             },
         )
 
-    async def handle_set(self, ctx, msg):
-        msg_obj = await get_message_object(ctx.message.guild.id)
+    async def handle_set(self, interaction, msg):
+        msg_obj = await get_message_object(interaction.message.guild.id)
         msg_obj["message"] = msg
         msg_obj["attachments"] = {
-            "message_id": ctx.message.id,
-            "channel_id": ctx.message.channel.id,
+            "message_id": interaction.message.id,
+            "channel_id": interaction.message.channel.id,
         }
 
-        await update_message_object(ctx.message.guild.id, msg_obj)
+        await update_message_object(interaction.message.guild.id, msg_obj)
 
         # no text was provided
         if msg == "":
             await send_embedded_message(
-                ctx, 0x00FF00, {"title": "Success", "desc": "The message was cleared!"}
+                interaction,
+                0x00FF00,
+                {"title": "Success", "desc": "The message was cleared!"},
             )
             return
 
         await send_embedded_message(
-            ctx, 0x00FF00, {"title": "Success", "desc": "The message has been set!"}
+            interaction,
+            0x00FF00,
+            {"title": "Success", "desc": "The message has been set!"},
         )
 
-    async def handle_set_reaction(self, ctx, msg):
+    async def handle_set_reaction(self, interaction, msg):
         emojis = msg.strip().split(" ")
 
-        msg_obj = await get_message_object(ctx.message.guild.id)
+        msg_obj = await get_message_object(interaction.message.guild.id)
 
         msg_obj["reactions"] = emojis
 
-        await update_message_object(ctx.message.guild.id, msg_obj)
+        await update_message_object(interaction.message.guild.id, msg_obj)
 
         # no emojis specified
         if len(emojis) == 1 and emojis[0] == "":
             await send_embedded_message(
-                ctx, 0x00FF00, {"title": "Success", "desc": f"Reactions were cleared!"}
+                interaction,
+                0x00FF00,
+                {"title": "Success", "desc": f"Reactions were cleared!"},
             )
             return
 
         await send_embedded_message(
-            ctx,
+            interaction,
             0x00FF00,
             {"title": "Success", "desc": f"Reaction(s) {msg} added to message!"},
         )
 
-    async def handle_reset(self, ctx):
+    async def handle_reset(self, interaction):
         try:
             await update_message_object(
-                ctx.message.guild.id,
+                interaction.message.guild.id,
                 {
                     "message": "",
                     "reactions": [],
@@ -305,12 +317,14 @@ class MessageScheduler(commands.Cog):
             )
 
         await send_embedded_message(
-            ctx, 0x00FF00, {"title": "Success", "desc": "The message has been reset!"}
+            interaction,
+            0x00FF00,
+            {"title": "Success", "desc": "The message has been reset!"},
         )
 
-    async def handle_clear(self, ctx):
+    async def handle_clear(self, interaction):
         try:
-            await delete_server_posts(ctx.message.guild.id)
+            await delete_server_posts(interaction.message.guild.id)
         except RuntimeError as e:
             Logger.error(e)
             raise RuntimeError(
@@ -318,12 +332,12 @@ class MessageScheduler(commands.Cog):
             )
 
         await send_embedded_message(
-            ctx,
+            interaction,
             0x00FF00,
             {"title": "Success", "desc": "The post schedule was cleared!"},
         )
 
-    async def handle_preview(self, ctx, bot, rawArgs):
+    async def handle_preview(self, interaction, bot, rawArgs):
         # getting the type of print operation
         args = rawArgs.strip().split(" ")
 
@@ -337,21 +351,21 @@ class MessageScheduler(commands.Cog):
         # determining which message to print
         try:
             if postType == "current":
-                await self.handle_print(ctx, bot)
+                await self.handle_print(interaction, bot)
             else:
-                await self.handle_print(ctx, bot, post_id=postType)
+                await self.handle_print(interaction, bot, post_id=postType)
         except RuntimeError as e:
             raise e
         except ValueError as e:
             raise e
 
-    async def handle_list(self, ctx):
-        schedule = await get_schedule_by_server_id(ctx.message.guild.id)
+    async def handle_list(self, interaction):
+        schedule = await get_schedule_by_server_id(interaction.message.guild.id)
 
         # no scheduled posts
         if not schedule or len(schedule) == 0:
             await send_embedded_message(
-                ctx,
+                interaction,
                 0xFFFF00,
                 {"title": "Warning", "desc": f"You don't have any scheduled posts!"},
             )
@@ -384,10 +398,10 @@ class MessageScheduler(commands.Cog):
 
         for message in msg_list:
             await send_embedded_message(
-                ctx, 0x00FF00, {"title": "Posts", "desc": message}
+                interaction, 0x00FF00, {"title": "Posts", "desc": message}
             )
 
-    async def handle_help(self, ctx):
+    async def handle_help(self, interaction):
         help_desc = """The Message Scheduler is used to schedule your posts based on the message that you set via the 'set' command (and any modifications made with appropriate commands. E.g. 'reaction'). If you don't like your message, you can override it with another message via the 'set' command, or if you have made other modifications to the message (e.g. via 'reaction'), you can use the 'reset' command to reset the message entirely.
     Once you are happy with the message, you can schedule it via the 'add' command. If you want to delete the message after it has been scheduled, simply use the 'remove' command with the ID that you were provided when the messaged was scheduled.
         
@@ -458,7 +472,7 @@ class MessageScheduler(commands.Cog):
         ]
 
         await send_embedded_message(
-            ctx,
+            interaction,
             0x7E42F5,
             {"title": "Message Scheduler Commands", "desc": help_desc},
             fields,
