@@ -24,27 +24,27 @@ async def get_message_object(ctx):
     return pymongo_manager.find_in_collection_by_id("messages", ctx.message.guild.id)
 
 
-async def get_schedule_by_server_id(serverID):
-    return pymongo_manager.find_all_in_collection("schedules", {"server_id": serverID})
+async def get_schedule_by_server_id(server_id):
+    return pymongo_manager.find_all_in_collection("schedules", {"server_id": server_id})
 
 
-async def get_post_by_id(postID: int):
+async def get_post_by_id(post_id: int):
     try:
-        return pymongo_manager.find_in_collection_by_id("schedules", int(postID))
+        return pymongo_manager.find_in_collection_by_id("schedules", int(post_id))
     except RuntimeError as e:
         raise e
 
 
-async def delete_post_by_id(postID: int):
+async def delete_post_by_id(post_id: int):
     try:
-        pymongo_manager.delete_by_id("schedules", int(postID))
+        pymongo_manager.delete_by_id("schedules", int(post_id))
     except RuntimeError as e:
         raise e
 
 
-async def delete_server_posts(serverID):
+async def delete_server_posts(server_id):
     try:
-        pymongo_manager.delete_all_by_query("schedules", {"server_id": serverID})
+        pymongo_manager.delete_all_by_query("schedules", {"server_id": server_id})
     except RuntimeError as e:
         raise e
 
