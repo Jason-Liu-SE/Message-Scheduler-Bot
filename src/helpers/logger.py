@@ -19,7 +19,7 @@ class Logger:
     def info(message):
         print(
             f"{Logger.__colours["BOLD"]}{Logger.__colours["DARKGRAY"]}{Logger.__get_date()} "
-            + f"{Logger.__colours["BLUE"]}INFO\t{Logger.__colours["ENDC"]} {message}"
+            + f"{Logger.__colours["BLUE"]}INFO\t{Logger.__colours["ENDC"]}{message}"
         )
 
     @staticmethod
