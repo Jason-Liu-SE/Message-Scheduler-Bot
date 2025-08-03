@@ -2,6 +2,7 @@ import subprocess
 import time
 
 from helpers.logger import Logger
+from rich.traceback import install
 
 
 def delay_restart():
@@ -12,6 +13,7 @@ def delay_restart():
 if __name__ == "__main__":
     while True:
         try:
+            install()
             Logger.info("Starting message scheduler bot subprocess")
             bot_process = subprocess.Popen(["python", "./src/bot_main.py"])
             bot_process.wait()
