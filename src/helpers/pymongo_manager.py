@@ -1,13 +1,13 @@
+from datetime import datetime
 from helpers.logger import Logger
 import pymongo
 from pymongo import MongoClient
 import os
-from datetime import datetime
 
 db = None
 
 
-def connect():
+def connect() -> None:
     try:
         CONNECTION_STRING = os.environ["MONGO_ID"]
 
@@ -21,7 +21,7 @@ def connect():
         raise RuntimeError("ERROR: Could not connect to MongoDB")
 
 
-def insert_to_collection(collectionName, data):
+def insert_to_collection(collectionName: str, data: dict) -> None:
     try:
         collection = db[collectionName]
 
@@ -33,7 +33,7 @@ def insert_to_collection(collectionName, data):
 
 
 # returns a  item in a collection, by id
-def find_in_collection_by_id(collectionName, id):
+def find_in_collection_by_id(collectionName: str, id: int) -> dict:
     try:
         collection = db[collectionName]
         data = collection.find_one({"_id": id})
@@ -45,7 +45,7 @@ def find_in_collection_by_id(collectionName, id):
     return None
 
 
-def find_all_in_collection(collectionName, query):
+def find_all_in_collection(collectionName: str, query: dict) -> dict:
     try:
         collection = db[collectionName]
         rawData = collection.find(query)
@@ -66,7 +66,7 @@ def find_all_in_collection(collectionName, query):
         )
 
 
-def update_collection(collectionName, id, data):
+def update_collection(collectionName: str, id: int, data: dict) -> None:
     try:
         collection = db[collectionName]
 
@@ -75,7 +75,7 @@ def update_collection(collectionName, id, data):
         raise RuntimeError(f"ERROR: Failed to update the collection '{collectionName}'")
 
 
-def get_posts_in_date_range(start, end):
+def get_posts_in_date_range(start: datetime, end: datetime) -> list:
     try:
         collection = db["schedules"]
 
@@ -95,7 +95,7 @@ def get_posts_in_date_range(start, end):
         )
 
 
-def delete_by_id(collection, id):
+def delete_by_id(collection: str, id: int) -> None:
     try:
         collection = db[collection]
 
@@ -106,7 +106,7 @@ def delete_by_id(collection, id):
         )
 
 
-def delete_all_by_query(collection, query):
+def delete_all_by_query(collection: str, query: dict) -> None:
     try:
         collection = db[collection]
 

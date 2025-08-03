@@ -16,14 +16,14 @@ class Logger:
         return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     @staticmethod
-    def info(message):
+    def info(message: str) -> None:
         print(
             f"{Logger.__colours["BOLD"]}{Logger.__colours["DARKGRAY"]}{Logger.__get_date()} "
             + f"{Logger.__colours["BLUE"]}INFO\t{Logger.__colours["ENDC"]}{message}"
         )
 
     @staticmethod
-    def warn(message):
+    def warn(message: str) -> None:
         print(
             f"{Logger.__colours["BOLD"]}{Logger.__colours["DARKGRAY"]}{Logger.__get_date()} "
             + f"{Logger.__colours["YELLOW"]}WARNING{Logger.__colours["ENDC"]}\t"
@@ -31,7 +31,7 @@ class Logger:
         )
 
     @staticmethod
-    def error(message):
+    def error(message: str) -> None:
         print(
             f"{Logger.__colours["BOLD"]}{Logger.__colours["DARKGRAY"]}{Logger.__get_date()} "
             + f"{Logger.__colours["RED"]}ERROR{Logger.__colours["ENDC"]}\t"

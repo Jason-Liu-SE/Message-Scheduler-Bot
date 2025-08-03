@@ -1,8 +1,9 @@
 import discord
+from discord.ext.commands.bot import Bot
 from helpers.message_utils import *
 
 
-async def send_post(post, bot):
+async def send_post(post: dict, bot: Bot) -> None:
     server = await bot.fetch_guild(int(post["server_id"]))
 
     # adding attachments

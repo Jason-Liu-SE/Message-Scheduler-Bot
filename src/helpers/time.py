@@ -4,7 +4,7 @@ from helpers.logger import Logger
 
 # dateData has 2 fields, date and time. date is in dd/mm/yyyy format and
 # time is in hh:mm format
-async def validate_date(date_data):
+async def validate_date(date_data: str) -> None:
     date = date_data["date"].split("/")
     time = date_data["time"].split(":")
 
@@ -30,12 +30,12 @@ async def validate_date(date_data):
         raise ValueError("The time was not provided in hh:mm format.")
 
 
-async def validate_time(date_obj):
+async def validate_time(date_obj: datetime) -> None:
     if date_obj <= datetime.now().astimezone(timezone.utc):
         raise ValueError(f"The time must be in the future.")
 
 
-def get_seconds_from_next_minute():
+def get_seconds_from_next_minute() -> int:
     try:
         now = datetime.now()
         next_minute = datetime(

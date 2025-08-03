@@ -1,10 +1,16 @@
+from typing import Any, Callable
 import discord
 
 from helpers.message_scheduler.mongo_utils import *
 from helpers.message_utils import *
 
 
-async def handle_command(cmd, interaction, allowed_roles, *cmd_args):
+async def handle_command(
+    cmd: Callable[..., Any],
+    interaction: discord.Interaction,
+    allowed_roles: list,
+    *cmd_args
+) -> None:
     # role check
     if not any(role.id in allowed_roles for role in interaction.user.roles):
         await interaction.response.send_message(

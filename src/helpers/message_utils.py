@@ -1,8 +1,15 @@
 import discord
+from discord.ext.commands.bot import Bot
 from helpers.logger import Logger
 
 
-async def send_message(interaction, bot, content, channel=None, attachments=None):
+async def send_message(
+    interaction: discord.Interaction,
+    bot: Bot,
+    content: str,
+    channel: int | None = None,
+    attachments: list | None = None,
+) -> discord.Message:
     try:
         res = str(content)
 
@@ -31,7 +38,9 @@ async def send_message(interaction, bot, content, channel=None, attachments=None
         Logger.error(e)
 
 
-async def send_message_by_channel_id(content, channel_id: int, bot, attachments=None):
+async def send_message_by_channel_id(
+    content: str, channel_id: int, bot: Bot, attachments: list | None = None
+) -> discord.Message:
     try:
         res = str(content)
 
@@ -57,8 +66,12 @@ async def send_message_by_channel_id(content, channel_id: int, bot, attachments=
 
 
 async def send_embedded_message(
-    interaction, color, main_content, fields=None, inline=False
-):
+    interaction: discord.Interaction,
+    color: int | discord.Color | None,
+    main_content: dict,
+    fields: list | None = None,
+    inline=False,
+) -> None:
     embed_var = discord.Embed(
         title=main_content["title"], description=main_content["desc"], color=color
     )

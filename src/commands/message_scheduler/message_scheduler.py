@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord.ext.commands.bot import Bot
 from discord import app_commands
 
 from functools import cmp_to_key
@@ -18,7 +19,7 @@ msAdmin = app_commands.Group(
 
 
 class MessageScheduler(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: Bot):
         self.bot = bot
 
         self.__allowed_roles = [
@@ -96,8 +97,11 @@ class MessageScheduler(commands.Cog):
     ################################### HANDLERS #######################################
     ####################################################################################
     async def handle_print(
-        self, interaction: discord.Interaction, channel=None, post_id=None
-    ):
+        self,
+        interaction: discord.Interaction,
+        channel: str | None = None,
+        post_id: None | str = None,
+    ) -> None:
         # determining which message object to use
         if not post_id:
             message_obj = await get_message_object(interaction.message.guild.id)
@@ -149,7 +153,9 @@ class MessageScheduler(commands.Cog):
             except:
                 Logger.error(f"Unknown emoji: {reaction}")
 
-    async def handle_add(self, interaction: discord.Interaction, channel, date, time):
+    async def handle_add(
+        self, interaction: discord.Interaction, channel: str, date: str, time: str
+    ) -> None:
         date_format = "%d/%m/%YT%H:%M:%S%z"
 
         # argument validation
@@ -223,7 +229,9 @@ class MessageScheduler(commands.Cog):
             },
         )
 
-    async def handle_remove(self, interaction, post_id):
+    async def handle_remove(
+        self, interaction: discord.Interaction, post_id: str
+    ) -> None:
         if not post_id.isdigit():
             raise TypeError(
                 f"Invalid post ID: {post_id}. Post IDs may only contain numbers."
@@ -255,7 +263,7 @@ class MessageScheduler(commands.Cog):
             },
         )
 
-    async def handle_set(self, interaction, msg):
+    async def handle_set(self, interaction: discord.Interaction, msg: str) -> None:
         msg_obj = await get_message_object(interaction.message.guild.id)
         msg_obj["message"] = msg
         msg_obj["attachments"] = {
@@ -280,7 +288,9 @@ class MessageScheduler(commands.Cog):
             {"title": "Success", "desc": "The message has been set!"},
         )
 
-    async def handle_set_reaction(self, interaction, msg):
+    async def handle_set_reaction(
+        self, interaction: discord.Interaction, msg: str
+    ) -> None:
         emojis = msg.strip().split(" ")
 
         msg_obj = await get_message_object(interaction.message.guild.id)
@@ -304,7 +314,7 @@ class MessageScheduler(commands.Cog):
             {"title": "Success", "desc": f"Reaction(s) {msg} added to message!"},
         )
 
-    async def handle_reset(self, interaction):
+    async def handle_reset(self, interaction: discord.Interaction) -> None:
         try:
             await update_message_object(
                 interaction.message.guild.id,
@@ -326,7 +336,7 @@ class MessageScheduler(commands.Cog):
             {"title": "Success", "desc": "The message has been reset!"},
         )
 
-    async def handle_clear(self, interaction):
+    async def handle_clear(self, interaction: discord.Interaction) -> None:
         try:
             await delete_server_posts(interaction.message.guild.id)
         except RuntimeError as e:
@@ -341,7 +351,9 @@ class MessageScheduler(commands.Cog):
             {"title": "Success", "desc": "The post schedule was cleared!"},
         )
 
-    async def handle_preview(self, interaction, target):
+    async def handle_preview(
+        self, interaction: discord.Interaction, target: str
+    ) -> None:
         target = target.lower()
 
         if target != "current" and not target.isdigit():
@@ -358,7 +370,7 @@ class MessageScheduler(commands.Cog):
         except ValueError as e:
             raise e
 
-    async def handle_list(self, interaction):
+    async def handle_list(self, interaction: discord.Interaction) -> None:
         schedule = await get_schedule_by_server_id(interaction.message.guild.id)
 
         # no scheduled posts
@@ -400,7 +412,7 @@ class MessageScheduler(commands.Cog):
                 interaction, 0x00FF00, {"title": "Posts", "desc": message}
             )
 
-    async def handle_help(self, interaction):
+    async def handle_help(self, interaction: discord.Interaction) -> None:
         help_desc = """The Message Scheduler is used to schedule your posts based on the message that you set via the 'set' command (and any modifications made with appropriate commands. E.g. 'reaction'). If you don't like your message, you can override it with another message via the 'set' command, or if you have made other modifications to the message (e.g. via 'reaction'), you can use the 'reset' command to reset the message entirely.
     Once you are happy with the message, you can schedule it via the 'add' command. If you want to delete the message after it has been scheduled, simply use the 'remove' command with the ID that you were provided when the messaged was scheduled.
         
