@@ -38,24 +38,36 @@ class MessageScheduler(commands.Cog):
     ################################### COMMANDS #######################################
     ####################################################################################
     @msAdmin.command(name="add", description="Adds a set message to the schedule")
-    async def add(self, interaction: discord.Interaction):
-        handle_command(self.handle_add, interaction, self.__allowed_roles)
+    @app_commands.describe(channel="The channel to post the scheduled message")
+    @app_commands.describe(date="The date to post the message")
+    @app_commands.describe(time="The time to post the message")
+    async def add(
+        self, interaction: discord.Interaction, channel: str, date: str, time: str
+    ):
+        handle_command(
+            self.handle_add, interaction, self.__allowed_roles, channel, date, time
+        )
 
     @msAdmin.command(name="remove", description="Removes a message from the schedule")
-    async def remove(self, interaction: discord.Interaction):
-        handle_command(self.handle_remove, interaction, self.__allowed_roles)
+    @app_commands.describe(postid="The scheduled post that you'd like to remove")
+    async def remove(self, interaction: discord.Interaction, postid: str):
+        handle_command(self.handle_remove, interaction, self.__allowed_roles, postid)
 
     @msAdmin.command(
         name="set", description="Sets a message that'll be added to the schedule later"
     )
-    async def set(self, interaction: discord.Interaction):
-        handle_command(self.handle_set, interaction, self.__allowed_roles)
+    @app_commands.describe(msg="Some message to be scheduled")
+    async def set(self, interaction: discord.Interaction, msg: str):
+        handle_command(self.handle_set, interaction, self.__allowed_roles, msg)
 
     @msAdmin.command(
         name="reaction", description="Adds reactions to the current message"
     )
-    async def reaction(self, interaction: discord.Interaction):
-        handle_command(self.handle_set_reaction, interaction, self.__allowed_roles)
+    @app_commands.describe(emojis="A space-separated list of emojis")
+    async def reaction(self, interaction: discord.Interaction, emojis: str):
+        handle_command(
+            self.handle_set_reaction, interaction, self.__allowed_roles, emojis
+        )
 
     @msAdmin.command(name="reset", description="Clears the current message")
     async def reset(self, interaction: discord.Interaction):
@@ -66,8 +78,9 @@ class MessageScheduler(commands.Cog):
         handle_command(self.handle_clear, interaction, self.__allowed_roles)
 
     @msAdmin.command(name="preview", description="Previews a specified message")
-    async def preview(self, interaction: discord.Interaction):
-        handle_command(self.handle_preview, interaction, self.__allowed_roles)
+    @app_commands.describe(target="Either 'current' or the scheduled post id")
+    async def preview(self, interaction: discord.Interaction, target: str):
+        handle_command(self.handle_preview, interaction, self.__allowed_roles, target)
 
     @msAdmin.command(name="list", description="Lists all scheduled messages")
     async def list(self, interaction: discord.Interaction):
@@ -83,7 +96,7 @@ class MessageScheduler(commands.Cog):
     ################################### HANDLERS #######################################
     ####################################################################################
     async def handle_print(
-        self, interaction: discord.Interaction, bot, channel=None, post_id=None
+        self, interaction: discord.Interaction, channel=None, post_id=None
     ):
         # determining which message object to use
         if not post_id:
@@ -114,7 +127,7 @@ class MessageScheduler(commands.Cog):
         # sending the message
         try:
             msg = await send_message(
-                interaction, bot, message_obj["message"], channel, attachments
+                interaction, self.bot, message_obj["message"], channel, attachments
             )
         except RuntimeError as e:
             raise e
@@ -136,26 +149,19 @@ class MessageScheduler(commands.Cog):
             except:
                 Logger.error(f"Unknown emoji: {reaction}")
 
-    async def handle_add(self, interaction: discord.Interaction, rawArgs):
+    async def handle_add(self, interaction: discord.Interaction, channel, date, time):
         date_format = "%d/%m/%YT%H:%M:%S%z"
 
         # argument validation
-        args = rawArgs.strip().split(" ")
-
         try:
-            if len(args) != 3:
-                raise ValueError(
-                    "Please provide exactly 3 arguments to the 'add' command."
-                )
-
-            await validate_channel(args[0])
-            await validate_date({"date": args[1], "time": args[2]})
+            await validate_channel(channel)
+            await validate_date({"date": date, "time": time})
         except ValueError as e:
             raise e
 
         # formatting the data
-        channel = int(args[0])
-        date_obj = datetime.strptime(args[1] + "T" + args[2] + ":00+00:00", date_format)
+        channel = int(channel)
+        date_obj = datetime.strptime(date + "T" + time + ":00+00:00", date_format)
 
         # validating the user's desired time
         try:
@@ -217,9 +223,7 @@ class MessageScheduler(commands.Cog):
             },
         )
 
-    async def handle_remove(self, interaction, msg):
-        post_id = msg.strip().split(" ")[0]
-
+    async def handle_remove(self, interaction, post_id):
         if not post_id.isdigit():
             raise TypeError(
                 f"Invalid post ID: {post_id}. Post IDs may only contain numbers."
@@ -337,23 +341,18 @@ class MessageScheduler(commands.Cog):
             {"title": "Success", "desc": "The post schedule was cleared!"},
         )
 
-    async def handle_preview(self, interaction, bot, rawArgs):
-        # getting the type of print operation
-        args = rawArgs.strip().split(" ")
+    async def handle_preview(self, interaction, target):
+        target = target.lower()
 
-        postType = args[0]
-
-        if len(args) != 1 or (postType != "current" and not postType.isdigit()):
-            raise ValueError(
-                "The provided arguments are invalid. Command will be ignored."
-            )
+        if target != "current" and not target.isdigit():
+            raise ValueError("The provided target is invalid. Command will be ignored.")
 
         # determining which message to print
         try:
-            if postType == "current":
-                await self.handle_print(interaction, bot)
+            if target.lower() == "current":
+                await self.handle_print(interaction)
             else:
-                await self.handle_print(interaction, bot, post_id=postType)
+                await self.handle_print(interaction, post_id=target)
         except RuntimeError as e:
             raise e
         except ValueError as e:
