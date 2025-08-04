@@ -1,6 +1,5 @@
 import asyncio
 from discord.ext import tasks
-from helpers import pymongo_manager
 from helpers.message_scheduler.mongo_utils import *
 from helpers.message_scheduler.post import *
 from helpers.time import *
@@ -25,9 +24,7 @@ class EventManager:
 
             epoch = datetime.utcfromtimestamp(0)
 
-            posts = pymongo_manager.get_posts_in_date_range(
-                epoch, date + timedelta(seconds=1)
-            )
+            posts = get_posts_in_date_range(epoch, date + timedelta(seconds=1))
 
             # posting the posts if there are any
             for post in posts:
