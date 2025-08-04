@@ -63,6 +63,9 @@ class MessageScheduler(
 
     ac_remove_postid = generate_autocomplete([], get_postid_choices)
 
+    # reaction
+    ac_reaction_emojis = generate_autocomplete(["clear"])
+
     # preview
     ac_preview_target = generate_autocomplete(["current"], get_postid_choices)
 
@@ -127,6 +130,7 @@ class MessageScheduler(
         name="reaction", description="Adds reactions to the current message"
     )
     @app_commands.describe(emojis="A space-separated list of emojis")
+    @app_commands.autocomplete(emojis=ac_reaction_emojis)
     async def reaction(self, interaction: discord.Interaction, emojis: str):
         await handle_command(
             self.handle_set_reaction, interaction, self.__allowed_roles, emojis
@@ -375,6 +379,9 @@ class MessageScheduler(
     async def handle_set_reaction(
         self, interaction: discord.Interaction, msg: str
     ) -> None:
+        if msg.lower() == "clear":
+            msg = ""
+
         emojis = msg.strip().split(" ")
 
         msg_obj = await get_message_object(interaction.guild.id)
