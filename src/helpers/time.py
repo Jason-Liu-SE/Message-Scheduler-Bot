@@ -51,9 +51,8 @@ def get_seconds_from_next_minute() -> int:
 
 def convert_to_utc(dt: datetime, timezone: str) -> datetime:
     tz = pytz.timezone(timezone)
-    utc_now = datetime.now(UTC).replace(tzinfo=pytz.utc)
-    utc_now_localized = utc_now.astimezone(tz)
+    dt_localized = dt.astimezone(tz)
 
-    utc_offset_s = 86400 - utc_now_localized.utcoffset().seconds
+    utc_offset_s = 86400 - dt_localized.utcoffset().seconds
 
     return dt + timedelta(seconds=utc_offset_s)
