@@ -16,7 +16,12 @@ def is_development() -> None:
 
 # returns whether interaction user has a role in allowed_roles or not
 def has_role(interaction: discord.Interaction, allowed_roles: list) -> bool:
+    allowed_roles_lower = []
+
+    for role in allowed_roles:
+        allowed_roles_lower.append(role if not type(role) is str else role.lower())
+
     return any(
-        (role.id in allowed_roles or role.name in allowed_roles)
+        (role.id in allowed_roles_lower or role.name.lower() in allowed_roles_lower)
         for role in interaction.user.roles
     )
