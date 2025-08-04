@@ -74,9 +74,8 @@ class MessageScheduler(
     @app_commands.command(
         name="set", description="Sets a message that'll be added to the schedule later"
     )
-    @app_commands.describe(msg="Some message to be scheduled")
-    async def set(self, interaction: discord.Interaction, msg: str):
-        await handle_command(self.handle_set, interaction, self.__allowed_roles, msg)
+    async def set(self, interaction: discord.Interaction):
+        await handle_command(self.handle_set, interaction, self.__allowed_roles)
 
     @app_commands.command(
         name="reaction", description="Adds reactions to the current message"
@@ -291,7 +290,11 @@ class MessageScheduler(
             },
         )
 
-    async def handle_set(self, interaction: discord.Interaction, msg: str) -> None:
+    async def handle_set(self, interaction: discord.Interaction) -> None:
+        # prompting for subsequent input
+        msg = (await wait_for_msg(interaction, self.bot)).content
+
+        # saving message
         msg_obj = await get_message_object(interaction.guild.id)
         msg_obj["message"] = msg
         msg_obj["attachments"] = {
@@ -307,6 +310,7 @@ class MessageScheduler(
                 interaction,
                 0x00FF00,
                 {"title": "Success", "desc": "The message was cleared!"},
+                defer=False,
             )
             return
 
@@ -314,6 +318,7 @@ class MessageScheduler(
             interaction,
             0x00FF00,
             {"title": "Success", "desc": "The message has been set!"},
+            defer=False,
         )
 
     async def handle_set_reaction(

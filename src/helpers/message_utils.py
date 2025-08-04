@@ -71,15 +71,33 @@ async def send_embedded_message(
     main_content: dict,
     fields: list | None = None,
     inline=False,
+    defer=True,
 ) -> None:
     embed_var = discord.Embed(
         title=main_content["title"], description=main_content["desc"], color=color
     )
 
-    await interaction.response.defer()
+    if defer:
+        await interaction.response.defer()
 
     if fields:
         for field in fields:
             embed_var.add_field(name=field["name"], value=field["value"], inline=inline)
 
     await interaction.followup.send(embed=embed_var)
+
+
+async def wait_for_msg(interaction: discord.Interaction, bot: Bot) -> discord.Message:
+    await send_embedded_message(
+        interaction,
+        None,
+        {"title": "Set", "desc": "Waiting for message..."},
+    )
+
+    def wait_for_input(msg: discord.Message):
+        return (
+            msg.author.id == interaction.user.id
+            and msg.channel.id == interaction.channel.id
+        )
+
+    return await bot.wait_for("message", timeout=None, check=wait_for_input)
