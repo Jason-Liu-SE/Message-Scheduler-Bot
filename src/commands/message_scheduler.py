@@ -31,22 +31,67 @@ class MessageScheduler(
         ]
 
     ####################################################################################
+    ################################ AUTOCOMPLETE ######################################
+    ####################################################################################
+    # add
+    ac_set_day = generate_autocomplete(range(1, 32))
+    ac_set_month = generate_autocomplete(range(1, 13))
+    ac_set_year = generate_autocomplete(
+        range(datetime.now().year, datetime.now().year + 6)
+    )
+    ac_set_hour = generate_autocomplete(range(0, 24))
+    ac_set_minute = generate_autocomplete(range(0, 60, 5))
+
+    # remove
+    async def get_postid_choices(
+        interaction: discord.Interaction, current: str
+    ) -> list[app_commands.Choice]:
+        choices = []
+
+        posts = await get_schedule_by_server_id(interaction.guild.id)
+        posts = sort_schedules_by_date(posts)
+
+        for post_id, post in posts.items():
+            if current.lower() in f"{post_id}":
+                choices.append(
+                    app_commands.Choice(
+                        name=f"{post_id}: {post["message"][:30]}", value=f"{post_id}"
+                    )
+                )
+
+        return choices
+
+    ac_remove_postid = generate_autocomplete([], get_postid_choices)
+
+    # preview
+    ac_preview_target = generate_autocomplete(["current"], get_postid_choices)
+
+    ####################################################################################
     ################################### COMMANDS #######################################
     ####################################################################################
     @app_commands.command(name="add", description="Adds a set message to the schedule")
-    @app_commands.describe(channel="The channel to post the scheduled message")
-    @app_commands.describe(day="Post day (1-31)")
-    @app_commands.describe(month="Post month (1-12)")
-    @app_commands.describe(year="Post year")
-    @app_commands.describe(hour="Post hour (0-23)")
-    @app_commands.describe(minute="Post minute (0-59)")
+    @app_commands.describe(
+        channel="The channel to post the scheduled message",
+        day="Post day (1-31)",
+        month="Post month (1-12)",
+        year="Post year",
+        hour="Post hour (0-23)",
+        minute="Post minute (0-59)",
+    )
+    @app_commands.autocomplete(
+        day=ac_set_day,
+        month=ac_set_month,
+        year=ac_set_year,
+        hour=ac_set_hour,
+        minute=ac_set_minute,
+    )
     async def add(
         self,
         interaction: discord.Interaction,
         channel: str,
         day: app_commands.Range[int, 1, 31],
         month: app_commands.Range[int, 1, 12],
-        year: int,
+        year: app_commands.Range[int, datetime.now().year],
         hour: app_commands.Range[int, 0, 23],
         minute: app_commands.Range[int, 0, 59],
     ):
@@ -66,6 +111,7 @@ class MessageScheduler(
         name="remove", description="Removes a message from the schedule"
     )
     @app_commands.describe(postid="The scheduled post that you'd like to remove")
+    @app_commands.autocomplete(postid=ac_remove_postid)
     async def remove(self, interaction: discord.Interaction, postid: str):
         await handle_command(
             self.handle_remove, interaction, self.__allowed_roles, postid
@@ -98,6 +144,7 @@ class MessageScheduler(
 
     @app_commands.command(name="preview", description="Previews a specified message")
     @app_commands.describe(target="Either 'current' or the scheduled post id")
+    @app_commands.autocomplete(target=ac_preview_target)
     async def preview(self, interaction: discord.Interaction, target: str):
         await handle_command(
             self.handle_preview, interaction, self.__allowed_roles, target
@@ -423,12 +470,7 @@ class MessageScheduler(
         msg = ""
         msg_list = []
 
-        sorted_items = dict(
-            sorted(
-                schedule.items(),
-                key=cmp_to_key(lambda a, b: 1 if a[1]["time"] > b[1]["time"] else -1),
-            )
-        )
+        sorted_items = sort_schedules_by_date(schedule)
 
         for index, post_id in enumerate(sorted_items):
             msg += (
