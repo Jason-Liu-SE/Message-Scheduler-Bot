@@ -189,8 +189,8 @@ class MessageScheduler(
 
         try:
             if message_obj["attachments"]["message_id"] != "":
-                msg = await interaction.channel.fetch_message()(
-                    message_obj["attachments"]["message_id"]
+                msg = await interaction.channel.fetch_message(
+                    int(message_obj["attachments"]["message_id"])
                 )
 
                 for f in msg.attachments:
@@ -345,25 +345,24 @@ class MessageScheduler(
 
     async def handle_set(self, interaction: discord.Interaction) -> None:
         # prompting for subsequent input
-        msg = (await wait_for_msg(interaction, self.bot)).content
+        msg = await wait_for_msg(interaction, self.bot)
 
         # saving message
         msg_obj = await get_message_object(interaction.guild.id)
-        msg_obj["message"] = msg
+        msg_obj["message"] = msg.content
         msg_obj["attachments"] = {
-            "message_id": ObjectId(),
-            "channel_id": interaction.channel.id,
+            "message_id": msg.id,
+            "channel_id": msg.channel.id,
         }
 
         await update_message_object(interaction.guild.id, msg_obj)
 
         # no text was provided
-        if msg == "":
+        if msg.content == "":
             await send_embedded_message(
                 interaction,
                 0x00FF00,
                 {"title": "Success", "desc": "The message was cleared!"},
-                defer=False,
             )
             return
 
@@ -371,7 +370,6 @@ class MessageScheduler(
             interaction,
             0x00FF00,
             {"title": "Success", "desc": "The message has been set!"},
-            defer=False,
         )
 
     async def handle_set_reaction(
