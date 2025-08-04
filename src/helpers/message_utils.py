@@ -76,7 +76,7 @@ async def send_embedded_message(
 async def wait_for_msg(interaction: discord.Interaction, bot: Bot) -> discord.Message:
     await send_embedded_message(
         interaction,
-        None,
+        0x037FFC,
         {"title": "Set", "desc": "Waiting for message..."},
     )
 
