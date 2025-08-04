@@ -23,7 +23,7 @@ async def handle_command(
         return
 
     try:
-        # creating a schedule and message object for new servers
+        # creating a db objects for new servers
         await register_server_with_db(interaction)
 
         # handling command
