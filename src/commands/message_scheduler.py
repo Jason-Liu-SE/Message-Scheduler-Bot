@@ -119,7 +119,7 @@ class MessageScheduler(
     async def handle_print(
         self,
         interaction: discord.Interaction,
-        channel: int | None = None,
+        channel_id: int | None = None,
         post_id: None | int | ObjectId = None,
     ) -> None:
         # determining which message object to use
@@ -151,7 +151,11 @@ class MessageScheduler(
         # sending the message
         try:
             msg = await send_message(
-                interaction, self.bot, message_obj["message"], channel, attachments
+                interaction=interaction,
+                content=message_obj["message"],
+                bot=self.bot,
+                channel_id=channel_id,
+                attachments=attachments,
             )
         except RuntimeError as e:
             raise e

@@ -4,10 +4,10 @@ from helpers.logger import Logger
 
 
 async def send_message(
-    interaction: discord.Interaction,
-    bot: Bot,
     content: str,
-    channel: int | None = None,
+    bot: Bot | None = None,
+    interaction: discord.Interaction | None = None,
+    channel_id: int | None = None,
     attachments: list | None = None,
 ) -> discord.Message:
     try:
@@ -18,16 +18,21 @@ async def send_message(
             raise ValueError("No message is set.")
 
         # specified channel
-        if channel:
-            c = bot.get_channel(channel)
+        if channel_id and bot:
+            c = bot.get_channel(channel_id)
 
             # non-existent channel
             if not c:
                 raise RuntimeError(
-                    f"Could not find channel '{channel}' to send the message to."
+                    f"Could not find channel '{channel_id}' to send the message to."
                 )
 
             return await c.send(content=res, files=attachments)
+
+        if not interaction:
+            raise RuntimeError(
+                "'interaction' must be provided when 'channel id' is not specified"
+            )
 
         return await interaction.channel.send(content=res, files=attachments)
     except RuntimeError as e:
@@ -41,28 +46,9 @@ async def send_message(
 async def send_message_by_channel_id(
     content: str, channel_id: int, bot: Bot, attachments: list | None = None
 ) -> discord.Message:
-    try:
-        res = str(content)
-
-        # content can't be empty
-        if not content:
-            raise ValueError("No message is set.")
-
-        channel = bot.get_channel(channel_id)
-
-        # non-existent channel
-        if not channel:
-            raise RuntimeError(
-                f"Could not find channel '{channel_id}' to send the message to."
-            )
-
-        return await channel.send(content=res, files=attachments)
-    except RuntimeError as e:
-        raise e
-    except ValueError as e:
-        raise e
-    except Exception as e:
-        Logger.exception(e)
+    send_message_by_channel_id(
+        content, channel_id=channel_id, bot=bot, attachments=attachments
+    )
 
 
 async def send_embedded_message(
