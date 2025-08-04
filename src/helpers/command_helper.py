@@ -13,8 +13,8 @@ async def handle_command(
 ) -> None:
     # role check
     if not any(role.id in allowed_roles for role in interaction.user.roles):
-        await interaction.response.send_message(
-            "Error: insufficient role", ephemeral=True
+        await send_embedded_message(
+            interaction, 0xFF0000, {"title": "ERROR", "desc": "Insufficient role"}
         )
         return
 
@@ -25,22 +25,22 @@ async def handle_command(
         # handling command
         cmd(interaction, *cmd_args)
     except ValueError as e:  # this only throws if the user provided invalid arguments
-        Logger.error(e)
+        Logger.exception(e)
         await send_embedded_message(
             interaction, 0xFF0000, {"title": "ERROR", "desc": e}
         )
     except TypeError as e:
-        Logger.error(e)
+        Logger.exception(e)
         await send_embedded_message(
             interaction, 0xFF0000, {"title": "ERROR", "desc": e}
         )
     except RuntimeError as e:
-        Logger.error(e)
+        Logger.exception(e)
         await send_embedded_message(
             interaction, 0xFF0000, {"title": "ERROR", "desc": e}
         )
     except Exception as e:
-        Logger.error(e)
+        Logger.exception(e)
         await send_embedded_message(
             interaction,
             0xFF0000,

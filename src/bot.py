@@ -6,8 +6,6 @@ from discord import app_commands
 import os
 from helpers.validate import is_development
 from managers.event_manager import *
-from rich.console import Console
-from rich.traceback import Traceback
 import asyncio
 
 
@@ -25,8 +23,7 @@ def run_discord_bot():
     async def on_bot_error(
         interaction: discord.Interaction, e: app_commands.AppCommandError
     ):
-        Logger.error(e)
-        Console().print(Traceback.from_exception(type(e), e, e.__traceback__))
+        Logger.exception(e)
 
     # trigger declaration
     @bot.event
