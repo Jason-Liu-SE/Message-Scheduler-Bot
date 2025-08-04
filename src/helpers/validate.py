@@ -1,5 +1,7 @@
 import os
 
+import discord
+
 
 def validate_channel(channel: str) -> None:
     if not channel.isdigit():  # ensure that the provided value could be a channel
@@ -10,3 +12,11 @@ def is_development() -> None:
     is_dev = os.getenv("IS_DEV")
 
     return is_dev != None and is_dev.lower() == "true"
+
+
+# returns whether interaction user has a role in allowed_roles or not
+def has_role(interaction: discord.Interaction, allowed_roles: list) -> bool:
+    return any(
+        (role.id in allowed_roles or role.name in allowed_roles)
+        for role in interaction.user.roles
+    )

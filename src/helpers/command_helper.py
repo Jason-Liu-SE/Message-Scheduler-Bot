@@ -3,6 +3,7 @@ import discord
 
 from helpers.message_scheduler.mongo_utils import *
 from helpers.message_utils import *
+from helpers.validate import has_role
 
 
 async def handle_command(
@@ -11,8 +12,7 @@ async def handle_command(
     allowed_roles: list,
     *cmd_args
 ) -> None:
-    # role check
-    if not any(role.id in allowed_roles for role in interaction.user.roles):
+    if not has_role(interaction, allowed_roles):
         await send_embedded_message(
             interaction, 0xFF0000, {"title": "ERROR", "desc": "Insufficient role"}
         )
