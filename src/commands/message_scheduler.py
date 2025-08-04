@@ -315,9 +315,7 @@ class MessageScheduler(
         self, interaction: discord.Interaction, post_id: str
     ) -> None:
         if not is_valid_id(post_id):
-            raise TypeError(
-                f"Invalid post ID: {post_id}. Post IDs may only contain numbers and letters."
-            )
+            raise TypeError(f"Invalid post ID: {post_id}.")
 
         post = await get_post_by_id(parse_id(post_id))
 
