@@ -1,5 +1,6 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 from helpers.logger import Logger
+import pytz
 
 
 # dateData has 2 fields, date and time. date is in dd/mm/yyyy format and
@@ -46,3 +47,13 @@ def get_seconds_from_next_minute() -> int:
     except Exception as e:
         Logger.error(e)
         return 0
+
+
+def convert_to_utc(dt: datetime, timezone: str) -> datetime:
+    tz = pytz.timezone(timezone)
+    utc_now = datetime.now(UTC).replace(tzinfo=pytz.utc)
+    utc_now_localized = utc_now.astimezone(tz)
+
+    utc_offset_s = 86400 - utc_now_localized.utcoffset().seconds
+
+    return dt + timedelta(seconds=utc_offset_s)

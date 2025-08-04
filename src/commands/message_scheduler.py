@@ -169,6 +169,7 @@ class MessageScheduler(
         # formatting the data
         channel = int(channel)
         date_obj = datetime.strptime(date + "T" + time + ":00+00:00", date_format)
+        date_obj = convert_to_utc(date_obj, "Canada/Eastern")
 
         # validating the user's desired time
         try:
