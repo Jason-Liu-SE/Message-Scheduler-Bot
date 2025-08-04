@@ -32,7 +32,7 @@ async def send_message(
             return await c.send(content=res, files=attachments)
 
         if not interaction:
-            raise RuntimeError(
+            raise Exception(
                 "'interaction' must be provided when 'channel id' or 'bot' is not specified"
             )
 
