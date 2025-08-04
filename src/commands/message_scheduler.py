@@ -12,14 +12,10 @@ from helpers.time import *
 from helpers.validate import *
 
 
-msAdmin = app_commands.Group(
-    name="ms",
-    description="Admin Message Scheduler commands",
-)
-
-
-class MessageScheduler(commands.Cog):
-    def __init__(self, bot: Bot):
+class MessageScheduler(
+    commands.GroupCog, group_name="ms", group_description="Tools to schedule messages"
+):
+    def __init__(self, bot: Bot) -> None:
         self.bot = bot
 
         self.__allowed_roles = [
@@ -32,66 +28,71 @@ class MessageScheduler(commands.Cog):
             "Administrator",
         ]
 
-    async def init(self):
-        self.bot.tree.add_command(msAdmin)
-
     ####################################################################################
     ################################### COMMANDS #######################################
     ####################################################################################
-    @msAdmin.command(name="add", description="Adds a set message to the schedule")
+    @app_commands.command(name="add", description="Adds a set message to the schedule")
     @app_commands.describe(channel="The channel to post the scheduled message")
     @app_commands.describe(date="The date to post the message")
     @app_commands.describe(time="The time to post the message")
     async def add(
         self, interaction: discord.Interaction, channel: str, date: str, time: str
     ):
-        handle_command(
+        await handle_command(
             self.handle_add, interaction, self.__allowed_roles, channel, date, time
         )
 
-    @msAdmin.command(name="remove", description="Removes a message from the schedule")
+    @app_commands.command(
+        name="remove", description="Removes a message from the schedule"
+    )
     @app_commands.describe(postid="The scheduled post that you'd like to remove")
     async def remove(self, interaction: discord.Interaction, postid: str):
-        handle_command(self.handle_remove, interaction, self.__allowed_roles, postid)
+        await handle_command(
+            self.handle_remove, interaction, self.__allowed_roles, postid
+        )
 
-    @msAdmin.command(
+    @app_commands.command(
         name="set", description="Sets a message that'll be added to the schedule later"
     )
     @app_commands.describe(msg="Some message to be scheduled")
     async def set(self, interaction: discord.Interaction, msg: str):
-        handle_command(self.handle_set, interaction, self.__allowed_roles, msg)
+        await handle_command(self.handle_set, interaction, self.__allowed_roles, msg)
 
-    @msAdmin.command(
+    @app_commands.command(
         name="reaction", description="Adds reactions to the current message"
     )
     @app_commands.describe(emojis="A space-separated list of emojis")
     async def reaction(self, interaction: discord.Interaction, emojis: str):
-        handle_command(
+        await handle_command(
             self.handle_set_reaction, interaction, self.__allowed_roles, emojis
         )
 
-    @msAdmin.command(name="reset", description="Clears the current message")
+    @app_commands.command(name="reset", description="Clears the current message")
     async def reset(self, interaction: discord.Interaction):
-        handle_command(self.handle_reset, interaction, self.__allowed_roles)
+        await handle_command(self.handle_reset, interaction, self.__allowed_roles)
 
-    @msAdmin.command(name="clearschedule", description="Removes all scheduled messages")
+    @app_commands.command(
+        name="clearschedule", description="Removes all scheduled messages"
+    )
     async def clear_schedule(self, interaction: discord.Interaction):
-        handle_command(self.handle_clear, interaction, self.__allowed_roles)
+        await handle_command(self.handle_clear, interaction, self.__allowed_roles)
 
-    @msAdmin.command(name="preview", description="Previews a specified message")
+    @app_commands.command(name="preview", description="Previews a specified message")
     @app_commands.describe(target="Either 'current' or the scheduled post id")
     async def preview(self, interaction: discord.Interaction, target: str):
-        handle_command(self.handle_preview, interaction, self.__allowed_roles, target)
+        await handle_command(
+            self.handle_preview, interaction, self.__allowed_roles, target
+        )
 
-    @msAdmin.command(name="list", description="Lists all scheduled messages")
+    @app_commands.command(name="list", description="Lists all scheduled messages")
     async def list(self, interaction: discord.Interaction):
-        handle_command(self.handle_list, interaction, self.__allowed_roles)
+        await handle_command(self.handle_list, interaction, self.__allowed_roles)
 
-    @msAdmin.command(
+    @app_commands.command(
         name="help", description="List more info about Message Scheduler commands"
     )
     async def help(self, interaction: discord.Interaction):
-        handle_command(self.handle_help, interaction, self.__allowed_roles)
+        await handle_command(self.handle_help, interaction, self.__allowed_roles)
 
     ####################################################################################
     ################################### HANDLERS #######################################
@@ -160,7 +161,7 @@ class MessageScheduler(commands.Cog):
 
         # argument validation
         try:
-            await validate_channel(channel)
+            validate_channel(channel)
             await validate_date({"date": date, "time": time})
         except ValueError as e:
             raise e
@@ -488,3 +489,15 @@ class MessageScheduler(commands.Cog):
             {"title": "Message Scheduler Commands", "desc": help_desc},
             fields,
         )
+
+
+# automatically ran when using load_extensions
+async def setup(bot: Bot) -> None:
+    # registers cog
+    if is_development():
+        await bot.add_cog(
+            MessageScheduler(bot),
+            guild=discord.Object(id=int(os.environ["TEST_DISCORD_SERVER"])),
+        )
+    else:
+        await bot.add_cog(MessageScheduler(bot))

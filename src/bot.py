@@ -2,8 +2,13 @@ from commands.message_scheduler import MessageScheduler
 from helpers.logger import *
 import discord
 from discord.ext import commands
+from discord import app_commands
 import os
+from helpers.validate import is_development
 from managers.event_manager import *
+from rich.console import Console
+from rich.traceback import Traceback
+import asyncio
 
 
 # main bot driver function
@@ -16,19 +21,20 @@ def run_discord_bot():
     bot = commands.Bot(command_prefix="!", intents=intents)
     event_manager = EventManager(bot)
 
+    @bot.tree.error
+    async def on_bot_error(
+        interaction: discord.Interaction, e: app_commands.AppCommandError
+    ):
+        Logger.error(e)
+        Console().print(Traceback.from_exception(type(e), e, e.__traceback__))
+
     # trigger declaration
     @bot.event
     async def on_ready():
         try:
-            Logger.info("Adding commands...")
+            Logger.info("Syncing commands...")
 
-            ms = MessageScheduler(bot)
-            await bot.add_cog(ms)
-            await ms.init()
-
-            is_dev = os.getenv("IS_DEV")
-
-            if is_dev != None and is_dev.lower() == "true":
+            if is_development():
                 Logger.info("In development mode")
 
                 await bot.tree.sync(
@@ -37,12 +43,17 @@ def run_discord_bot():
             else:
                 await bot.tree.sync()
 
-            Logger.info("Bot connected")
+            Logger.info("Bot ready")
 
             if not event_manager.manage_schedule_loop.is_running():
                 event_manager.manage_schedule_loop.start()
         except Exception as e:
             Logger.error(e)
 
-    # execution
-    bot.run(os.environ["TOKEN"])
+    async def start():
+        async with bot:
+            await bot.load_extension("commands.message_scheduler")
+            await bot.start(os.environ["TOKEN"])
+
+    Logger.info("Starting bot")
+    asyncio.run(start())
