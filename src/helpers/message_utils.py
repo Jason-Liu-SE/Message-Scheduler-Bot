@@ -1,5 +1,6 @@
 import discord
 from discord.ext.commands.bot import Bot
+from emoji import emojize
 from helpers.logger import Logger
 
 
@@ -56,7 +57,7 @@ async def send_message_by_channel_id(
     attachments: list | None = None,
     followup: bool = True,
 ) -> discord.Message:
-    await send_message(
+    return await send_message(
         content,
         channel_id=channel_id,
         bot=bot,
@@ -97,3 +98,19 @@ async def wait_for_msg(interaction: discord.Interaction, bot: Bot) -> discord.Me
         )
 
     return await bot.wait_for("message", timeout=None, check=wait_for_input)
+
+
+async def add_emojis(msg: discord.Message, custom_emojis: list, emojis: list) -> None:
+    # adding emojis
+    for reaction in emojis:
+        try:
+            # set to a custom emoji by default
+            emoji = discord.utils.get(custom_emojis, name=reaction.strip(":"))
+
+            if not emoji:  # standard emojis
+                emoji = emojize(reaction, language="alias")
+
+            await msg.add_reaction(emoji)
+        except Exception as e:
+            Logger.error(f"Unknown emoji: {reaction}")
+            Logger.traceback(e)

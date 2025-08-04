@@ -35,14 +35,4 @@ async def send_post(post: dict, bot: Bot) -> None:
 
     # adding emojis
     if server:
-        for reaction in post["reactions"]:
-            try:
-                # set to a custom emoji by default
-                emoji = discord.utils.get(server.emojis, name=reaction)
-
-                if not emoji:  # standard emojis
-                    emoji = reaction
-
-                await msg.add_reaction(emoji)
-            except:
-                Logger.error(f"Unknown emoji: {reaction}")
+        await add_emojis(msg, server.emojis, post["reactions"])

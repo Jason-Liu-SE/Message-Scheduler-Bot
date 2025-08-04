@@ -200,30 +200,21 @@ class MessageScheduler(
 
         # sending the message
         try:
-            msg = await send_message(
+            await send_message(
                 interaction=interaction,
                 content=message_obj["message"],
                 bot=self.bot,
                 channel_id=channel_id,
                 attachments=attachments,
             )
+
+            msg = [msg async for msg in interaction.channel.history(limit=1)][0]
         except RuntimeError as e:
             raise e
         except ValueError as e:
             raise e
 
-        # adding emojis
-        for reaction in message_obj["reactions"]:
-            try:
-                # set to a custom emoji by default
-                emoji = discord.utils.get(interaction.guild.emojis, name=reaction)
-
-                if not emoji:  # standard emojis
-                    emoji = reaction
-
-                await msg.add_reaction(emoji)
-            except:
-                Logger.error(f"Unknown emoji: {reaction}")
+        await add_emojis(msg, interaction.guild.emojis, message_obj["reactions"])
 
     async def handle_add(
         self,
@@ -374,10 +365,10 @@ class MessageScheduler(
     async def handle_set_reaction(
         self, interaction: discord.Interaction, msg: str
     ) -> None:
-        if msg.lower() == "clear":
+        if msg.lower().strip() == "clear":
             msg = ""
 
-        emojis = msg.strip().split(" ")
+        emojis = msg.strip().split()
 
         msg_obj = await get_message_object(interaction.guild.id)
 
@@ -440,7 +431,7 @@ class MessageScheduler(
     async def handle_preview(
         self, interaction: discord.Interaction, target: str
     ) -> None:
-        target = target.lower()
+        target = target.lower().strip()
 
         if target != "current" and not is_valid_id(target):
             raise ValueError("Target must be 'current' or a post ID")
