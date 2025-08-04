@@ -35,7 +35,7 @@ async def send_message(
     except ValueError as e:
         raise e
     except Exception as e:
-        Logger.error(e)
+        Logger.exception(e)
 
 
 async def send_message_by_channel_id(
@@ -62,7 +62,7 @@ async def send_message_by_channel_id(
     except ValueError as e:
         raise e
     except Exception as e:
-        Logger.error(e)
+        Logger.exception(e)
 
 
 async def send_embedded_message(

@@ -45,7 +45,7 @@ def get_seconds_from_next_minute() -> int:
 
         return (next_minute - now).seconds
     except Exception as e:
-        Logger.error(e)
+        Logger.exception(e)
         return 0
 
 

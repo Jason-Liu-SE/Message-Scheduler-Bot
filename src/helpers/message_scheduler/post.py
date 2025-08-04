@@ -21,7 +21,7 @@ async def send_post(post: dict, bot: Bot) -> None:
                 file = await f.to_file()
                 attachments.append(file)
     except Exception as e:
-        Logger.error(e)
+        Logger.exception(e)
 
     # sending the message
     try:

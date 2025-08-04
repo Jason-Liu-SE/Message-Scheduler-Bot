@@ -32,9 +32,9 @@ class EventManager:
                     await send_post(post, self.bot)
                     await delete_post_by_id(post["_id"])
                 except Exception as e:
-                    Logger.error(e)
+                    Logger.exception(e)
         except Exception as e:
-            Logger.error(e)
+            Logger.exception(e)
 
     @manage_schedule_loop.before_loop
     async def before_loop(self):

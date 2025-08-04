@@ -129,7 +129,7 @@ class MessageScheduler(
                     file = await f.to_file()
                     attachments.append(file)
         except Exception as e:
-            Logger.error(e)
+            Logger.exception(e)
 
         # sending the message
         try:
@@ -197,13 +197,13 @@ class MessageScheduler(
                 "time": date_obj,
             }
         except Exception as e:
-            Logger.error(e)
+            Logger.exception(e)
 
         try:
             # schedule the current message
             await update_schedule(post_id, schedule_data)
         except RuntimeError as e:
-            Logger.error(e)
+            Logger.exception(e)
             raise RuntimeError("Could not add the message to the schedule.")
 
         try:
@@ -217,7 +217,7 @@ class MessageScheduler(
                 },
             )
         except:
-            Logger.error(e)
+            Logger.exception(e)
             raise RuntimeError("Schedule updated, but the message was not reset.")
 
         # informing the user
@@ -250,7 +250,7 @@ class MessageScheduler(
         try:
             await delete_post_by_id(parse_id(post_id))
         except RuntimeError as e:
-            Logger.error(e)
+            Logger.exception(e)
             raise RuntimeError(
                 f"Could not delete the post with ID: {post_id}. The command will be ignored."
             )
@@ -326,7 +326,7 @@ class MessageScheduler(
                 },
             )
         except RuntimeError as e:
-            Logger.error(e)
+            Logger.exception(e)
             raise RuntimeError(
                 f"Could not reset the message. The command will be ignored."
             )
@@ -341,7 +341,7 @@ class MessageScheduler(
         try:
             await delete_server_posts(interaction.guild.id)
         except RuntimeError as e:
-            Logger.error(e)
+            Logger.exception(e)
             raise RuntimeError(
                 f"Could not delete all scheduled posts for this server. This command will be ignored."
             )

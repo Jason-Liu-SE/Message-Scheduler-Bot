@@ -45,7 +45,7 @@ def run_discord_bot():
             if not event_manager.manage_schedule_loop.is_running():
                 event_manager.manage_schedule_loop.start()
         except Exception as e:
-            Logger.error(e)
+            Logger.exception(e)
 
     async def start():
         async with bot:
