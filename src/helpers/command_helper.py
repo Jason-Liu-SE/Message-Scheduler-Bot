@@ -1,10 +1,11 @@
 from functools import cmp_to_key
-from typing import Any, Awaitable, Callable, Protocol
+from typing import Any, Awaitable, Callable
 import discord
 from discord import app_commands
 
 from helpers.message_scheduler.mongo_utils import *
 from helpers.message_utils import *
+from helpers.ticket_bot.mongo_utils import register_user_with_db
 from helpers.validate import has_role
 
 
@@ -23,8 +24,9 @@ async def handle_command(
         return
 
     try:
-        # creating a db objects for new servers
+        # creating db objects for new servers
         await register_server_with_db(interaction)
+        await register_user_with_db(interaction)
 
         # handling command
         await cmd(interaction, *cmd_args)
