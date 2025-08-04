@@ -35,13 +35,31 @@ class MessageScheduler(
     ####################################################################################
     @app_commands.command(name="add", description="Adds a set message to the schedule")
     @app_commands.describe(channel="The channel to post the scheduled message")
-    @app_commands.describe(date="The date to post the message")
-    @app_commands.describe(time="The time to post the message")
+    @app_commands.describe(day="Post day (1-31)")
+    @app_commands.describe(month="Post month (1-12)")
+    @app_commands.describe(year="Post year")
+    @app_commands.describe(hour="Post hour (0-23)")
+    @app_commands.describe(minute="Post minute (0-59)")
     async def add(
-        self, interaction: discord.Interaction, channel: str, date: str, time: str
+        self,
+        interaction: discord.Interaction,
+        channel: str,
+        day: app_commands.Range[int, 1, 31],
+        month: app_commands.Range[int, 1, 12],
+        year: int,
+        hour: app_commands.Range[int, 0, 23],
+        minute: app_commands.Range[int, 0, 59],
     ):
         await handle_command(
-            self.handle_add, interaction, self.__allowed_roles, channel, date, time
+            self.handle_add,
+            interaction,
+            self.__allowed_roles,
+            channel,
+            day,
+            month,
+            year,
+            hour,
+            minute,
         )
 
     @app_commands.command(
@@ -155,9 +173,18 @@ class MessageScheduler(
                 Logger.error(f"Unknown emoji: {reaction}")
 
     async def handle_add(
-        self, interaction: discord.Interaction, channel: str, date: str, time: str
+        self,
+        interaction: discord.Interaction,
+        channel: str,
+        day: int,
+        month: int,
+        year: int,
+        hour: int,
+        minute: int,
     ) -> None:
         date_format = "%d/%m/%YT%H:%M:%S%z"
+        date = f"{0 if day < 10 else ""}{day}/{0 if month < 10 else ""}{month}/{"0"*(4-len(f"{year}")) if year < 1000 else ""}{year}"
+        time = f"{0 if hour < 10 else ""}{hour}:{0 if minute < 10 else ""}{minute}"
 
         # argument validation
         try:
