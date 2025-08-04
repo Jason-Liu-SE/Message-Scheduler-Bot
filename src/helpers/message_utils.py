@@ -1,4 +1,3 @@
-import asyncio
 import discord
 from discord.ext.commands.bot import Bot
 from helpers.logger import Logger
