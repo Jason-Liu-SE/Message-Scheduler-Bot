@@ -56,7 +56,7 @@ async def handle_command(
 def generate_autocomplete(
     items: list,
     callback: Callable[
-        [discord.Interaction], Awaitable[list[app_commands.Choice]]
+        [discord.Interaction, str], Awaitable[list[app_commands.Choice]]
     ] = None,
 ) -> Callable[[discord.Interaction, str], list]:
     async def autocomplete(interaction: discord.Interaction, current: str) -> list:
@@ -69,7 +69,7 @@ def generate_autocomplete(
         choices = choices[:25]
 
         if callback and len(choices) < 25:
-            choices.extend((await callback(interaction))[: 25 - len(choices)])
+            choices.extend((await callback(interaction, current))[: 25 - len(choices)])
 
         return choices
 
