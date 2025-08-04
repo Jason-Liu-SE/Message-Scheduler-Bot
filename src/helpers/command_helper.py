@@ -1,4 +1,4 @@
-from typing import Any, Callable
+from typing import Any, Awaitable, Callable
 import discord
 
 from helpers.message_scheduler.mongo_utils import *
@@ -6,7 +6,7 @@ from helpers.message_utils import *
 
 
 async def handle_command(
-    cmd: Callable[..., Any],
+    cmd: Callable[..., Awaitable[Any]],
     interaction: discord.Interaction,
     allowed_roles: list,
     *cmd_args
@@ -23,7 +23,7 @@ async def handle_command(
         await register_server_with_db(interaction)
 
         # handling command
-        cmd(interaction, *cmd_args)
+        await cmd(interaction, *cmd_args)
     except ValueError as e:  # this only throws if the user provided invalid arguments
         Logger.exception(e)
         await send_embedded_message(
