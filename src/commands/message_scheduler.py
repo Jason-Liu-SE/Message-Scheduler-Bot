@@ -4,7 +4,6 @@ from discord.ext import commands
 from discord.ext.commands.bot import Bot
 from discord import app_commands
 
-from functools import cmp_to_key
 from helpers.command_helper import *
 from helpers.id_helpers import *
 from helpers.message_scheduler.mongo_utils import *
