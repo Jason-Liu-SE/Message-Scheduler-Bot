@@ -53,6 +53,9 @@ def run_discord_bot():
     async def start():
         async with bot:
             await bot.load_extension("commands.message_scheduler")
+            await bot.load_extension("commands.ticket_bot")
+            await bot.load_extension("commands.ticket_bot_admin")
+
             await bot.start(os.environ["TOKEN"])
 
     Logger.info("Starting bot")
