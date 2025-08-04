@@ -144,9 +144,7 @@ class MessageScheduler(
         for reaction in message_obj["reactions"]:
             try:
                 # set to a custom emoji by default
-                emoji = discord.utils.get(
-                    interaction.message.guild.emojis, name=reaction
-                )
+                emoji = discord.utils.get(interaction.guild.emojis, name=reaction)
 
                 if not emoji:  # standard emojis
                     emoji = reaction
@@ -184,8 +182,7 @@ class MessageScheduler(
         if msg_obj["message"] == "":
             raise ValueError("No message was set! This command was ignored.")
 
-        # setting the postID to the message id of the message that called the 'add' command
-        post_id = interaction.message.id
+        post_id = ObjectId()
 
         # db updates
         try:
