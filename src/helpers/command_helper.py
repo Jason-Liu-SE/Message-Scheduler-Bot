@@ -1,5 +1,7 @@
-from typing import Any, Awaitable, Callable
+from functools import cmp_to_key
+from typing import Any, Awaitable, Callable, Protocol
 import discord
+from discord import app_commands
 
 from helpers.message_scheduler.mongo_utils import *
 from helpers.message_utils import *
@@ -10,7 +12,7 @@ async def handle_command(
     cmd: Callable[..., Awaitable[Any]],
     interaction: discord.Interaction,
     allowed_roles: list,
-    *cmd_args
+    *cmd_args,
 ) -> None:
     if not has_role(interaction, allowed_roles):
         await send_embedded_message(
@@ -49,3 +51,39 @@ async def handle_command(
                 "desc": "An error occurred. Command will be ignored.",
             },
         )
+
+
+def generate_autocomplete(
+    items: list,
+    callback: Callable[
+        [discord.Interaction], Awaitable[list[app_commands.Choice]]
+    ] = None,
+) -> Callable[[discord.Interaction, str], list]:
+    async def autocomplete(interaction: discord.Interaction, current: str) -> list:
+        choices = []
+
+        for item in items:
+            if current.lower() in f"{item}":
+                choices.append(app_commands.Choice(name=f"{item}", value=item))
+
+        choices = choices[:25]
+
+        if callback and len(choices) < 25:
+            choices.extend((await callback(interaction))[: 25 - len(choices)])
+
+        return choices
+
+    return autocomplete
+
+
+def sort_schedules_by_date(schedule: dict, is_ascending: bool = True) -> dict:
+    invert = 1 if is_ascending else -1
+
+    return dict(
+        sorted(
+            schedule.items(),
+            key=cmp_to_key(
+                lambda a, b: 1 * invert if a[1]["time"] > b[1]["time"] else -1 * invert
+            ),
+        )
+    )
