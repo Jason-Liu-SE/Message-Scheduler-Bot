@@ -486,62 +486,59 @@ class MessageScheduler(
 
     async def handle_help(self, interaction: discord.Interaction) -> None:
         help_desc = """The Message Scheduler is used to schedule your posts based on the message that you set via the 'set' command (and any modifications made with appropriate commands. E.g. 'reaction'). If you don't like your message, you can override it with another message via the 'set' command, or if you have made other modifications to the message (e.g. via 'reaction'), you can use the 'reset' command to reset the message entirely.
+    
     Once you are happy with the message, you can schedule it via the 'add' command. If you want to delete the message after it has been scheduled, simply use the 'remove' command with the ID that you were provided when the messaged was scheduled.
         
     The commands are as follows:"""
 
-        add_msg = """Adds the created message to the schedule. Note that a message must be created before it can be added to the schedule, times are specified in UTC, and you can only schedule posts for the future (e.g. if the time is 5:04, you can't schedule a post for any time prior to or equal to 5:04).
+        add_msg = """Adds the created message to the schedule. Note that a message must be created before it can be added to the schedule, times are specified in EST/EDT, and you can only schedule posts for the future (e.g. if the time is 5:04, you can't schedule a post for any time prior to or equal to 5:04).
         
-    BTW:
-    UTC Time = EDT Time + 4 hours
-    UTC Time = EST Time + 5 hours
+    Format: /ms add <channel> <day> <month> <year> <hour> <minute>
         
-    Format: !ms add <channel> <post date> <post time>
-        
-    E.g. !ms add 1143322446909407323 30/01/2023 23:59
+    E.g. !ms add 1143322446909407323 30 1 2023 23 59
     This would post the message on January 30, 2023 at 11:59 PM to the channel with ID 1143322446909407323"""
 
         remove_msg = """Removes a message from the schedule based on a post ID.
         
-    Format: !ms remove <message post id>
+    Format: /ms remove <message post id>
         
-    E.g. !ms remove 123"""
+    E.g./ms remove 123"""
 
-        set_msg = """Sets the message to be scheduled.
+        set_msg = """Sets the message to be scheduled. After submitting this command, the bot will take your next message as the message to be set.
         
-    Format: !ms set <message>
+    Format: /ms set
         
-    E.g. !ms set This is an announcement"""
+    E.g. /ms set"""
 
-        reaction_msg = """Sets the reactions for the message.
+        reaction_msg = """Sets the reactions for the message. If 'clear' is provided, it will reset the current message's emojis.
         
-    Format: !ms reaction [<emoji>]
+    Format: /ms reaction [<emoji>]
         
-    E.g. !ms reaction 😄 😢 🥯"""
+    E.g. !ms reaction 😄😢🥯"""
 
         reset_msg = """Resets the message and all modifications made to it
         
-    Format: !ms reset
+    Format: /ms reset
         
-    E.g. !ms reset"""
+    E.g. /ms reset"""
 
         clear_msg = """Un-schedules all previously scheduled messages
         
-    Format: !ms clearSchedule
+    Format: /ms clearSchedule
         
-    E.g. !ms clearSchedule"""
+    E.g. /ms clearSchedule"""
 
         preview_msg = """Displays either the message that is currently being worked on or a particular scheduled post.
         
-    Format: !ms preview <current|post ID>
+    Format: /ms preview <current|post ID>
         
-    E.g. !ms preview current"""
+    E.g. /ms preview current"""
 
-        list_msg = """Lists all the currently scheduled messages, with their postID, post time, and a preview of their content.
+        list_msg = """Lists all the currently scheduled messages, with their postID, post time, and a preview of their content. These are ordered by earliest post date first
         
-    Format: !ms list
+    Format: /ms list
         
-    E.g. !ms list"""
+    E.g. /ms list"""
 
         fields = [
             {"name": "add", "value": add_msg},
