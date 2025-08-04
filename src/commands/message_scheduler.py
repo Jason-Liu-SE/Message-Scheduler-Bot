@@ -6,6 +6,7 @@ from discord import app_commands
 
 from functools import cmp_to_key
 from helpers.command_helper import *
+from helpers.id_helpers import *
 from helpers.message_scheduler.mongo_utils import *
 from helpers.logger import Logger
 from helpers.message_utils import *
@@ -102,7 +103,7 @@ class MessageScheduler(
         self,
         interaction: discord.Interaction,
         channel: int | None = None,
-        post_id: None | str = None,
+        post_id: None | int | ObjectId = None,
     ) -> None:
         # determining which message object to use
         if not post_id:
@@ -110,10 +111,10 @@ class MessageScheduler(
         else:
             schedule = await get_schedule_by_server_id(interaction.guild.id)
 
-            if int(post_id) not in schedule.keys():
+            if post_id not in schedule.keys():
                 raise ValueError(f"Could not find a post with post ID: {post_id}")
 
-            message_obj = schedule[int(post_id)]
+            message_obj = schedule[post_id]
 
         # adding attachments
         attachments = []
@@ -231,12 +232,12 @@ class MessageScheduler(
     async def handle_remove(
         self, interaction: discord.Interaction, post_id: str
     ) -> None:
-        if not post_id.isdigit():
+        if not is_valid_id(post_id):
             raise TypeError(
-                f"Invalid post ID: {post_id}. Post IDs may only contain numbers."
+                f"Invalid post ID: {post_id}. Post IDs may only contain numbers and letters."
             )
 
-        post = await get_post_by_id(int(post_id))
+        post = await get_post_by_id(parse_id(post_id))
 
         # no scheduled post corresponds with the provided one
         if not post:
@@ -246,7 +247,7 @@ class MessageScheduler(
 
         # deleting the msg
         try:
-            await delete_post_by_id(int(post_id))
+            await delete_post_by_id(parse_id(post_id))
         except RuntimeError as e:
             Logger.error(e)
             raise RuntimeError(
@@ -355,15 +356,15 @@ class MessageScheduler(
     ) -> None:
         target = target.lower()
 
-        if target != "current" and not target.isdigit():
-            raise ValueError("The provided target is invalid. Command will be ignored.")
+        if target != "current" and not is_valid_id(target):
+            raise ValueError("Target must be 'current' or a post ID")
 
         # determining which message to print
         try:
             if target.lower() == "current":
                 await self.handle_print(interaction)
             else:
-                await self.handle_print(interaction, post_id=int(target))
+                await self.handle_print(interaction, post_id=parse_id(target))
         except RuntimeError as e:
             raise e
         except ValueError as e:

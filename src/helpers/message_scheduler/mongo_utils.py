@@ -30,16 +30,16 @@ async def get_schedule_by_server_id(server_id: int) -> dict:
     return PymongoManager.find_all_in_collection("schedules", {"server_id": server_id})
 
 
-async def get_post_by_id(post_id: int) -> dict:
+async def get_post_by_id(post_id: int | ObjectId) -> dict:
     try:
-        return PymongoManager.find_in_collection_by_id("schedules", int(post_id))
+        return PymongoManager.find_in_collection_by_id("schedules", post_id)
     except RuntimeError as e:
         raise e
 
 
-async def delete_post_by_id(post_id: int) -> None:
+async def delete_post_by_id(post_id: int | ObjectId) -> None:
     try:
-        PymongoManager.delete_by_id("schedules", int(post_id))
+        PymongoManager.delete_by_id("schedules", post_id)
     except RuntimeError as e:
         raise e
 
@@ -58,9 +58,9 @@ async def update_message_object(server_id: int, data: dict) -> None:
         raise e
 
 
-async def update_schedule(id: int, data: dict) -> None:
+async def update_schedule(post_id: int | ObjectId, data: dict) -> None:
     try:
-        PymongoManager.update_collection("schedules", id, data)
+        PymongoManager.update_collection("schedules", post_id, data)
     except RuntimeError as e:
         raise e
 
