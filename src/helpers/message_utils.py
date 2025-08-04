@@ -46,9 +46,7 @@ async def send_message(
 async def send_message_by_channel_id(
     content: str, channel_id: int, bot: Bot, attachments: list | None = None
 ) -> discord.Message:
-    send_message_by_channel_id(
-        content, channel_id=channel_id, bot=bot, attachments=attachments
-    )
+    await send_message(content, channel_id=channel_id, bot=bot, attachments=attachments)
 
 
 async def send_embedded_message(
