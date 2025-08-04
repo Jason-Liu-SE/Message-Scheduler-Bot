@@ -1,3 +1,4 @@
+import re
 from bson import ObjectId
 import discord
 from discord.ext import commands
@@ -368,7 +369,7 @@ class MessageScheduler(
         if msg.lower().strip() == "clear":
             msg = ""
 
-        emojis = msg.strip().split()
+        emojis = re.findall("<[a-zA-Z0-9:_]+>|:[a-zA-Z0-9_]+:", msg)
 
         msg_obj = await get_message_object(interaction.guild.id)
 
