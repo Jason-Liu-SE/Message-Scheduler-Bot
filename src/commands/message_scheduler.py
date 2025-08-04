@@ -105,9 +105,9 @@ class MessageScheduler(
     ) -> None:
         # determining which message object to use
         if not post_id:
-            message_obj = await get_message_object(interaction.message.guild.id)
+            message_obj = await get_message_object(interaction.guild.id)
         else:
-            schedule = await get_schedule_by_server_id(interaction.message.guild.id)
+            schedule = await get_schedule_by_server_id(interaction.guild.id)
 
             if int(post_id) not in schedule.keys():
                 raise ValueError(f"Could not find a post with post ID: {post_id}")
@@ -177,7 +177,7 @@ class MessageScheduler(
             raise e
 
         # getting stored message
-        msg_obj = await get_message_object(interaction.message.guild.id)
+        msg_obj = await get_message_object(interaction.guild.id)
 
         # no message was set
         if msg_obj["message"] == "":
@@ -189,7 +189,7 @@ class MessageScheduler(
         # db updates
         try:
             schedule_data = {
-                "server_id": interaction.message.guild.id,
+                "server_id": interaction.guild.id,
                 "channel": channel,
                 "message": msg_obj["message"],
                 "reactions": msg_obj["reactions"],
@@ -209,7 +209,7 @@ class MessageScheduler(
         try:
             # reset the current message
             await update_message_object(
-                interaction.message.guild.id,
+                interaction.guild.id,
                 {
                     "message": "",
                     "reactions": [],
@@ -265,14 +265,14 @@ class MessageScheduler(
         )
 
     async def handle_set(self, interaction: discord.Interaction, msg: str) -> None:
-        msg_obj = await get_message_object(interaction.message.guild.id)
+        msg_obj = await get_message_object(interaction.guild.id)
         msg_obj["message"] = msg
         msg_obj["attachments"] = {
             "message_id": interaction.message.id,
             "channel_id": interaction.message.channel.id,
         }
 
-        await update_message_object(interaction.message.guild.id, msg_obj)
+        await update_message_object(interaction.guild.id, msg_obj)
 
         # no text was provided
         if msg == "":
@@ -294,11 +294,11 @@ class MessageScheduler(
     ) -> None:
         emojis = msg.strip().split(" ")
 
-        msg_obj = await get_message_object(interaction.message.guild.id)
+        msg_obj = await get_message_object(interaction.guild.id)
 
         msg_obj["reactions"] = emojis
 
-        await update_message_object(interaction.message.guild.id, msg_obj)
+        await update_message_object(interaction.guild.id, msg_obj)
 
         # no emojis specified
         if len(emojis) == 1 and emojis[0] == "":
@@ -318,7 +318,7 @@ class MessageScheduler(
     async def handle_reset(self, interaction: discord.Interaction) -> None:
         try:
             await update_message_object(
-                interaction.message.guild.id,
+                interaction.guild.id,
                 {
                     "message": "",
                     "reactions": [],
@@ -339,7 +339,7 @@ class MessageScheduler(
 
     async def handle_clear(self, interaction: discord.Interaction) -> None:
         try:
-            await delete_server_posts(interaction.message.guild.id)
+            await delete_server_posts(interaction.guild.id)
         except RuntimeError as e:
             Logger.error(e)
             raise RuntimeError(
@@ -372,7 +372,7 @@ class MessageScheduler(
             raise e
 
     async def handle_list(self, interaction: discord.Interaction) -> None:
-        schedule = await get_schedule_by_server_id(interaction.message.guild.id)
+        schedule = await get_schedule_by_server_id(interaction.guild.id)
 
         # no scheduled posts
         if not schedule or len(schedule) == 0:
