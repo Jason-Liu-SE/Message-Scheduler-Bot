@@ -1,3 +1,4 @@
+from bson import ObjectId
 import discord
 from discord.ext import commands
 from discord.ext.commands.bot import Bot
@@ -268,8 +269,8 @@ class MessageScheduler(
         msg_obj = await get_message_object(interaction.guild.id)
         msg_obj["message"] = msg
         msg_obj["attachments"] = {
-            "message_id": interaction.message.id,
-            "channel_id": interaction.message.channel.id,
+            "message_id": ObjectId(),
+            "channel_id": interaction.channel.id,
         }
 
         await update_message_object(interaction.guild.id, msg_obj)
