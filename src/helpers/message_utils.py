@@ -9,6 +9,7 @@ async def send_message(
     interaction: discord.Interaction | None = None,
     channel_id: int | None = None,
     attachments: list | None = None,
+    followup: bool = True,
 ) -> discord.Message:
     try:
         res = str(content)
@@ -34,7 +35,12 @@ async def send_message(
                 "'interaction' must be provided when 'channel id' is not specified"
             )
 
-        return await interaction.channel.send(content=res, files=attachments)
+        if followup:
+            return await interaction.followup.send(content=res, files=attachments)
+        else:
+            return await interaction.response.send_message(
+                content=res, files=attachments
+            )
     except RuntimeError as e:
         raise e
     except ValueError as e:
@@ -44,9 +50,19 @@ async def send_message(
 
 
 async def send_message_by_channel_id(
-    content: str, channel_id: int, bot: Bot, attachments: list | None = None
+    content: str,
+    channel_id: int,
+    bot: Bot,
+    attachments: list | None = None,
+    followup: bool = True,
 ) -> discord.Message:
-    await send_message(content, channel_id=channel_id, bot=bot, attachments=attachments)
+    await send_message(
+        content,
+        channel_id=channel_id,
+        bot=bot,
+        attachments=attachments,
+        followup=followup,
+    )
 
 
 async def send_embedded_message(
@@ -55,14 +71,10 @@ async def send_embedded_message(
     main_content: dict,
     fields: list | None = None,
     inline=False,
-    defer=True,
 ) -> None:
     embed_var = discord.Embed(
         title=main_content["title"], description=main_content["desc"], color=color
     )
-
-    if defer:
-        await interaction.response.defer()
 
     if fields:
         for field in fields:

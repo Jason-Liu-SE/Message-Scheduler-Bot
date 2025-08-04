@@ -26,7 +26,7 @@ async def send_post(post: dict, bot: Bot) -> None:
     # sending the message
     try:
         msg = await send_message_by_channel_id(
-            post["message"], int(post["channel"]), bot, attachments
+            post["message"], int(post["channel"]), bot, attachments, followup=False
         )
     except RuntimeError as e:
         raise e
