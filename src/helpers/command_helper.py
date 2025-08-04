@@ -14,6 +14,8 @@ async def handle_command(
     allowed_roles: list,
     *cmd_args,
 ) -> None:
+    await interaction.response.defer()
+
     if not has_role(interaction, allowed_roles):
         await send_embedded_message(
             interaction, 0xFF0000, {"title": "ERROR", "desc": "Insufficient role"}
@@ -25,7 +27,6 @@ async def handle_command(
         await register_server_with_db(interaction)
 
         # handling command
-        await interaction.response.defer()
         await cmd(interaction, *cmd_args)
     except ValueError as e:  # this only throws if the user provided invalid arguments
         Logger.error(e)
