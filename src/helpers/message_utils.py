@@ -32,7 +32,7 @@ async def send_message(
 
         if not interaction:
             raise RuntimeError(
-                "'interaction' must be provided when 'channel id' is not specified"
+                "'interaction' must be provided when 'channel id' or 'bot' is not specified"
             )
 
         if followup:
