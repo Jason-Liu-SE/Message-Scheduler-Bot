@@ -1,3 +1,4 @@
+import asyncio
 import discord
 from discord.ext.commands.bot import Bot
 from helpers.logger import Logger
@@ -76,8 +77,10 @@ async def send_embedded_message(
         title=main_content["title"], description=main_content["desc"], color=color
     )
 
+    await interaction.response.defer()
+
     if fields:
         for field in fields:
             embed_var.add_field(name=field["name"], value=field["value"], inline=inline)
 
-    await interaction.channel.send(embed=embed_var)
+    await interaction.followup.send(embed=embed_var)
