@@ -24,6 +24,9 @@ def run_discord_bot():
         interaction: discord.Interaction, e: app_commands.AppCommandError
     ):
         Logger.exception(e)
+        await send_embedded_message(
+            interaction, 0xFF0000, {"title": "ERROR", "desc": "An error occurred."}
+        )
 
     # trigger declaration
     @bot.event
