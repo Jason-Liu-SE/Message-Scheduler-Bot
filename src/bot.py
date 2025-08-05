@@ -16,6 +16,7 @@ def run_discord_bot():
     intents = discord.Intents.default()
     intents.message_content = True
     intents.typing = True
+    intents.members = True
 
     bot = commands.Bot(command_prefix="!", intents=intents)
     event_manager = EventManager(bot)
