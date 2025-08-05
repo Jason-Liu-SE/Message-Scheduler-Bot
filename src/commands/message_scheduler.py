@@ -504,7 +504,7 @@ class MessageScheduler(
         
     Format: /ms remove <message post id>
         
-    E.g./ms remove 123"""
+    E.g. /ms remove 123"""
 
         set_msg = """Sets the message to be scheduled. After submitting this command, the bot will take your next message as the message to be set.
         
