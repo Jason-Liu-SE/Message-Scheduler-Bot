@@ -72,6 +72,55 @@ class TicketBotAdmin(
         )
 
     @app_commands.command(
+        name="bulkadd", description="Adds tickets to all users with a specific role"
+    )
+    @app_commands.describe(
+        role="Target user role", tickets="The number of tickets to add"
+    )
+    async def bulk_add(
+        self,
+        interaction: discord.Interaction,
+        role: discord.Role,
+        tickets: app_commands.Range[int, 0],
+    ):
+        await handle_command(
+            self.handle_bulk_add, interaction, self.__allowed_roles, role, tickets
+        )
+
+    @app_commands.command(
+        name="bulkremove",
+        description="Remove tickets from all users with a specific role",
+    )
+    @app_commands.describe(
+        role="Target user role", tickets="The number of tickets to add"
+    )
+    async def bulk_remove(
+        self,
+        interaction: discord.Interaction,
+        role: discord.Role,
+        tickets: app_commands.Range[int, 0],
+    ):
+        await handle_command(
+            self.handle_bulk_remove, interaction, self.__allowed_roles, role, tickets
+        )
+
+    @app_commands.command(
+        name="bulkset", description="Sets the tickets of all users with a specific role"
+    )
+    @app_commands.describe(
+        role="Target user role", tickets="The number of tickets to add"
+    )
+    async def bulk_set(
+        self,
+        interaction: discord.Interaction,
+        role: discord.Role,
+        tickets: app_commands.Range[int, 0],
+    ):
+        await handle_command(
+            self.handle_bulk_set, interaction, self.__allowed_roles, role, tickets
+        )
+
+    @app_commands.command(
         name="help", description="List more info about the Admin Ticket Bot commands"
     )
     async def help(self, interaction: discord.Interaction):
@@ -119,6 +168,62 @@ class TicketBotAdmin(
             },
         )
 
+    async def bulk_update_tickets(
+        self,
+        interaction: discord.Interaction,
+        role: discord.Role,
+        tickets: int,
+        multiplier: int = 1,
+        is_override: bool = False,
+    ) -> None:
+        if tickets < 0:
+            raise ValueError("Tickets must be non-negative")
+
+        tickets *= multiplier
+
+        if not interaction.guild:
+            await send_embedded_message(
+                interaction,
+                Colour.RED,
+                {"title": "ERROR", "desc": "This command must be used in a server"},
+            )
+            return
+
+        try:
+            members = [m for m in interaction.guild.members if role in m.roles]
+            member_ids = [m.id for m in members]
+
+            await create_user_objects(member_ids)
+
+            user_objs = await get_user_objects(member_ids)
+
+            for user_id, user_obj in user_objs.items():
+                user_objs[user_id]["tickets"] = tickets + (
+                    0 if is_override else user_obj["tickets"]
+                )
+
+            await update_user_objects(user_objs)
+        except Exception as e:
+            await send_embedded_message(
+                interaction,
+                Colour.RED,
+                {
+                    "title": "ERROR",
+                    "desc": f"Could not update tickets for users with role: {role.name}",
+                },
+            )
+            Logger.exception(e)
+            return
+
+        await send_embedded_message(
+            interaction,
+            Colour.GREEN,
+            {
+                "title": "Success",
+                "desc": f"Updated tickets for users with role `{role.name}` {"to" if is_override else "by"} {tickets}",
+            },
+        )
+
     async def handle_add(
         self, interaction: discord.Interaction, user: discord.Member, tickets: int
     ) -> None:
@@ -133,6 +238,21 @@ class TicketBotAdmin(
         self, interaction: discord.Interaction, user: discord.Member, tickets: int
     ) -> None:
         await self.update_tickets(interaction, user, tickets, is_override=True)
+
+    async def handle_bulk_add(
+        self, interaction: discord.Interaction, role: discord.Member, tickets: int
+    ) -> None:
+        await self.bulk_update_tickets(interaction, role, tickets)
+
+    async def handle_bulk_remove(
+        self, interaction: discord.Interaction, role: discord.Member, tickets: int
+    ) -> None:
+        await self.bulk_update_tickets(interaction, role, tickets, multiplier=-1)
+
+    async def handle_bulk_set(
+        self, interaction: discord.Interaction, role: discord.Member, tickets: int
+    ) -> None:
+        await self.bulk_update_tickets(interaction, role, tickets, is_override=True)
 
     async def handle_help(self, interaction: discord.Interaction) -> None:
         help_desc = """Ticket Admin is the administrative version of the Ticket bot. This bot allows those with sufficient permissions to add, remove, and set tickets for users.
