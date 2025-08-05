@@ -497,7 +497,7 @@ class MessageScheduler(
         
     Format: /ms add <channel> <day> <month> <year> <hour> <minute>
         
-    E.g. !ms add 1143322446909407323 30 1 2023 23 59
+    E.g. /ms add 1143322446909407323 30 1 2023 23 59
     This would post the message on January 30, 2023 at 11:59 PM to the channel with ID 1143322446909407323"""
 
         remove_msg = """Removes a message from the schedule based on a post ID.
