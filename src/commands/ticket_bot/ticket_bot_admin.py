@@ -57,8 +57,15 @@ class TicketBotAdmin(
         )
 
     @app_commands.command(name="set", description="Sets a user's tickets")
-    async def set(self, interaction: discord.Interaction):
-        await handle_command(self.handle_set, interaction, self.__allowed_roles)
+    async def set(
+        self,
+        interaction: discord.Interaction,
+        user: discord.Member,
+        tickets: app_commands.Range[int, 0],
+    ):
+        await handle_command(
+            self.handle_set, interaction, self.__allowed_roles, user, tickets
+        )
 
     @app_commands.command(
         name="help", description="List more info about the Admin Ticket Bot commands"
@@ -74,7 +81,8 @@ class TicketBotAdmin(
         interaction: discord.Interaction,
         user: discord.Member,
         tickets: int,
-        multiplier: int,
+        multiplier: int = 1,
+        is_override: bool = False,
     ) -> None:
         if tickets < 0:
             raise ValueError("Tickets must be non-negative")
@@ -87,7 +95,7 @@ class TicketBotAdmin(
             if not user_obj:
                 raise Exception
 
-            user_obj["tickets"] += tickets
+            user_obj["tickets"] = tickets + 0 if is_override else user_obj["tickets"]
             await update_user_object(user.id, user_obj)
         except Exception as e:
             await send_embedded_message(
@@ -103,22 +111,24 @@ class TicketBotAdmin(
             Colour.GREEN,
             {
                 "title": "Success",
-                "desc": f"Updated user `{user.display_name}`'s tickets by {tickets}",
+                "desc": f"Updated user `{user.display_name}`'s tickets {"to" if is_override else "by"} {tickets}",
             },
         )
 
     async def handle_add(
         self, interaction: discord.Interaction, user: discord.Member, tickets: int
     ) -> None:
-        await self.update_tickets(interaction, user, tickets, 1)
+        await self.update_tickets(interaction, user, tickets)
 
     async def handle_remove(
         self, interaction: discord.Interaction, user: discord.Member, tickets: int
     ) -> None:
-        await self.update_tickets(interaction, user, tickets, -1)
+        await self.update_tickets(interaction, user, tickets, multiplier=-1)
 
-    async def handle_set(self, interaction: discord.Interaction) -> None:
-        pass
+    async def handle_set(
+        self, interaction: discord.Interaction, user: discord.Member, tickets: int
+    ) -> None:
+        await self.update_tickets(interaction, user, tickets, is_override=True)
 
     async def handle_help(self, interaction: discord.Interaction) -> None:
         pass
