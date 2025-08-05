@@ -259,31 +259,55 @@ class TicketBotAdmin(
         
     The commands are as follows:"""
 
-        add_msg = """Adds tickets to a user. The value must be >= 0.
+        add_msg = """Adds tickets to a user. The tickets must be >= 0.
         
     Format: /ticketadmin add <user> <tickets>
         
     E.g. /ticketadmin add @user 2
     This would add 2 tickets to @user"""
 
-        remove_msg = """Removes tickets from a user. This value must be >= 0.
+        remove_msg = """Removes tickets from a user. This tickets must be >= 0.
         
     Format: /ticketadmin remove <user> <tickets>
         
     E.g. /ticketadmin remove @user 2
     This would remove 2 tickets from @user"""
 
-        set_msg = """Sets a user's tickets. This value must be >= 0.
+        set_msg = """Sets a user's tickets. This tickets must be >= 0.
         
     Format: /ticketadmin set <user> <tickets>
         
     E.g. /ticketadmin set @user 2
     This would set @user's tickets to 2"""
 
+        bulkadd_msg = """Adds tickets to all user with a specific role. The tickets must be >= 0.
+        
+    Format: /ticketadmin bulkadd <role> <tickets>
+        
+    E.g. /ticketadmin bulkadd @mods 2
+    This would add 2 tickets to all @mods"""
+
+        bulkremove_msg = """Removes tickets from all users with a specific role. This tickets must be >= 0.
+        
+    Format: /ticketadmin bulkremove <role> <tickets>
+        
+    E.g. /ticketadmin bulkremove @mods 2
+    This would remove 2 tickets from all @mods"""
+
+        bulkset_msg = """Sets the ticket value for all users with a specific role. This tickets must be >= 0.
+        
+    Format: /ticketadmin bulkset <role> <tickets>
+        
+    E.g. /ticketadmin bulkset @mods 2
+    This would set all @mods' tickets to 2"""
+
         fields = [
             {"name": "add", "value": add_msg},
             {"name": "remove", "value": remove_msg},
             {"name": "set", "value": set_msg},
+            {"name": "bulkadd", "value": bulkadd_msg},
+            {"name": "bulkremove", "value": bulkremove_msg},
+            {"name": "bulkset", "value": bulkset_msg},
         ]
 
         await send_embedded_message(
