@@ -78,6 +78,19 @@ class PymongoManager:
             )
 
     @staticmethod
+    def update_collection_on_insert(
+        collectionName: str, id: int | ObjectId, data: dict
+    ) -> None:
+        try:
+            collection = PymongoManager.__db[collectionName]
+
+            collection.update_one({"_id": id}, {"$setOnInsert": data}, upsert=True)
+        except:
+            raise RuntimeError(
+                f"ERROR: Failed to set on insert for the collection '{collectionName}'"
+            )
+
+    @staticmethod
     def delete_by_id(collectionName: str, id: int | ObjectId) -> None:
         try:
             collection = PymongoManager.__db[collectionName]

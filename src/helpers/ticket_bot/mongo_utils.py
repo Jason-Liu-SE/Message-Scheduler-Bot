@@ -21,8 +21,32 @@ async def get_user_object(user_id: int) -> dict:
     return PymongoManager.find_in_collection_by_id("tickets", user_id)
 
 
+async def get_user_objects(user_ids: list[int]) -> dict:
+    return PymongoManager.find_all_in_collection("tickets", {"_id": {"$in": user_ids}})
+
+
 async def update_user_object(user_id: int, data: dict) -> None:
     try:
         PymongoManager.update_collection("tickets", user_id, data)
+    except RuntimeError as e:
+        raise e
+
+
+async def update_user_objects(user_objs: dict[int, dict]) -> None:
+    try:
+        for key, value in user_objs.items():
+            PymongoManager.update_collection("tickets", key, value)
+    except RuntimeError as e:
+        raise e
+
+
+async def create_user_objects(user_ids: list[int]) -> None:
+    try:
+        for user_id in user_ids:
+            PymongoManager.update_collection_on_insert(
+                "tickets",
+                user_id,
+                {"tickets": 0, "incoming_trades": [], "outgoing_trades": []},
+            )
     except RuntimeError as e:
         raise e
