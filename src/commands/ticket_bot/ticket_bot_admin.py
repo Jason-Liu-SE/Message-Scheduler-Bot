@@ -6,6 +6,7 @@ from discord import app_commands
 from helpers.command_helper import *
 from helpers.id_helpers import *
 from helpers.message_utils import *
+from helpers.ticket_bot.mongo_utils import *
 from helpers.time import *
 from helpers.validate import *
 
@@ -32,8 +33,17 @@ class TicketBotAdmin(
     ################################### COMMANDS #######################################
     ####################################################################################
     @app_commands.command(name="add", description="Adds tickets to a user")
-    async def add(self, interaction: discord.Interaction):
-        await handle_command(self.handle_add, interaction, self.__allowed_roles)
+    @app_commands.describe(user="User to add tickets to")
+    @app_commands.describe(tickets="The number of tickets to add")
+    async def add(
+        self,
+        interaction: discord.Interaction,
+        user: discord.Member,
+        tickets: app_commands.Range[int, 0],
+    ):
+        await handle_command(
+            self.handle_add, interaction, self.__allowed_roles, user, tickets
+        )
 
     @app_commands.command(name="remove", description="Remove tickets from a user")
     async def remove(self, interaction: discord.Interaction):
@@ -52,8 +62,37 @@ class TicketBotAdmin(
     ####################################################################################
     ################################### HANDLERS #######################################
     ####################################################################################
-    async def handle_add(self, interaction: discord.Interaction) -> None:
-        pass
+    async def handle_add(
+        self, interaction: discord.Interaction, user: discord.Member, tickets: int
+    ) -> None:
+        if tickets < 0:
+            raise ValueError("Added tickets must be non-negative")
+
+        try:
+            user_obj = await get_user_object(user.id)
+
+            if not user_obj:
+                raise Exception
+
+            user_obj["tickets"] += tickets
+            await update_user_object(user.id, user_obj)
+        except Exception as e:
+            await send_embedded_message(
+                interaction,
+                Colour.RED,
+                {"title": "ERROR", "desc": "Could not add tickets to user"},
+            )
+            Logger.exception(e)
+            return
+
+        await send_embedded_message(
+            interaction,
+            Colour.GREEN,
+            {
+                "title": "Success",
+                "desc": f"Added {tickets} tickets to user: {user.display_name}",
+            },
+        )
 
     async def handle_remove(self, interaction: discord.Interaction) -> None:
         pass
