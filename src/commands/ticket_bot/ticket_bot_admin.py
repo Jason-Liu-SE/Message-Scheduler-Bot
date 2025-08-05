@@ -46,8 +46,15 @@ class TicketBotAdmin(
         )
 
     @app_commands.command(name="remove", description="Remove tickets from a user")
-    async def remove(self, interaction: discord.Interaction):
-        await handle_command(self.handle_remove, interaction, self.__allowed_roles)
+    async def remove(
+        self,
+        interaction: discord.Interaction,
+        user: discord.Member,
+        tickets: app_commands.Range[int, 0],
+    ):
+        await handle_command(
+            self.handle_remove, interaction, self.__allowed_roles, user, tickets
+        )
 
     @app_commands.command(name="set", description="Sets a user's tickets")
     async def set(self, interaction: discord.Interaction):
@@ -67,12 +74,12 @@ class TicketBotAdmin(
         interaction: discord.Interaction,
         user: discord.Member,
         tickets: int,
-        add: bool,
+        multiplier: int,
     ) -> None:
         if tickets < 0:
             raise ValueError("Tickets must be non-negative")
 
-        tickets *= 1 if add else -1
+        tickets *= multiplier
 
         try:
             user_obj = await get_user_object(user.id)
@@ -105,8 +112,10 @@ class TicketBotAdmin(
     ) -> None:
         await self.update_tickets(interaction, user, tickets, 1)
 
-    async def handle_remove(self, interaction: discord.Interaction) -> None:
-        pass
+    async def handle_remove(
+        self, interaction: discord.Interaction, user: discord.Member, tickets: int
+    ) -> None:
+        await self.update_tickets(interaction, user, tickets, -1)
 
     async def handle_set(self, interaction: discord.Interaction) -> None:
         pass
