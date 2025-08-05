@@ -1,6 +1,7 @@
 import discord
 from discord.ext.commands.bot import Bot
 from emoji import emojize
+from helpers.colours import Colour
 from helpers.logger import Logger
 
 
@@ -87,7 +88,7 @@ async def send_embedded_message(
 async def wait_for_msg(interaction: discord.Interaction, bot: Bot) -> discord.Message:
     await send_embedded_message(
         interaction,
-        0x037FFC,
+        Colour.LIGHT_BLUE,
         {"title": "Set", "desc": "Waiting for message..."},
     )
 

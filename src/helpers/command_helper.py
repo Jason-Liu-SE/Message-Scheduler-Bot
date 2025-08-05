@@ -3,6 +3,7 @@ from typing import Any, Awaitable, Callable
 import discord
 from discord import app_commands
 
+from helpers.colours import Colour
 from helpers.message_scheduler.mongo_utils import *
 from helpers.message_utils import *
 from helpers.ticket_bot.mongo_utils import register_user_with_db
@@ -19,7 +20,7 @@ async def handle_command(
 
     if not has_role(interaction, allowed_roles):
         await send_embedded_message(
-            interaction, 0xFF0000, {"title": "ERROR", "desc": "Insufficient role"}
+            interaction, Colour.RED, {"title": "ERROR", "desc": "Insufficient role"}
         )
         return
 
@@ -33,23 +34,23 @@ async def handle_command(
     except ValueError as e:  # this only throws if the user provided invalid arguments
         Logger.error(e)
         await send_embedded_message(
-            interaction, 0xFF0000, {"title": "ERROR", "desc": e}
+            interaction, Colour.RED, {"title": "ERROR", "desc": e}
         )
     except TypeError as e:
         Logger.exception(e)
         await send_embedded_message(
-            interaction, 0xFF0000, {"title": "ERROR", "desc": e}
+            interaction, Colour.RED, {"title": "ERROR", "desc": e}
         )
     except RuntimeError as e:
         Logger.exception(e)
         await send_embedded_message(
-            interaction, 0xFF0000, {"title": "ERROR", "desc": e}
+            interaction, Colour.RED, {"title": "ERROR", "desc": e}
         )
     except Exception as e:
         Logger.exception(e)
         await send_embedded_message(
             interaction,
-            0xFF0000,
+            Colour.RED,
             {
                 "title": "ERROR",
                 "desc": "An error occurred. Command will be ignored.",

@@ -5,6 +5,7 @@ from discord.ext import commands
 from discord.ext.commands.bot import Bot
 from discord import app_commands
 
+from helpers.colours import Colour
 from helpers.command_helper import *
 from helpers.id_helpers import *
 from helpers.message_scheduler.mongo_utils import *
@@ -295,7 +296,7 @@ class MessageScheduler(
         # informing the user
         await send_embedded_message(
             interaction,
-            0x00FF00,
+            Colour.GREEN,
             {
                 "title": "Success",
                 "desc": f"Message added to post schedule!\n\n**Post ID**: {post_id}",
@@ -327,7 +328,7 @@ class MessageScheduler(
 
         await send_embedded_message(
             interaction,
-            0x00FF00,
+            Colour.GREEN,
             {
                 "title": "Success",
                 "desc": f"Post with ID {post_id} was removed from the post schedule!",
@@ -352,14 +353,14 @@ class MessageScheduler(
         if msg.content == "":
             await send_embedded_message(
                 interaction,
-                0x00FF00,
+                Colour.GREEN,
                 {"title": "Success", "desc": "The message was cleared!"},
             )
             return
 
         await send_embedded_message(
             interaction,
-            0x00FF00,
+            Colour.GREEN,
             {"title": "Success", "desc": "The message has been set!"},
         )
 
@@ -381,14 +382,14 @@ class MessageScheduler(
         if len(emojis) == 1 and emojis[0] == "":
             await send_embedded_message(
                 interaction,
-                0x00FF00,
+                Colour.GREEN,
                 {"title": "Success", "desc": f"Reactions were cleared!"},
             )
             return
 
         await send_embedded_message(
             interaction,
-            0x00FF00,
+            Colour.GREEN,
             {"title": "Success", "desc": f"Reaction(s) {msg} added to message!"},
         )
 
@@ -410,7 +411,7 @@ class MessageScheduler(
 
         await send_embedded_message(
             interaction,
-            0x00FF00,
+            Colour.GREEN,
             {"title": "Success", "desc": "The message has been reset!"},
         )
 
@@ -425,7 +426,7 @@ class MessageScheduler(
 
         await send_embedded_message(
             interaction,
-            0x00FF00,
+            Colour.GREEN,
             {"title": "Success", "desc": "The post schedule was cleared!"},
         )
 
@@ -455,7 +456,7 @@ class MessageScheduler(
         if not schedule or len(schedule) == 0:
             await send_embedded_message(
                 interaction,
-                0xFFFF00,
+                Colour.YELLOW,
                 {"title": "Warning", "desc": f"You don't have any scheduled posts!"},
             )
             return
@@ -482,7 +483,7 @@ class MessageScheduler(
 
         for message in msg_list:
             await send_embedded_message(
-                interaction, 0x00FF00, {"title": "Posts", "desc": message}
+                interaction, Colour.GREEN, {"title": "Posts", "desc": message}
             )
 
     async def handle_help(self, interaction: discord.Interaction) -> None:
@@ -554,7 +555,7 @@ class MessageScheduler(
 
         await send_embedded_message(
             interaction,
-            0x7E42F5,
+            Colour.PURPLE,
             {"title": "Message Scheduler Commands", "desc": help_desc},
             fields,
         )

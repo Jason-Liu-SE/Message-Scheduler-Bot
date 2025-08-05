@@ -1,4 +1,5 @@
 from commands.message_scheduler import MessageScheduler
+from helpers.colours import Colour
 from helpers.logger import *
 import discord
 from discord.ext import commands
@@ -25,7 +26,7 @@ def run_discord_bot():
     ):
         Logger.exception(e)
         await send_embedded_message(
-            interaction, 0xFF0000, {"title": "ERROR", "desc": "An error occurred."}
+            interaction, Colour.RED, {"title": "ERROR", "desc": "An error occurred."}
         )
 
     # trigger declaration
