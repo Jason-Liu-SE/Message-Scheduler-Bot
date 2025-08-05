@@ -26,10 +26,6 @@ class TicketBotAdmin(
         ]
 
     ####################################################################################
-    ################################ AUTOCOMPLETE ######################################
-    ####################################################################################
-
-    ####################################################################################
     ################################### COMMANDS #######################################
     ####################################################################################
     @app_commands.command(name="add", description="Adds tickets to a user")
@@ -131,7 +127,43 @@ class TicketBotAdmin(
         await self.update_tickets(interaction, user, tickets, is_override=True)
 
     async def handle_help(self, interaction: discord.Interaction) -> None:
-        pass
+        help_desc = """Ticket Admin is the administrative version of the Ticket bot. This bot allows those with sufficient permissions to add, remove, and set tickets for users.
+        
+    The commands are as follows:"""
+
+        add_msg = """Adds tickets to a user. The value must be >= 0.
+        
+    Format: /ticketadmin add <user> <tickets>
+        
+    E.g. /ticketadmin add @user 2
+    This would add 2 tickets to @user"""
+
+        remove_msg = """Removes tickets from a user. This value must be >= 0.
+        
+    Format: /ticketadmin remove <user> <tickets>
+        
+    E.g. /ticketadmin remove @user 2
+    This would remove 2 tickets from @user"""
+
+        set_msg = """Sets a user's tickets. This value must be >= 0.
+        
+    Format: /ticketadmin set <user> <tickets>
+        
+    E.g. /ticketadmin set @user 2
+    This would set @user's tickets to 2"""
+
+        fields = [
+            {"name": "add", "value": add_msg},
+            {"name": "remove", "value": remove_msg},
+            {"name": "set", "value": set_msg},
+        ]
+
+        await send_embedded_message(
+            interaction,
+            Colour.PURPLE,
+            {"title": "Ticket Admin Commands", "desc": help_desc},
+            fields,
+        )
 
 
 # automatically ran when using load_extensions
