@@ -198,25 +198,23 @@ class MessageScheduler(
                     file = await f.to_file()
                     attachments.append(file)
         except Exception as e:
-            Logger.exception(e)
+            Logger.error(f"Could not add attachments to print: {e}")
 
         # sending the message
+        await send_message(
+            interaction=interaction,
+            content=message_obj["message"],
+            bot=self.bot,
+            channel_id=channel_id,
+            attachments=attachments,
+        )
+
+        msg = [msg async for msg in interaction.channel.history(limit=1)][0]
+
         try:
-            await send_message(
-                interaction=interaction,
-                content=message_obj["message"],
-                bot=self.bot,
-                channel_id=channel_id,
-                attachments=attachments,
-            )
-
-            msg = [msg async for msg in interaction.channel.history(limit=1)][0]
-        except RuntimeError as e:
-            raise e
-        except ValueError as e:
-            raise e
-
-        await add_emojis(msg, interaction.guild.emojis, message_obj["reactions"])
+            await add_emojis(msg, interaction.guild.emojis, message_obj["reactions"])
+        except Exception as e:
+            Logger.error(f"Could not add emojis to print: {e}")
 
     async def handle_add(
         self,
@@ -233,11 +231,8 @@ class MessageScheduler(
         time = f"{0 if hour < 10 else ""}{hour}:{0 if minute < 10 else ""}{minute}"
 
         # argument validation
-        try:
-            validate_channel(channel)
-            await validate_date({"date": date, "time": time})
-        except ValueError as e:
-            raise e
+        validate_channel(channel)
+        await validate_date({"date": date, "time": time})
 
         # formatting the data
         channel = int(channel)
@@ -245,10 +240,7 @@ class MessageScheduler(
         date_obj = convert_to_utc(date_obj, "Canada/Eastern")
 
         # validating the user's desired time
-        try:
-            await validate_time(date_obj)
-        except ValueError as e:
-            raise e
+        await validate_time(date_obj)
 
         # getting stored message
         msg_obj = await get_message_object(interaction.guild.id)
@@ -275,9 +267,10 @@ class MessageScheduler(
         try:
             # schedule the current message
             await update_schedule(post_id, schedule_data)
-        except RuntimeError as e:
+        except Exception as e:
             Logger.exception(e)
-            raise RuntimeError("Could not add the message to the schedule.")
+            await send_error(interaction, "Could not add the message to the schedule.")
+            return
 
         try:
             # reset the current message
@@ -289,9 +282,12 @@ class MessageScheduler(
                     "attachments": {"message_id": "", "channel_id": ""},
                 },
             )
-        except:
+        except Exception as e:
             Logger.exception(e)
-            raise RuntimeError("Schedule updated, but the message was not reset.")
+            await send_error(
+                interaction, "Schedule updated, but the message was not reset."
+            )
+            return
 
         # informing the user
         await send_embedded_message(
@@ -320,11 +316,13 @@ class MessageScheduler(
         # deleting the msg
         try:
             await delete_post_by_id(parse_id(post_id))
-        except RuntimeError as e:
+        except Exception as e:
             Logger.exception(e)
-            raise RuntimeError(
-                f"Could not delete the post with ID: {post_id}. The command will be ignored."
+            await send_error(
+                interaction,
+                f"Could not delete the post with ID: {post_id}. The command will be ignored.",
             )
+            return
 
         await send_embedded_message(
             interaction,
@@ -403,11 +401,12 @@ class MessageScheduler(
                     "attachments": {"message_id": "", "channel_id": ""},
                 },
             )
-        except RuntimeError as e:
+        except Exception as e:
             Logger.exception(e)
-            raise RuntimeError(
+            await send_error(
                 f"Could not reset the message. The command will be ignored."
             )
+            return
 
         await send_embedded_message(
             interaction,
@@ -418,11 +417,13 @@ class MessageScheduler(
     async def handle_clear(self, interaction: discord.Interaction) -> None:
         try:
             await delete_server_posts(interaction.guild.id)
-        except RuntimeError as e:
+        except Exception as e:
             Logger.exception(e)
-            raise RuntimeError(
-                f"Could not delete all scheduled posts for this server. This command will be ignored."
+            await send_error(
+                interaction,
+                f"Could not delete all scheduled posts for this server. This command will be ignored.",
             )
+            return
 
         await send_embedded_message(
             interaction,
@@ -439,15 +440,10 @@ class MessageScheduler(
             raise ValueError("Target must be 'current' or a post ID")
 
         # determining which message to print
-        try:
-            if target.lower() == "current":
-                await self.handle_print(interaction)
-            else:
-                await self.handle_print(interaction, post_id=parse_id(target))
-        except RuntimeError as e:
-            raise e
-        except ValueError as e:
-            raise e
+        if target.lower() == "current":
+            await self.handle_print(interaction)
+        else:
+            await self.handle_print(interaction, post_id=parse_id(target))
 
     async def handle_list(self, interaction: discord.Interaction) -> None:
         schedule = await get_schedule_by_server_id(interaction.guild.id)

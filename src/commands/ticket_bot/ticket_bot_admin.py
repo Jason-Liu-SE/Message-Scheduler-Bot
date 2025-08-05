@@ -151,12 +151,8 @@ class TicketBotAdmin(
             user_obj["tickets"] = tickets + (0 if is_override else user_obj["tickets"])
             await update_user_object(user.id, user_obj)
         except Exception as e:
-            await send_embedded_message(
-                interaction,
-                Colour.RED,
-                {"title": "ERROR", "desc": "Could not update user's tickets"},
-            )
             Logger.exception(e)
+            await send_error(interaction, "Could not update user's tickets")
             return
 
         await send_embedded_message(
@@ -182,11 +178,7 @@ class TicketBotAdmin(
         tickets *= multiplier
 
         if not interaction.guild:
-            await send_embedded_message(
-                interaction,
-                Colour.RED,
-                {"title": "ERROR", "desc": "This command must be used in a server"},
-            )
+            await send_error(interaction, "This command must be used in a server")
             return
 
         try:
@@ -204,13 +196,9 @@ class TicketBotAdmin(
 
             await update_user_objects(user_objs)
         except Exception as e:
-            await send_embedded_message(
+            await send_error(
                 interaction,
-                Colour.RED,
-                {
-                    "title": "ERROR",
-                    "desc": f"Could not update tickets for users with role: {role.name}",
-                },
+                f"Could not update tickets for users with role: {role.name}",
             )
             Logger.exception(e)
             return

@@ -20,18 +20,16 @@ async def send_post(post: dict, bot: Bot) -> None:
                 file = await f.to_file()
                 attachments.append(file)
     except Exception as e:
-        Logger.exception(e)
+        Logger.error(f"Failed to add attachments to post message: {e}")
 
     # sending the message
-    try:
-        msg = await send_message_by_channel_id(
-            post["message"], int(post["channel"]), bot, attachments, followup=False
-        )
-    except RuntimeError as e:
-        raise e
-    except ValueError as e:
-        raise e
+    msg = await send_message_by_channel_id(
+        post["message"], int(post["channel"]), bot, attachments, followup=False
+    )
 
     # adding emojis
-    if server:
-        await add_emojis(msg, server.emojis, post["reactions"])
+    try:
+        if server:
+            await add_emojis(msg, server.emojis, post["reactions"])
+    except:
+        Logger.error(f"Failed to add emojis to post message: {e}")

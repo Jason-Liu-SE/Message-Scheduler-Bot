@@ -19,7 +19,7 @@ class PymongoManager:
 
             Logger.info("Connected to MongoDB")
         except:
-            raise RuntimeError("ERROR: Could not connect to MongoDB")
+            raise RuntimeError("Could not connect to MongoDB")
 
     @staticmethod
     def insert_to_collection(collectionName: str, data: dict) -> None:
@@ -28,9 +28,7 @@ class PymongoManager:
 
             collection.insert_one(data)
         except:
-            raise RuntimeError(
-                f"ERROR: Failed to insert into collection '{collectionName}'"
-            )
+            raise RuntimeError(f"Failed to insert into collection '{collectionName}'")
 
     # returns an item in a collection, by id
     @staticmethod
@@ -43,7 +41,7 @@ class PymongoManager:
         except:
             Logger.error(f"Failed while fetching single query from '{collectionName}'")
 
-        return None
+        return {}
 
     @staticmethod
     def find_all_in_collection(collectionName: str, query: dict) -> dict:
@@ -66,6 +64,8 @@ class PymongoManager:
                 f"Failed while fetching all from '{collectionName}' with query '{query}'"
             )
 
+        return {}
+
     @staticmethod
     def update_collection(collectionName: str, id: int | ObjectId, data: dict) -> None:
         try:
@@ -73,9 +73,7 @@ class PymongoManager:
 
             collection.update_one({"_id": id}, {"$set": data}, upsert=True)
         except:
-            raise RuntimeError(
-                f"ERROR: Failed to update the collection '{collectionName}'"
-            )
+            raise RuntimeError(f"Failed to update the collection '{collectionName}'")
 
     @staticmethod
     def update_collection_on_insert(
@@ -87,7 +85,7 @@ class PymongoManager:
             collection.update_one({"_id": id}, {"$setOnInsert": data}, upsert=True)
         except:
             raise RuntimeError(
-                f"ERROR: Failed to set on insert for the collection '{collectionName}'"
+                f"Failed to set on insert for collection: '{collectionName}'"
             )
 
     @staticmethod
@@ -98,7 +96,7 @@ class PymongoManager:
             collection.delete_one({"_id": id})
         except:
             raise RuntimeError(
-                f"ERROR: Failed to delete entry in collection '{collectionName}' with id '{id}'"
+                f"Failed to delete entry in collection '{collectionName}' with id '{id}'"
             )
 
     @staticmethod
@@ -109,7 +107,7 @@ class PymongoManager:
             collection.delete_many(query)
         except:
             raise RuntimeError(
-                f"ERROR: Failed to delete entries in collection '{collectionName}' with query '{query}'"
+                f"Failed to delete entries in collection '{collectionName}' with query '{query}'"
             )
 
     @staticmethod
@@ -130,5 +128,5 @@ class PymongoManager:
             return data
         except:
             raise RuntimeError(
-                f"ERROR: Failed to retrieve entries in collection '{collectionName}' for date range {start} to {end}"
+                f"Failed to retrieve entries in collection '{collectionName}' for date range {start} to {end}"
             )

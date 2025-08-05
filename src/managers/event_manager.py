@@ -32,7 +32,7 @@ class EventManager:
                     await send_post(post, self.bot)
                     await delete_post_by_id(post["_id"])
                 except Exception as e:
-                    Logger.exception(e)
+                    Logger.error(f"Failed while sending post: {e}")
         except Exception as e:
             Logger.exception(e)
 

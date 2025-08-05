@@ -26,9 +26,7 @@ def run_discord_bot():
         interaction: discord.Interaction, e: app_commands.AppCommandError
     ):
         Logger.exception(e)
-        await send_embedded_message(
-            interaction, Colour.RED, {"title": "ERROR", "desc": "An error occurred."}
-        )
+        await send_error(interaction, "An error occurred.")
 
     # trigger declaration
     @bot.event
@@ -50,7 +48,7 @@ def run_discord_bot():
             if not event_manager.manage_schedule_loop.is_running():
                 event_manager.manage_schedule_loop.start()
         except Exception as e:
-            Logger.exception(e)
+            Logger.exception(f"An error occurred on_ready: {e}")
 
     async def start():
         async with bot:

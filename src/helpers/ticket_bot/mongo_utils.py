@@ -7,14 +7,11 @@ async def register_user_with_db(interaction: discord.Interaction) -> None:
     userObj = await get_user_object(user.id)
 
     # creating a user for ticket tracking, if they don't exist
-    try:
-        if not userObj:
-            await update_user_object(
-                user.id,
-                {"tickets": 0, "incoming_trades": [], "outgoing_trades": []},
-            )
-    except RuntimeError as e:
-        raise Exception(e)
+    if not userObj:
+        await update_user_object(
+            user.id,
+            {"tickets": 0, "incoming_trades": [], "outgoing_trades": []},
+        )
 
 
 async def get_user_object(user_id: int) -> dict:
@@ -26,27 +23,18 @@ async def get_user_objects(user_ids: list[int]) -> dict:
 
 
 async def update_user_object(user_id: int, data: dict) -> None:
-    try:
-        PymongoManager.update_collection("tickets", user_id, data)
-    except RuntimeError as e:
-        raise e
+    PymongoManager.update_collection("tickets", user_id, data)
 
 
 async def update_user_objects(user_objs: dict[int, dict]) -> None:
-    try:
-        for key, value in user_objs.items():
-            PymongoManager.update_collection("tickets", key, value)
-    except RuntimeError as e:
-        raise e
+    for key, value in user_objs.items():
+        PymongoManager.update_collection("tickets", key, value)
 
 
 async def create_user_objects(user_ids: list[int]) -> None:
-    try:
-        for user_id in user_ids:
-            PymongoManager.update_collection_on_insert(
-                "tickets",
-                user_id,
-                {"tickets": 0, "incoming_trades": [], "outgoing_trades": []},
-            )
-    except RuntimeError as e:
-        raise e
+    for user_id in user_ids:
+        PymongoManager.update_collection_on_insert(
+            "tickets",
+            user_id,
+            {"tickets": 0, "incoming_trades": [], "outgoing_trades": []},
+        )

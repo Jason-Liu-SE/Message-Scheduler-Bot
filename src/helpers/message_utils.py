@@ -13,42 +13,33 @@ async def send_message(
     attachments: list = [],
     followup: bool = True,
 ) -> discord.Message:
-    try:
-        res = str(content)
+    res = str(content)
 
-        # content can't be empty
-        if not content:
-            raise ValueError("No message is set.")
+    # content can't be empty
+    if not content:
+        raise ValueError("No message is set.")
 
-        # specified channel
-        if channel_id and bot:
-            c = bot.get_channel(channel_id)
+    # specified channel
+    if channel_id and bot:
+        c = bot.get_channel(channel_id)
 
-            # non-existent channel
-            if not c:
-                raise RuntimeError(
-                    f"Could not find channel '{channel_id}' to send the message to."
-                )
-
-            return await c.send(content=res, files=attachments)
-
-        if not interaction:
-            raise Exception(
-                "'interaction' must be provided when 'channel id' or 'bot' is not specified"
+        # non-existent channel
+        if not c:
+            raise RuntimeError(
+                f"Could not find channel '{channel_id}' to send the message to."
             )
 
-        if followup:
-            return await interaction.followup.send(content=res, files=attachments)
-        else:
-            return await interaction.response.send_message(
-                content=res, files=attachments
-            )
-    except RuntimeError as e:
-        raise e
-    except ValueError as e:
-        raise e
-    except Exception as e:
-        Logger.exception(e)
+        return await c.send(content=res, files=attachments)
+
+    if not interaction:
+        raise RuntimeError(
+            "'interaction' must be provided when 'channel id' or 'bot' is not specified"
+        )
+
+    if followup:
+        return await interaction.followup.send(content=res, files=attachments)
+    else:
+        return await interaction.response.send_message(content=res, files=attachments)
 
 
 async def send_message_by_channel_id(
@@ -114,4 +105,9 @@ async def add_emojis(msg: discord.Message, custom_emojis: list, emojis: list) ->
             await msg.add_reaction(emoji)
         except Exception as e:
             Logger.error(f"Unknown emoji: {reaction}")
-            Logger.traceback(e)
+
+
+async def send_error(interaction: discord.Interaction, msg: any) -> None:
+    await send_embedded_message(
+        interaction, Colour.RED, {"title": "ERROR", "desc": msg}
+    )

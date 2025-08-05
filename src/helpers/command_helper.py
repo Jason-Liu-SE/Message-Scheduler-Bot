@@ -19,9 +19,7 @@ async def handle_command(
     await interaction.response.defer()
 
     if not has_role(interaction, allowed_roles):
-        await send_embedded_message(
-            interaction, Colour.RED, {"title": "ERROR", "desc": "Insufficient role"}
-        )
+        await send_error(interaction, "Insufficient role")
         return
 
     try:
@@ -31,31 +29,12 @@ async def handle_command(
 
         # handling command
         await cmd(interaction, *cmd_args)
-    except ValueError as e:  # this only throws if the user provided invalid arguments
+    except ValueError as e:  # this only throws if the user provided invalid input
         Logger.error(e)
-        await send_embedded_message(
-            interaction, Colour.RED, {"title": "ERROR", "desc": e}
-        )
-    except TypeError as e:
-        Logger.exception(e)
-        await send_embedded_message(
-            interaction, Colour.RED, {"title": "ERROR", "desc": e}
-        )
-    except RuntimeError as e:
-        Logger.exception(e)
-        await send_embedded_message(
-            interaction, Colour.RED, {"title": "ERROR", "desc": e}
-        )
+        await send_error(interaction, e)
     except Exception as e:
         Logger.exception(e)
-        await send_embedded_message(
-            interaction,
-            Colour.RED,
-            {
-                "title": "ERROR",
-                "desc": "An error occurred. Command will be ignored.",
-            },
-        )
+        await send_error(interaction, "An error occurred.")
 
 
 def generate_autocomplete(
