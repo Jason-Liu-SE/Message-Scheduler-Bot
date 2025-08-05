@@ -29,8 +29,9 @@ class TicketBotAdmin(
     ################################### COMMANDS #######################################
     ####################################################################################
     @app_commands.command(name="add", description="Adds tickets to a user")
-    @app_commands.describe(user="User to add tickets to")
-    @app_commands.describe(tickets="The number of tickets to add")
+    @app_commands.describe(
+        user="User to add tickets to", tickets="The number of tickets to add"
+    )
     async def add(
         self,
         interaction: discord.Interaction,
@@ -42,6 +43,9 @@ class TicketBotAdmin(
         )
 
     @app_commands.command(name="remove", description="Remove tickets from a user")
+    @app_commands.describe(
+        user="User to add tickets to", tickets="The number of tickets to add"
+    )
     async def remove(
         self,
         interaction: discord.Interaction,
@@ -53,6 +57,9 @@ class TicketBotAdmin(
         )
 
     @app_commands.command(name="set", description="Sets a user's tickets")
+    @app_commands.describe(
+        user="User to add tickets to", tickets="The number of tickets to add"
+    )
     async def set(
         self,
         interaction: discord.Interaction,
