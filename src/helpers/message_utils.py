@@ -9,7 +9,7 @@ async def send_message(
     bot: Bot | None = None,
     interaction: discord.Interaction | None = None,
     channel_id: int | None = None,
-    attachments: list | None = None,
+    attachments: list = [],
     followup: bool = True,
 ) -> discord.Message:
     try:
@@ -54,7 +54,7 @@ async def send_message_by_channel_id(
     content: str,
     channel_id: int,
     bot: Bot,
-    attachments: list | None = None,
+    attachments: list = [],
     followup: bool = True,
 ) -> discord.Message:
     return await send_message(
