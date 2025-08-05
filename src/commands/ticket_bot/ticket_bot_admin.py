@@ -62,11 +62,17 @@ class TicketBotAdmin(
     ####################################################################################
     ################################### HANDLERS #######################################
     ####################################################################################
-    async def handle_add(
-        self, interaction: discord.Interaction, user: discord.Member, tickets: int
+    async def update_tickets(
+        self,
+        interaction: discord.Interaction,
+        user: discord.Member,
+        tickets: int,
+        add: bool,
     ) -> None:
         if tickets < 0:
-            raise ValueError("Added tickets must be non-negative")
+            raise ValueError("Tickets must be non-negative")
+
+        tickets *= 1 if add else -1
 
         try:
             user_obj = await get_user_object(user.id)
@@ -80,7 +86,7 @@ class TicketBotAdmin(
             await send_embedded_message(
                 interaction,
                 Colour.RED,
-                {"title": "ERROR", "desc": "Could not add tickets to user"},
+                {"title": "ERROR", "desc": "Could not update user's tickets"},
             )
             Logger.exception(e)
             return
@@ -90,9 +96,14 @@ class TicketBotAdmin(
             Colour.GREEN,
             {
                 "title": "Success",
-                "desc": f"Added {tickets} tickets to user: {user.display_name}",
+                "desc": f"Updated user `{user.display_name}`'s tickets by {tickets}",
             },
         )
+
+    async def handle_add(
+        self, interaction: discord.Interaction, user: discord.Member, tickets: int
+    ) -> None:
+        await self.update_tickets(interaction, user, tickets, 1)
 
     async def handle_remove(self, interaction: discord.Interaction) -> None:
         pass
