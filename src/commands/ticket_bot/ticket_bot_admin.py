@@ -30,7 +30,8 @@ class TicketBotAdmin(
     ####################################################################################
     @app_commands.command(name="add", description="Adds tickets to a user")
     @app_commands.describe(
-        user="User to add tickets to", tickets="The number of tickets to add"
+        user="User to add tickets to",
+        tickets="The number of tickets to add",
     )
     async def add(
         self,
@@ -96,9 +97,9 @@ class TicketBotAdmin(
             user_obj = await get_user_object(user.id)
 
             if not user_obj:
-                raise Exception
+                user_obj = {"tickets": 0, "incoming_trades": [], "outgoing_trades": []}
 
-            user_obj["tickets"] = tickets + 0 if is_override else user_obj["tickets"]
+            user_obj["tickets"] = tickets + (0 if is_override else user_obj["tickets"])
             await update_user_object(user.id, user_obj)
         except Exception as e:
             await send_embedded_message(
