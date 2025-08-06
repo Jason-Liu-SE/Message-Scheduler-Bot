@@ -527,14 +527,14 @@ class MessageScheduler(
     E.g. /ms list"""
 
         fields = [
-            {"name": "add", "value": add_msg},
-            {"name": "remove", "value": remove_msg},
-            {"name": "set", "value": set_msg},
-            {"name": "reaction", "value": reaction_msg},
-            {"name": "reset", "value": reset_msg},
-            {"name": "clearSchedule", "value": clear_msg},
-            {"name": "preview", "value": preview_msg},
-            {"name": "list", "value": list_msg},
+            {"name": "[1] add", "value": add_msg},
+            {"name": "[2] remove", "value": remove_msg},
+            {"name": "[3] set", "value": set_msg},
+            {"name": "[4] reaction", "value": reaction_msg},
+            {"name": "[5] reset", "value": reset_msg},
+            {"name": "[6] clearSchedule", "value": clear_msg},
+            {"name": "[7] preview", "value": preview_msg},
+            {"name": "[8] list", "value": list_msg},
         ]
 
         await send_embedded_message(
