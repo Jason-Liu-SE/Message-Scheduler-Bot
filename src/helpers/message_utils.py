@@ -73,10 +73,10 @@ async def send_embedded_message(
     )
 
     if footer:
-        embed_var.set_footer(footer)
+        embed_var.set_footer(text=footer)
 
     if image:
-        embed_var.set_image(image)
+        embed_var.set_image(url=image)
 
     if fields:
         for field in fields:
