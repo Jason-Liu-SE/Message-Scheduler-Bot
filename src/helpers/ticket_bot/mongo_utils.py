@@ -1,4 +1,5 @@
 from typing import Literal
+from bson import ObjectId
 import discord
 from managers.pymongo_manager import PymongoManager
 
@@ -46,3 +47,7 @@ async def create_user_objects(user_ids: list[int]) -> None:
             user_id,
             {"tickets": 0, "incoming_trades": [], "outgoing_trades": []},
         )
+
+
+async def update_reward_object(reward_id: ObjectId, data: dict) -> None:
+    PymongoManager.update_collection("rewards", reward_id, data)
