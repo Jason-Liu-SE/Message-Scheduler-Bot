@@ -166,13 +166,9 @@ class TicketBotAdmin(
             await send_error(interaction, "Could not update user's tickets")
             return
 
-        await send_embedded_message(
+        await send_success(
             interaction,
-            Colour.GREEN,
-            {
-                "title": "Success",
-                "desc": f"Updated user `{user.display_name}`'s tickets {"to" if is_override else "by"} {tickets}",
-            },
+            f"Updated user `{user.display_name}`'s tickets {"to" if is_override else "by"} {tickets}",
         )
 
     async def bulk_update_tickets(
@@ -216,11 +212,7 @@ class TicketBotAdmin(
 
         await send_embedded_message(
             interaction,
-            Colour.GREEN,
-            {
-                "title": "Success",
-                "desc": f"Updated tickets for users with role `{role.name}` {"to" if is_override else "by"} {tickets}",
-            },
+            f"Updated tickets for users with role `{role.name}` {"to" if is_override else "by"} {tickets}",
         )
 
     async def handle_add(

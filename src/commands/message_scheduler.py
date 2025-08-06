@@ -290,13 +290,9 @@ class MessageScheduler(
             return
 
         # informing the user
-        await send_embedded_message(
+        await send_success(
             interaction,
-            Colour.GREEN,
-            {
-                "title": "Success",
-                "desc": f"Message added to post schedule!\n\n**Post ID**: {post_id}",
-            },
+            f"Message added to post schedule!\n\n**Post ID**: {post_id}",
         )
 
     async def handle_remove(
@@ -324,13 +320,9 @@ class MessageScheduler(
             )
             return
 
-        await send_embedded_message(
+        await send_success(
             interaction,
-            Colour.GREEN,
-            {
-                "title": "Success",
-                "desc": f"Post with ID {post_id} was removed from the post schedule!",
-            },
+            f"Post with ID {post_id} was removed from the post schedule!",
         )
 
     async def handle_set(self, interaction: discord.Interaction) -> None:
@@ -349,17 +341,15 @@ class MessageScheduler(
 
         # no text was provided
         if msg.content == "":
-            await send_embedded_message(
+            await send_success(
                 interaction,
-                Colour.GREEN,
-                {"title": "Success", "desc": "The message was cleared!"},
+                "The message was cleared!",
             )
             return
 
-        await send_embedded_message(
+        await send_success(
             interaction,
-            Colour.GREEN,
-            {"title": "Success", "desc": "The message has been set!"},
+            "The message has been set!",
         )
 
     async def handle_set_reaction(
@@ -378,17 +368,15 @@ class MessageScheduler(
 
         # no emojis specified
         if len(emojis) == 1 and emojis[0] == "":
-            await send_embedded_message(
+            await send_success(
                 interaction,
-                Colour.GREEN,
-                {"title": "Success", "desc": f"Reactions were cleared!"},
+                f"Reactions were cleared!",
             )
             return
 
-        await send_embedded_message(
+        await send_success(
             interaction,
-            Colour.GREEN,
-            {"title": "Success", "desc": f"Reaction(s) {msg} added to message!"},
+            f"Reaction(s) {msg} added to message!",
         )
 
     async def handle_reset(self, interaction: discord.Interaction) -> None:
@@ -408,10 +396,9 @@ class MessageScheduler(
             )
             return
 
-        await send_embedded_message(
+        await send_success(
             interaction,
-            Colour.GREEN,
-            {"title": "Success", "desc": "The message has been reset!"},
+            "The message has been reset!",
         )
 
     async def handle_clear(self, interaction: discord.Interaction) -> None:
@@ -425,10 +412,9 @@ class MessageScheduler(
             )
             return
 
-        await send_embedded_message(
+        await send_success(
             interaction,
-            Colour.GREEN,
-            {"title": "Success", "desc": "The post schedule was cleared!"},
+            "The post schedule was cleared!",
         )
 
     async def handle_preview(
