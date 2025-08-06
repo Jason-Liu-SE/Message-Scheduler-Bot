@@ -37,12 +37,6 @@ class TicketBotRewards(app_commands.Group):
     async def redeem(self, interaction: discord.Interaction):
         await handle_command(self.handle_redeem, interaction, self.__allowed_roles)
 
-    @app_commands.command(
-        name="help", description="List more info about Ticket Bot commands"
-    )
-    async def help(self, interaction: discord.Interaction):
-        await handle_command(self.handle_help, interaction, self.__allowed_roles)
-
     ####################################################################################
     ################################### HANDLERS #######################################
     ####################################################################################
@@ -53,7 +47,4 @@ class TicketBotRewards(app_commands.Group):
         pass
 
     async def handle_redeem(self, interaction: discord.Interaction) -> None:
-        pass
-
-    async def handle_help(self, interaction: discord.Interaction) -> None:
         pass

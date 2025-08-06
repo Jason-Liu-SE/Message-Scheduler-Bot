@@ -41,12 +41,6 @@ class TicketBotTrade(app_commands.Group):
     async def trade_coinflip(self, interaction: discord.Interaction):
         await handle_command(self.handle_coinflip, interaction, self.__allowed_roles)
 
-    @app_commands.command(
-        name="help", description="List more info about Ticket Bot commands"
-    )
-    async def help(self, interaction: discord.Interaction):
-        await handle_command(self.handle_help, interaction, self.__allowed_roles)
-
     ####################################################################################
     ################################### HANDLERS #######################################
     ####################################################################################
@@ -63,7 +57,4 @@ class TicketBotTrade(app_commands.Group):
         pass
 
     async def handle_coinflip(self, interaction: discord.Interaction) -> None:
-        pass
-
-    async def handle_help(self, interaction: discord.Interaction) -> None:
         pass
