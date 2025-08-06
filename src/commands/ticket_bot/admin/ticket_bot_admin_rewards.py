@@ -18,6 +18,34 @@ class TicketBotAdminRewards(app_commands.Group):
     ####################################################################################
     ################################ AUTOCOMPLETE ######################################
     ####################################################################################
+    async def get_reward_choices(
+        interaction: discord.Interaction, current: str
+    ) -> list[app_commands.Choice]:
+        choices = []
+
+        current = current.strip()
+
+        # rewards that partially match the current input in either id or name
+        rewards = await get_many_reward_objects(
+            {
+                "$or": [
+                    {"name": {"$regex": current, "$options": "i"}},
+                    {"_id": {"$regex": current, "$options": "i"}},
+                ]
+            }
+        )
+
+        for reward_id, reward in rewards.items():
+            if current.lower() in reward["name"] or f"{reward_id}":
+                choices.append(
+                    app_commands.Choice(
+                        name=f"{reward_id}: {reward["name"][:30]}", value=f"{reward_id}"
+                    )
+                )
+
+        return choices
+
+    ac_remove_item = generate_autocomplete([], get_reward_choices)
 
     ####################################################################################
     ################################### COMMANDS #######################################
@@ -40,15 +68,18 @@ class TicketBotAdminRewards(app_commands.Group):
         )
 
     @app_commands.command(name="remove", description="Removes a reward")
-    @app_commands.describe()
+    @app_commands.describe(item="ID of the item to be removed from listing")
+    @app_commands.autocomplete(item=ac_remove_item)
     async def remove(
         self,
         interaction: discord.Interaction,
+        item: str,
     ):
         await handle_command(
             self.handle_remove,
             interaction,
             self.__allowed_roles,
+            item,
         )
 
     @app_commands.command(name="edit", description="Edits a reward")
@@ -136,8 +167,24 @@ class TicketBotAdminRewards(app_commands.Group):
             "The reward has been added",
         )
 
-    async def handle_remove(self, interaction: discord.Interaction) -> None:
-        pass
+    async def handle_remove(
+        self, interaction: discord.Interaction, item_id: str
+    ) -> None:
+        if not ObjectId.is_valid(item_id):
+            raise ValueError(f"Provided item id: `{item_id}` is incorrect")
+
+        reward_id = ObjectId(item_id)
+        reward = await get_reward_object(reward_id)
+
+        if not reward:
+            raise ValueError(f"No reward with id: `{item_id}` was found")
+
+        await delete_reward_object(reward_id)
+
+        await send_success(
+            interaction,
+            f"Item with id: `{item_id}`, name: `{reward["name"]}` was removed from the listing",
+        )
 
     async def handle_edit(self, interaction: discord.Interaction) -> None:
         pass

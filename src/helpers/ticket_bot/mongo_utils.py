@@ -49,5 +49,17 @@ async def create_user_objects(user_ids: list[int]) -> None:
         )
 
 
+async def get_many_reward_objects(query: dict, limit: int = 0) -> dict:
+    return PymongoManager.find_many_in_collection("rewards", query, limit=limit)
+
+
+async def get_reward_object(reward_id: ObjectId) -> dict:
+    return PymongoManager.find_in_collection_by_id("rewards", reward_id)
+
+
 async def update_reward_object(reward_id: ObjectId, data: dict) -> None:
     PymongoManager.update_collection("rewards", reward_id, data)
+
+
+async def delete_reward_object(reward_id: ObjectId) -> None:
+    PymongoManager.delete_by_id("rewards", reward_id)
