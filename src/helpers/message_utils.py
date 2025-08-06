@@ -89,11 +89,16 @@ async def send_embedded_message(
     await interaction.followup.send(embed=embed_var)
 
 
-async def wait_for_msg(interaction: discord.Interaction, bot: Bot) -> discord.Message:
+async def wait_for_msg(
+    interaction: discord.Interaction,
+    bot: Bot,
+    title: str = "Enter message",
+    desc: str = "Waiting for message...",
+) -> discord.Message:
     await send_embedded_message(
         interaction,
         Colour.LIGHT_BLUE,
-        {"title": "Set", "desc": "Waiting for message..."},
+        {"title": title, "desc": desc},
     )
 
     def wait_for_input(msg: discord.Message):

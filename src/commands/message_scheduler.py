@@ -335,7 +335,7 @@ class MessageScheduler(
 
     async def handle_set(self, interaction: discord.Interaction) -> None:
         # prompting for subsequent input
-        msg = await wait_for_msg(interaction, self.bot)
+        msg = await wait_for_msg(interaction, self.bot, title="Set")
 
         # saving message
         msg_obj = await get_message_object(interaction.guild.id)
