@@ -46,7 +46,11 @@ class TicketBotAdminRewards(app_commands.Group):
 
         return choices
 
+    # Remove
     ac_remove_item = generate_autocomplete([], get_reward_choices)
+
+    # Edit
+    ac_edit_item = generate_autocomplete([], get_reward_choices)
 
     ####################################################################################
     ################################### COMMANDS #######################################
@@ -84,26 +88,46 @@ class TicketBotAdminRewards(app_commands.Group):
         )
 
     @app_commands.command(name="edit", description="Edits a reward")
-    @app_commands.describe()
+    @app_commands.describe(
+        item="ID of the item to edit",
+        name="Name of the reward",
+        cost="Ticket cost of the reward",
+        pagecolour="The hex colour of the reward's inspect page",
+        changedesc="True to change the description. False by default",
+    )
+    @app_commands.autocomplete(item=ac_edit_item)
     async def edit(
         self,
         interaction: discord.Interaction,
+        item: str,
+        name: str | None = None,
+        cost: app_commands.Range[int, 0] | None = None,
+        pagecolour: str | None = None,
+        changedesc: bool = False,
     ):
         await handle_command(
             self.handle_edit,
             interaction,
             self.__allowed_roles,
+            item,
+            name,
+            cost,
+            pagecolour,
+            changedesc,
         )
 
     ####################################################################################
     ################################### HANDLERS #######################################
     ####################################################################################
-    async def handle_add(
+    async def handle_update_reward(
         self,
         interaction: discord.Interaction,
+        id: ObjectId,
         name: str,
         cost: int,
         pagecolour: str,
+        desc: str | None = None,
+        img: str | None = None,  # Ensure img is valid, or don't pass it
     ) -> None:
         if cost < 0:
             raise ValueError("Cost must be non-negative")
@@ -119,53 +143,70 @@ class TicketBotAdminRewards(app_commands.Group):
             )
             return
 
-        # Wait for user to add a reward description
-        msg = await wait_for_msg(
-            interaction,
-            self.bot,
-            title="Enter a reward description",
-            desc="Waiting for description...",
-        )
+        image = "" if not img else img
+        content = desc
 
         # store message
-        images = []
-        image = ""
+        if not desc:
+            # Wait for user to add a reward description
+            msg = await wait_for_msg(
+                interaction,
+                self.bot,
+                title="Enter a reward description",
+                desc="Waiting for description...",
+            )
 
-        if msg.attachments:
-            for attachment in msg.attachments:
-                if not attachment.content_type.startswith("image/"):
-                    continue
+            content = msg.content
 
-                images.append(attachment.url)
+            if not img:
+                images = []
 
-                if len(images) >= 2:
-                    await send_embedded_message(
-                        interaction,
-                        Colour.YELLOW,
-                        {
-                            "title": "Warning",
-                            "desc": "Only the first attached image will be used",
-                        },
-                        image=image,
-                    )
-                    break
+                if msg.attachments:
+                    for attachment in msg.attachments:
+                        if not attachment.content_type.startswith("image/"):
+                            continue
 
-                image = attachment.url
+                        images.append(attachment.url)
+
+                        if len(images) >= 2:
+                            await send_embedded_message(
+                                interaction,
+                                Colour.YELLOW,
+                                {
+                                    "title": "Warning",
+                                    "desc": "Only the first attached image will be used",
+                                },
+                                image=image,
+                            )
+                            break
+
+                        image = attachment.url
 
         await update_reward_object(
-            ObjectId(),
+            id,
             {
                 "name": name,
                 "cost": cost,
                 "page_colour": hex_clr,
-                "desc": msg.content,
+                "desc": content,
                 "image": image,
             },
         )
 
         await send_success(
             interaction,
-            "The reward has been added",
+            "The reward has been updated",
+        )
+
+    async def handle_add(
+        self,
+        interaction: discord.Interaction,
+        name: str,
+        cost: int,
+        pagecolour: str,
+    ) -> None:
+        await self.handle_update_reward(
+            interaction, id=ObjectId(), name=name, cost=cost, pagecolour=pagecolour
         )
 
     async def handle_remove(
@@ -187,5 +228,30 @@ class TicketBotAdminRewards(app_commands.Group):
             f"Item with id: `{item_id}`, name: `{reward["name"]}` was removed from the listing",
         )
 
-    async def handle_edit(self, interaction: discord.Interaction) -> None:
-        pass
+    async def handle_edit(
+        self,
+        interaction: discord.Interaction,
+        item_id: str,
+        name: str | None,
+        cost: app_commands.Range[int, 0] | None,
+        pagecolour: str | None,
+        changedesc: bool,
+    ) -> None:
+        if not ObjectId.is_valid(item_id):
+            raise ValueError(f"Provided item id: `{item_id}` is incorrect")
+
+        reward_id = ObjectId(item_id)
+        reward = await get_reward_object(reward_id)
+
+        if not reward:
+            raise ValueError(f"No reward with id: `{item_id}` was found")
+
+        await self.handle_update_reward(
+            interaction,
+            id=reward_id,
+            name=name if name else reward["name"],
+            cost=cost if cost else reward["cost"],
+            pagecolour=pagecolour if pagecolour else reward["page_colour"],
+            desc=None if changedesc else reward["desc"],
+            img=None if changedesc else reward["image"],
+        )
