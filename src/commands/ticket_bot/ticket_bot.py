@@ -58,6 +58,12 @@ class TicketBot(
             self.handle_trade_reject, interaction, self.__allowed_roles
         )
 
+    @trade.command(name="cancel", description="Cancels an existing trade request")
+    async def trade_cancel(self, interaction: discord.Interaction):
+        await handle_command(
+            self.handle_trade_cancel, interaction, self.__allowed_roles
+        )
+
     @trade.command(name="start", description="Request to trade with another user")
     async def trade_start(self, interaction: discord.Interaction):
         await handle_command(self.handle_trade_start, interaction, self.__allowed_roles)
@@ -167,6 +173,9 @@ class TicketBot(
         pass
 
     async def handle_trade_reject(self, interaction: discord.Interaction) -> None:
+        pass
+
+    async def handle_trade_cancel(self, interaction: discord.Interaction) -> None:
         pass
 
     async def handle_trade_start(self, interaction: discord.Interaction) -> None:
