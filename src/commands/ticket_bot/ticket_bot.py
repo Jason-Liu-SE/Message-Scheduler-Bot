@@ -6,6 +6,7 @@ from discord import app_commands
 from helpers.command_helper import *
 from helpers.id_helpers import *
 from helpers.message_utils import *
+from helpers.ticket_bot.mongo_utils import *
 from helpers.time import *
 from helpers.validate import *
 
@@ -37,8 +38,9 @@ class TicketBot(
         await handle_command(self.handle_leaderboard, interaction, self.__allowed_roles)
 
     @app_commands.command(name="view", description="View a user's tickets")
-    async def view(self, interaction: discord.Interaction):
-        await handle_command(self.handle_view, interaction, self.__allowed_roles)
+    @app_commands.describe(user="Target user")
+    async def view(self, interaction: discord.Interaction, user: discord.Member):
+        await handle_command(self.handle_view, interaction, self.__allowed_roles, user)
 
     @app_commands.command(name="redeem", description="Redeem items for tickets")
     async def redeem(self, interaction: discord.Interaction):
@@ -80,8 +82,30 @@ class TicketBot(
     async def handle_leaderboard(self, interaction: discord.Interaction) -> None:
         pass
 
-    async def handle_view(self, interaction: discord.Interaction) -> None:
-        pass
+    async def handle_view(
+        self, interaction: discord.Interaction, user: discord.Member
+    ) -> None:
+        try:
+            user_obj = await get_user_object(user.id)
+
+            if not user_obj:
+                user_obj = {"tickets": 0, "incoming_trades": [], "outgoing_trades": []}
+                await update_user_object(user.id, user_obj)
+        except Exception as e:
+            Logger.exception(e)
+            await send_error(
+                interaction, f"Could not retrieve {user.display_name}'s tickets"
+            )
+            return
+
+        await send_embedded_message(
+            interaction,
+            Colour.GREEN,
+            {
+                "title": f"{user.display_name}'s Tickets",
+                "desc": f"{user_obj["tickets"]}",
+            },
+        )
 
     async def handle_redeem(self, interaction: discord.Interaction) -> None:
         pass
