@@ -24,13 +24,16 @@ class TicketBotAdmin(
     ]
 
     def __init__(self, bot: Bot) -> None:
-        self.bot = bot
+        self.__bot = bot
+        self.rewards.bot = bot
 
     ####################################################################################
     ################################### GROUPS #########################################
     ####################################################################################
     rewards = TicketBotAdminRewards(
-        name="rewards", description="Manage the rewards", allowed_roles=__allowed_roles
+        name="rewards",
+        description="Manage the rewards",
+        allowed_roles=__allowed_roles,
     )
 
     ####################################################################################
