@@ -5,6 +5,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 import os
+from helpers.ticket_bot.mongo_utils import register_user_with_db
 from helpers.validate import is_development
 from managers.event_manager import *
 import asyncio
@@ -49,6 +50,10 @@ def run_discord_bot():
                 event_manager.manage_schedule_loop.start()
         except Exception as e:
             Logger.exception(f"An error occurred on_ready: {e}")
+
+    @bot.event
+    async def on_member_join(member: discord.Member):
+        await register_user_with_db(member)
 
     async def start():
         async with bot:

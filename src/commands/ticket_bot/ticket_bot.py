@@ -81,17 +81,22 @@ class TicketBot(
     ####################################################################################
     async def handle_leaderboard(self, interaction: discord.Interaction) -> None:
         try:
-            # creating entries for missing members
-            human_member_ids = [m.id for m in interaction.guild.members if not m.bot]
-            await create_user_objects(human_member_ids)
-
-            user_objs = await get_ranked_user_objects(
-                "tickets", "DESC", {"_id": {"$in": human_member_ids}}, 50
-            )
+            user_objs = await get_ranked_user_objects("tickets", "DESC", limit=50)
         except Exception as e:
             Logger.exception(e)
             await send_error(
                 interaction, f"An error occurred while creating the leaderboard"
+            )
+            return
+
+        if len(user_objs) == 0:
+            await send_embedded_message(
+                interaction,
+                Colour.YELLOW,
+                {
+                    "title": "Leaderboard",
+                    "desc": "No one has tickets yet!",
+                },
             )
             return
 
@@ -132,8 +137,13 @@ class TicketBot(
             user_obj = await get_user_object(user.id)
 
             if not user_obj:
-                user_obj = {"tickets": 0, "incoming_trades": [], "outgoing_trades": []}
-                await update_user_object(user.id, user_obj)
+                raise ValueError(f"User with id {user.id} does not exist in DB")
+        except ValueError as e:
+            Logger.warn(e)
+            await send_error(
+                interaction, f"Could not retrieve {user.display_name}'s tickets"
+            )
+            return
         except Exception as e:
             Logger.exception(e)
             await send_error(

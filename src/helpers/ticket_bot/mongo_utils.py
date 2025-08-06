@@ -3,8 +3,7 @@ import discord
 from managers.pymongo_manager import PymongoManager
 
 
-async def register_user_with_db(interaction: discord.Interaction) -> None:
-    user = interaction.user
+async def register_user_with_db(user: discord.Member) -> None:
     userObj = await get_user_object(user.id)
 
     # creating a user for ticket tracking, if they don't exist

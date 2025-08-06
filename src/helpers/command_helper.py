@@ -25,7 +25,6 @@ async def handle_command(
     try:
         # creating db objects for new servers
         await register_server_with_db(interaction)
-        await register_user_with_db(interaction)
 
         # handling command
         await cmd(interaction, *cmd_args)
