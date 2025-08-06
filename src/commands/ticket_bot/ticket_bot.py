@@ -23,6 +23,9 @@ class TicketBot(
     ################################### GROUPS #########################################
     ####################################################################################
     trade = app_commands.Group(name="trade", description="Manage ticket trading")
+    rewards = app_commands.Group(
+        name="rewards", description="Interact with the rewards system"
+    )
 
     ####################################################################################
     ################################ AUTOCOMPLETE ######################################
@@ -42,9 +45,27 @@ class TicketBot(
     async def view(self, interaction: discord.Interaction, user: discord.Member):
         await handle_command(self.handle_view, interaction, self.__allowed_roles, user)
 
-    @app_commands.command(name="redeem", description="Redeem items for tickets")
+    @rewards.command(
+        name="list",
+        description="View the different things you can redeem tickets for",
+    )
+    @app_commands.describe(page="The rewards page. Default = 1")
+    async def list(self, interaction: discord.Interaction, page: int = 1):
+        await handle_command(
+            self.handle_rewards_list, interaction, self.__allowed_roles, page
+        )
+
+    @rewards.command(name="inspect", description="View more about a reward")
+    async def inspect(self, interaction: discord.Interaction):
+        await handle_command(
+            self.handle_rewards_inspect, interaction, self.__allowed_roles
+        )
+
+    @rewards.command(name="redeem", description="Redeem items for tickets")
     async def redeem(self, interaction: discord.Interaction):
-        await handle_command(self.handle_redeem, interaction, self.__allowed_roles)
+        await handle_command(
+            self.handle_rewards_redeem, interaction, self.__allowed_roles
+        )
 
     @trade.command(name="accept", description="Accept a user's trade request")
     async def trade_accept(self, interaction: discord.Interaction):
@@ -166,7 +187,15 @@ class TicketBot(
             },
         )
 
-    async def handle_redeem(self, interaction: discord.Interaction) -> None:
+    async def handle_rewards_list(
+        self, interaction: discord.Interaction, page: int
+    ) -> None:
+        pass
+
+    async def handle_rewards_inspect(self, interaction: discord.Interaction) -> None:
+        pass
+
+    async def handle_rewards_redeem(self, interaction: discord.Interaction) -> None:
         pass
 
     async def handle_trade_accept(self, interaction: discord.Interaction) -> None:
