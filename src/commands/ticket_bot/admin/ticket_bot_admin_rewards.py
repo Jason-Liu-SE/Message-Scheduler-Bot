@@ -32,7 +32,8 @@ class TicketBotAdminRewards(app_commands.Group):
                     {"name": {"$regex": current, "$options": "i"}},
                     {"_id": {"$regex": current, "$options": "i"}},
                 ]
-            }
+            },
+            sort_field="name",
         )
 
         for reward_id, reward in rewards.items():

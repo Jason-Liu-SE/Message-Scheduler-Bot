@@ -24,10 +24,10 @@ async def get_user_objects(user_ids: list[int]) -> dict:
 
 
 async def get_ranked_user_objects(
-    field: str, direction: Literal["ASC", "DESC"], query: dict = {}, limit: int = 0
+    sort_field: str, direction: Literal["ASC", "DESC"], query: dict = {}, limit: int = 0
 ) -> dict:
     return PymongoManager.find_many_in_collection(
-        "tickets", query, field, direction, limit
+        "tickets", query, sort_field, direction, limit
     )
 
 
@@ -49,8 +49,15 @@ async def create_user_objects(user_ids: list[int]) -> None:
         )
 
 
-async def get_many_reward_objects(query: dict, limit: int = 0) -> dict:
-    return PymongoManager.find_many_in_collection("rewards", query, limit=limit)
+async def get_many_reward_objects(
+    query: dict,
+    sort_field: str | None = None,
+    dir: Literal["ASC", "DESC"] = "ASC",
+    limit: int = 0,
+) -> dict:
+    return PymongoManager.find_many_in_collection(
+        "rewards", query, sort=sort_field, dir=dir, limit=limit
+    )
 
 
 async def get_reward_object(reward_id: ObjectId) -> dict:
