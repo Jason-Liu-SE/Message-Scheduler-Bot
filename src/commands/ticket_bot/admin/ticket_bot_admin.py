@@ -3,6 +3,7 @@ from discord.ext import commands
 from discord.ext.commands.bot import Bot
 from discord import app_commands
 
+from commands.ticket_bot.admin.ticket_bot_admin_rewards import TicketBotAdminRewards
 from helpers.command_helper import *
 from helpers.id_helpers import *
 from helpers.message_utils import *
@@ -14,21 +15,23 @@ from helpers.validate import *
 class TicketBotAdmin(
     commands.GroupCog, group_name="ticketadmin", group_description="Manage your tickets"
 ):
+    __allowed_roles = [
+        807340774781878333,
+        838169320461697085,
+        "👁‍🗨 Head Moderator 👁‍🗨",
+        "Administrator",
+        "Admin",
+    ]
+
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
-
-        self.__allowed_roles = [
-            807340774781878333,
-            838169320461697085,
-            "👁‍🗨 Head Moderator 👁‍🗨",
-            "Administrator",
-            "Admin",
-        ]
 
     ####################################################################################
     ################################### GROUPS #########################################
     ####################################################################################
-    rewards = app_commands.Group(name="rewards", description="Manage the rewards")
+    rewards = TicketBotAdminRewards(
+        name="rewards", description="Manage the rewards", allowed_roles=__allowed_roles
+    )
 
     ####################################################################################
     ################################### COMMANDS #######################################
@@ -123,42 +126,6 @@ class TicketBotAdmin(
     ):
         await handle_command(
             self.handle_bulk_set, interaction, self.__allowed_roles, role, tickets
-        )
-
-    @rewards.command(name="add", description="Adds a reward")
-    @app_commands.describe()
-    async def rewards_add(
-        self,
-        interaction: discord.Interaction,
-    ):
-        await handle_command(
-            self.handle_rewards_add,
-            interaction,
-            self.__allowed_roles,
-        )
-
-    @rewards.command(name="remove", description="Removes a reward")
-    @app_commands.describe()
-    async def rewards_remove(
-        self,
-        interaction: discord.Interaction,
-    ):
-        await handle_command(
-            self.handle_rewards_remove,
-            interaction,
-            self.__allowed_roles,
-        )
-
-    @rewards.command(name="edit", description="Edits a reward")
-    @app_commands.describe()
-    async def rewards_edit(
-        self,
-        interaction: discord.Interaction,
-    ):
-        await handle_command(
-            self.handle_rewards_edit,
-            interaction,
-            self.__allowed_roles,
         )
 
     @app_commands.command(
@@ -282,15 +249,6 @@ class TicketBotAdmin(
         self, interaction: discord.Interaction, role: discord.Member, tickets: int
     ) -> None:
         await self.bulk_update_tickets(interaction, role, tickets, is_override=True)
-
-    async def handle_rewards_add(self, interaction: discord.Interaction) -> None:
-        pass
-
-    async def handle_rewards_remove(self, interaction: discord.Interaction) -> None:
-        pass
-
-    async def handle_rewards_set(self, interaction: discord.Interaction) -> None:
-        pass
 
     async def handle_help(self, interaction: discord.Interaction) -> None:
         help_desc = """Ticket Admin is the administrative version of the Ticket bot. This bot allows those with sufficient permissions to add, remove, and set tickets for users.
