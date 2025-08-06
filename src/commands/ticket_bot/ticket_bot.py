@@ -32,7 +32,7 @@ class TicketBot(
     ################################### COMMANDS #######################################
     ####################################################################################
     @app_commands.command(
-        name="leaderboard", description="Displays a leaderboard with user's tickets"
+        name="leaderboard", description="Displays a leaderboard with all users' tickets"
     )
     async def leaderboard(self, interaction: discord.Interaction):
         await handle_command(self.handle_leaderboard, interaction, self.__allowed_roles)
@@ -80,7 +80,43 @@ class TicketBot(
     ################################### HANDLERS #######################################
     ####################################################################################
     async def handle_leaderboard(self, interaction: discord.Interaction) -> None:
-        pass
+        try:
+            user_objs = await get_ranked_user_objects("tickets", "DESC", 50)
+        except Exception as e:
+            Logger.exception(e)
+            await send_error(
+                interaction, f"An error occurred while creating the leaderboard"
+            )
+            return
+
+        ranks = ""
+        names = ""
+        tickets = ""
+
+        for index, user_obj in enumerate(user_objs.items()):
+            user_id = user_obj[0]
+            user_info = user_obj[1]
+            user = interaction.guild.get_member(user_id)
+
+            ranks += f"{index + 1}{"" if index + 1 >= len(user_objs) else "\n"}"
+            names += f"{user.name}{"" if index + 1 >= len(user_objs) else "\n"}"
+            tickets += (
+                f"{user_info["tickets"]}{"" if index + 1 >= len(user_objs) else "\n"}"
+            )
+
+        await send_embedded_message(
+            interaction,
+            Colour.MINT,
+            {
+                "title": f"{"Top 50 " if len(user_objs) >= 50 else ""}Leaderboard",
+                "desc": None,
+            },
+            [
+                {"name": "Rank", "value": ranks, "inline": True},
+                {"name": "Name", "value": names, "inline": True},
+                {"name": "Tickets", "value": tickets, "inline": True},
+            ],
+        )
 
     async def handle_view(
         self, interaction: discord.Interaction, user: discord.Member
