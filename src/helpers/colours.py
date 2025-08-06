@@ -4,3 +4,4 @@ class Colour:
     YELLOW = 0xFFFF00
     LIGHT_BLUE = 0x037FFC
     PURPLE = 0x7E42F5
+    MINT = 0x42F5BC
