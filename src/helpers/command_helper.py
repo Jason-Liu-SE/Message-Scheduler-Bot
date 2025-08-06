@@ -23,9 +23,6 @@ async def handle_command(
         return
 
     try:
-        # creating db objects for new servers
-        await register_server_with_db(interaction)
-
         # handling command
         await cmd(interaction, *cmd_args)
     except ValueError as e:  # this only throws if the user provided invalid input

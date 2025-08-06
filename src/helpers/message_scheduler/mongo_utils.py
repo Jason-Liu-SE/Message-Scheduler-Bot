@@ -3,14 +3,14 @@ import discord
 from managers.pymongo_manager import *
 
 
-async def register_server_with_db(interaction: discord.Interaction) -> None:
+async def register_server_with_db(guild: discord.Guild) -> None:
     # instantiating a schedule and message collection entry if one doesn't exist
-    msgObj = await get_message_object(interaction.guild.id)
+    msgObj = await get_message_object(guild.id)
 
     # adding the msgObj if a corresponding server doesn't already exist in the DB
     if not msgObj:
         await update_message_object(
-            interaction.guild.id,
+            guild.id,
             {
                 "message": "",
                 "reactions": [],

@@ -58,6 +58,10 @@ def run_discord_bot():
 
         await register_user_with_db(member)
 
+    @bot.event
+    async def on_guild_join(guild: discord.Guild):
+        await register_server_with_db(guild)
+
     async def start():
         async with bot:
             await bot.load_extension("commands.message_scheduler")
