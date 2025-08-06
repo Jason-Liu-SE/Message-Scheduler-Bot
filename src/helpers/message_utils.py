@@ -63,15 +63,20 @@ async def send_embedded_message(
     color: int | discord.Color | None,
     main_content: dict,
     fields: list | None = None,
-    inline=False,
 ) -> None:
     embed_var = discord.Embed(
-        title=main_content["title"], description=main_content["desc"], color=color
+        title=main_content["title"],
+        description=main_content["desc"],
+        color=color,
     )
 
     if fields:
         for field in fields:
-            embed_var.add_field(name=field["name"], value=field["value"], inline=inline)
+            embed_var.add_field(
+                name=field["name"],
+                value=field["value"],
+                inline=True if field["inline"] else False,
+            )
 
     await interaction.followup.send(embed=embed_var)
 
