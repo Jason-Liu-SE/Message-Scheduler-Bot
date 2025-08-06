@@ -81,9 +81,9 @@ async def send_embedded_message(
     if fields:
         for field in fields:
             embed_var.add_field(
-                name=field["name"],
-                value=field["value"],
-                inline=True if field["inline"] else False,
+                name=None if not "name" in field else field["name"],
+                value=None if not "value" in field else field["value"],
+                inline=False if not "inline" in field else field["inline"],
             )
 
     await interaction.followup.send(embed=embed_var)
