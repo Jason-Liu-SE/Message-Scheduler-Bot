@@ -475,7 +475,7 @@ class MessageScheduler(
         
     The commands are as follows:"""
 
-        add_msg = """Adds the created message to the schedule. Note that a message must be created before it can be added to the schedule, times are specified in EST/EDT, and you can only schedule posts for the future (e.g. if the time is 5:04, you can't schedule a post for any time prior to or equal to 5:04).
+        add_msg = """Adds the created message to the schedule. Note that a message must be created before it can be added to the schedule, times are specified in EST/EDT, and you can only schedule posts for the future (e.g. if the time is 5:04, you can't schedule a post for any time prior to or equal to 5:04). As for the other parameters, they are to be input as integers, restricted appropriately.
         
     Format: /ms add <channel> <day> <month> <year> <hour> <minute>
         
@@ -495,6 +495,8 @@ class MessageScheduler(
     E.g. /ms set"""
 
         reaction_msg = """Sets the reactions for the message. If 'clear' is provided, it will reset the current message's emojis.
+
+    Note that each emoji is of the format `:<emoji name>:`.
         
     Format: /ms reaction [<emoji>]
         
@@ -512,7 +514,7 @@ class MessageScheduler(
         
     E.g. /ms clearSchedule"""
 
-        preview_msg = """Displays either the message that is currently being worked on or a particular scheduled post.
+        preview_msg = """Displays either the message that is currently being worked on (`current`) or a particular scheduled post (`post ID`).
         
     Format: /ms preview <current|post ID>
         
