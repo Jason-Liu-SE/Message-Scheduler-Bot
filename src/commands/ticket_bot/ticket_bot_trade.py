@@ -13,6 +13,7 @@ class TicketBotTrade(app_commands.Group):
     def __init__(self, name: str, description: str, allowed_roles: list) -> None:
         super().__init__(name=name, description=description)
         self.__allowed_roles = allowed_roles
+        self.bot = None  # set by the parent
 
     ####################################################################################
     ################################ AUTOCOMPLETE ######################################

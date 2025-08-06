@@ -19,7 +19,9 @@ class TicketBot(
     __allowed_roles = [807335525798117407, "@everyone"]
 
     def __init__(self, bot: Bot) -> None:
-        self.bot = bot
+        self.__bot = bot
+        self.trade.bot = bot
+        self.rewards.bot = bot
 
     ####################################################################################
     ################################### GROUPS #########################################
