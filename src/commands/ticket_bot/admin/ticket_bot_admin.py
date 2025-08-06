@@ -292,13 +292,41 @@ class TicketBotAdmin(
     E.g. /ticketadmin bulkset @mods 2
     This would set all @mods' tickets to 2"""
 
+        rewards_add_msg = """Adds a reward to the rewards listing (/ticket rewards list).
+        
+    Note that after the initial 'rewards add' command is sent, a followup message is required to set the description of the reward. While setting the description, it is also possible to attach an image to the reward. At most one image is allowed to be attached. If more than one image is attached, the first attached image is taken.
+        
+    Format: /ticketadmin rewards add <name> <cost> <*optional*:pagecolour>
+        
+    E.g. /ticketadmin rewards add Diamonds 5 FFFF00
+    This would add a reward with name `Diamonds` for a cost of `5 tickets`. Additionally, the colour of the reward's `/ticketadmin rewards inspect` page would be yellow, or `FFFF00` in hex."""
+
+        rewards_remove_msg = """Removes a reward from the listing, based on provided the reward id.
+        
+    Format: /ticketadmin rewards remove <item>
+        
+    E.g. /ticketadmin rewards remove 1231asd213
+    This would attempt to remove a reward with id: `1231asd213`"""
+
+        rewards_edit_msg = """This edits an existing reward listing. If the provided reward id doens't exist, this command does nothing.
+    
+    There are several optional parameters for this command. When an argument is provided to an optional parameter, the provided value will override the existing value on the reward item. All non-specified values are left unchanged. In the case where changedesc is set to True, a prompt will request a new description (and optionally a new reward image).
+        
+    Format: /ticketadmin rewards edit <item id> <*optional*:name> <*optional*:cost> <*optional*:pagecolour> <*optional*:changedesc>
+        
+    E.g. /ticketadmin rewards edit 123asd123 `name:z` `changedesc:True`
+    In the above, reward `123asd123` would have its name updated to `z`, but its cost and pagecolour would not be changed. Since `changedesc` is set to True, a following prompt would request a new description for the reward. At this point, you could also provide a new reward image."""
+
         fields = [
-            {"name": "add", "value": add_msg},
-            {"name": "remove", "value": remove_msg},
-            {"name": "set", "value": set_msg},
-            {"name": "bulkadd", "value": bulkadd_msg},
-            {"name": "bulkremove", "value": bulkremove_msg},
-            {"name": "bulkset", "value": bulkset_msg},
+            {"name": "[1] add", "value": add_msg},
+            {"name": "[2] remove", "value": remove_msg},
+            {"name": "[3] set", "value": set_msg},
+            {"name": "[4] bulkadd", "value": bulkadd_msg},
+            {"name": "[5] bulkremove", "value": bulkremove_msg},
+            {"name": "[6] bulkset", "value": bulkset_msg},
+            {"name": "[7] rewards add", "value": rewards_add_msg},
+            {"name": "[8] rewards remove", "value": rewards_remove_msg},
+            {"name": "[9] rewards edit", "value": rewards_edit_msg},
         ]
 
         await send_embedded_message(
