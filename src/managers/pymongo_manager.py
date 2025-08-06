@@ -50,10 +50,11 @@ class PymongoManager:
         query: dict,
         sort: str = None,
         dir: Literal["ASC", "DESC"] = "ASC",
+        limit: int = 0,
     ) -> dict:
         try:
             collection = PymongoManager.__db[collectionName]
-            rawData = collection.find(query)
+            rawData = collection.find(query).limit(limit)
 
             if sort:
                 rawData = rawData.sort(sort, 1 if dir == "ASC" else -1)

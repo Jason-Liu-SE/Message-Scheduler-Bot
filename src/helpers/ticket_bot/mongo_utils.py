@@ -1,3 +1,4 @@
+from typing import Literal
 import discord
 from managers.pymongo_manager import PymongoManager
 
@@ -22,8 +23,12 @@ async def get_user_objects(user_ids: list[int]) -> dict:
     return PymongoManager.find_many_in_collection("tickets", {"_id": {"$in": user_ids}})
 
 
-async def get_all_user_objects() -> dict:
-    return PymongoManager.find_many_in_collection("tickets")
+async def get_ranked_user_objects(
+    field: str, direction: Literal["ASC", "DESC"], limit: int = 0
+) -> dict:
+    return PymongoManager.find_many_in_collection(
+        "tickets", {}, field, direction, limit
+    )
 
 
 async def update_user_object(user_id: int, data: dict) -> None:
