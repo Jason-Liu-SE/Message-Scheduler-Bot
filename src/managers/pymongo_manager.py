@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 from bson import ObjectId
 from helpers.logger import Logger
 from pymongo import MongoClient
@@ -44,10 +45,18 @@ class PymongoManager:
         return {}
 
     @staticmethod
-    def find_all_in_collection(collectionName: str, query: dict) -> dict:
+    def find_many_in_collection(
+        collectionName: str,
+        query: dict,
+        sort: str = None,
+        dir: Literal["ASC", "DESC"] = "ASC",
+    ) -> dict:
         try:
             collection = PymongoManager.__db[collectionName]
             rawData = collection.find(query)
+
+            if sort:
+                rawData = rawData.sort(sort, 1 if dir == "ASC" else -1)
 
             data = {}
 
@@ -112,12 +121,20 @@ class PymongoManager:
 
     @staticmethod
     def find_in_range(
-        collectionName: str, field: str, start: datetime, end: datetime
+        collectionName: str,
+        field: str,
+        start: datetime,
+        end: datetime,
+        sort: str = None,
+        dir: Literal["ASC", "DESC"] = "ASC",
     ) -> list:
         try:
             collection = PymongoManager.__db[collectionName]
 
             rawData = collection.find({field: {"$gte": start, "$lte": end}})
+
+            if sort:
+                rawData = rawData.sort(sort, 1 if dir == "ASC" else -1)
 
             data = []
 

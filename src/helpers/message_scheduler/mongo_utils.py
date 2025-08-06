@@ -24,7 +24,7 @@ async def get_message_object(server_id: int) -> dict:
 
 
 async def get_schedule_by_server_id(server_id: int) -> dict:
-    return PymongoManager.find_all_in_collection("schedules", {"server_id": server_id})
+    return PymongoManager.find_many_in_collection("schedules", {"server_id": server_id})
 
 
 async def get_post_by_id(post_id: int | ObjectId) -> dict:
