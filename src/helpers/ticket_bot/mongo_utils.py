@@ -24,10 +24,10 @@ async def get_user_objects(user_ids: list[int]) -> dict:
 
 
 async def get_ranked_user_objects(
-    field: str, direction: Literal["ASC", "DESC"], limit: int = 0
+    field: str, direction: Literal["ASC", "DESC"], query: dict = {}, limit: int = 0
 ) -> dict:
     return PymongoManager.find_many_in_collection(
-        "tickets", {}, field, direction, limit
+        "tickets", query, field, direction, limit
     )
 
 
