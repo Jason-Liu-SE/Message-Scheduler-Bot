@@ -125,7 +125,23 @@ async def add_emojis(msg: discord.Message, custom_emojis: list, emojis: list) ->
             Logger.error(f"Unknown emoji: {reaction}")
 
 
-async def send_error(interaction: discord.Interaction, msg: any) -> None:
+async def send_error(interaction: discord.Interaction, msg: str) -> None:
     await send_embedded_message(
         interaction, Colour.RED, {"title": "ERROR", "desc": msg}
+    )
+
+
+async def send_success(
+    interaction: discord.Interaction,
+    msg: str,
+    title: str = "Success",
+    colour: int | discord.Colour = Colour.GREEN,
+):
+    await send_embedded_message(
+        interaction,
+        colour,
+        {
+            "title": title,
+            "desc": msg,
+        },
     )
