@@ -22,6 +22,7 @@ def run_discord_bot():
     bot = commands.Bot(command_prefix="!", intents=intents)
     event_manager = EventManager(bot)
 
+    # trigger declarations
     @bot.tree.error
     async def on_bot_error(
         interaction: discord.Interaction, e: app_commands.AppCommandError
@@ -29,7 +30,6 @@ def run_discord_bot():
         Logger.exception(e)
         await send_error(interaction, "An error occurred.")
 
-    # trigger declaration
     @bot.event
     async def on_ready():
         try:
@@ -53,6 +53,9 @@ def run_discord_bot():
 
     @bot.event
     async def on_member_join(member: discord.Member):
+        if member.bot:
+            return
+
         await register_user_with_db(member)
 
     async def start():
