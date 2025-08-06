@@ -56,7 +56,7 @@ class MessageScheduler(
             if current.lower() in f"{post_id}":
                 choices.append(
                     app_commands.Choice(
-                        name=f"{post_id}: {post["message"][:30]}", value=f"{post_id}"
+                        name=f"{post_id} | {post["message"][:30]}", value=f"{post_id}"
                     )
                 )
 

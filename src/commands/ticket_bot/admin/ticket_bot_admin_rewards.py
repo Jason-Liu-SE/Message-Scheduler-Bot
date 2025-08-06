@@ -40,7 +40,8 @@ class TicketBotAdminRewards(app_commands.Group):
             if current.lower() in reward["name"] or f"{reward_id}":
                 choices.append(
                     app_commands.Choice(
-                        name=f"{reward_id}: {reward["name"][:30]}", value=f"{reward_id}"
+                        name=f"{reward_id} | {reward["name"][:30]}",
+                        value=f"{reward_id}",
                     )
                 )
 
