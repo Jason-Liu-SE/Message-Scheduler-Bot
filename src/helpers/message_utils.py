@@ -63,12 +63,20 @@ async def send_embedded_message(
     color: int | discord.Color | None,
     main_content: dict,
     fields: list | None = None,
+    footer: str | None = None,
+    image: str | None = None,
 ) -> None:
     embed_var = discord.Embed(
         title=main_content["title"],
         description=main_content["desc"],
         color=color,
     )
+
+    if footer:
+        embed_var.set_footer(footer)
+
+    if image:
+        embed_var.set_image(image)
 
     if fields:
         for field in fields:
