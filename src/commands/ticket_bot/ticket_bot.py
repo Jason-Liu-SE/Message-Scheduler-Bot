@@ -81,7 +81,13 @@ class TicketBot(
     ####################################################################################
     async def handle_leaderboard(self, interaction: discord.Interaction) -> None:
         try:
-            user_objs = await get_ranked_user_objects("tickets", "DESC", 50)
+            # creating entries for missing members
+            human_member_ids = [m.id for m in interaction.guild.members if not m.bot]
+            await create_user_objects(human_member_ids)
+
+            user_objs = await get_ranked_user_objects(
+                "tickets", "DESC", {"_id": {"$in": human_member_ids}}, 50
+            )
         except Exception as e:
             Logger.exception(e)
             await send_error(
@@ -89,6 +95,7 @@ class TicketBot(
             )
             return
 
+        # creating leaderboard
         ranks = ""
         names = ""
         tickets = ""
