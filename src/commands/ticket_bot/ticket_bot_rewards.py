@@ -5,13 +5,14 @@ from discord import app_commands
 from helpers.command_helper import *
 from helpers.id_helpers import *
 from helpers.message_utils import *
+from helpers.ticket_bot.autofill_helpers import *
 from helpers.ticket_bot.mongo_utils import *
 from helpers.time import *
 from helpers.validate import *
 
 
 class TicketBotRewards(app_commands.Group):
-    __ITEMS_PER_PAGE = 3
+    __ITEMS_PER_PAGE = 20
 
     def __init__(self, name: str, description: str, allowed_roles: list) -> None:
         super().__init__(name=name, description=description)
@@ -30,43 +31,6 @@ class TicketBotRewards(app_commands.Group):
         for page in pages:
             if current.lower() in f"{page}":
                 choices.append(app_commands.Choice(name=f"{page}", value=page))
-
-        return choices
-
-    async def get_reward_choices(
-        interaction: discord.Interaction, current: str
-    ) -> list[app_commands.Choice]:
-        choices = []
-
-        current = current.strip()
-
-        # rewards that partially match the current input in either id or name
-        rewards = await get_many_reward_objects(
-            {
-                "$or": [
-                    {"name": {"$regex": current, "$options": "i"}},
-                    {
-                        "$expr": {
-                            "$regexMatch": {
-                                "input": {"$toString": "$_id"},
-                                "regex": current,
-                                "options": "i",
-                            }
-                        }
-                    },
-                ]
-            },
-            sort_field="name",
-        )
-
-        for reward_id, reward in rewards.items():
-            if current.lower() in reward["name"] or current.lower() in f"{reward_id}":
-                choices.append(
-                    app_commands.Choice(
-                        name=f"{reward_id} | {reward["name"][:30]}",
-                        value=f"{reward_id}",
-                    )
-                )
 
         return choices
 
