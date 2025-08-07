@@ -60,7 +60,7 @@ async def send_message_by_channel_id(
 
 async def send_embedded_message(
     interaction: discord.Interaction,
-    color: int | discord.Color | None,
+    colour: int | discord.Color | None,
     main_content: dict,
     fields: list | None = None,
     footer: str | None = None,
@@ -69,7 +69,7 @@ async def send_embedded_message(
     embed_var = discord.Embed(
         title=None if not "title" in main_content else main_content["title"],
         description=None if not "desc" in main_content else main_content["desc"],
-        color=color,
+        color=colour,
     )
 
     if footer:
