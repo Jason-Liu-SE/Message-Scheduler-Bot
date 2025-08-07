@@ -33,8 +33,48 @@ class TicketBotRewards(app_commands.Group):
 
         return choices
 
-    # Remove
+    async def get_reward_choices(
+        interaction: discord.Interaction, current: str
+    ) -> list[app_commands.Choice]:
+        choices = []
+
+        current = current.strip()
+
+        # rewards that partially match the current input in either id or name
+        rewards = await get_many_reward_objects(
+            {
+                "$or": [
+                    {"name": {"$regex": current, "$options": "i"}},
+                    {
+                        "$expr": {
+                            "$regexMatch": {
+                                "input": {"$toString": "$_id"},
+                                "regex": current,
+                                "options": "i",
+                            }
+                        }
+                    },
+                ]
+            },
+            sort_field="name",
+        )
+
+        for reward_id, reward in rewards.items():
+            if current.lower() in reward["name"] or current.lower() in f"{reward_id}":
+                choices.append(
+                    app_commands.Choice(
+                        name=f"{reward_id} | {reward["name"][:30]}",
+                        value=f"{reward_id}",
+                    )
+                )
+
+        return choices
+
+    # List
     ac_list_page = generate_autocomplete([], get_pages)
+
+    # Inspect
+    ac_inspect_item = generate_autocomplete([], get_reward_choices)
 
     ####################################################################################
     ################################### COMMANDS #######################################
@@ -49,8 +89,12 @@ class TicketBotRewards(app_commands.Group):
         await handle_command(self.handle_list, interaction, self.__allowed_roles, page)
 
     @app_commands.command(name="inspect", description="View more about a reward")
-    async def inspect(self, interaction: discord.Interaction):
-        await handle_command(self.handle_inspect, interaction, self.__allowed_roles)
+    @app_commands.describe(item="The ID of the item to be inspected")
+    @app_commands.autocomplete(item=ac_inspect_item)
+    async def inspect(self, interaction: discord.Interaction, item: str):
+        await handle_command(
+            self.handle_inspect, interaction, self.__allowed_roles, item
+        )
 
     @app_commands.command(name="redeem", description="Redeem items for tickets")
     async def redeem(self, interaction: discord.Interaction):
@@ -100,8 +144,35 @@ class TicketBotRewards(app_commands.Group):
             footer=f"Page: {page}/{pages}  |  Items {skip + 1}-{skip + len(rewards)} of {num_rewards}",
         )
 
-    async def handle_inspect(self, interaction: discord.Interaction) -> None:
-        pass
+    async def handle_inspect(self, interaction: discord.Interaction, item: str) -> None:
+        if not ObjectId.is_valid(item):
+            raise ValueError(f"Item {item} is not valid")
+
+        reward_id = ObjectId(item)
+
+        try:
+            reward = await get_reward_object(reward_id)
+        except Exception as e:
+            err_msg = f"Could not find any rewards with id: {reward_id}"
+            Logger.error(f"{err_msg}: {e}")
+            await send_error(interaction, err_msg)
+            return
+
+        try:
+            page_colour = int(reward["page_colour"].split("x")[1], 16)
+        except Exception as e:
+            page_colour = None
+            Logger.error(f"Page colour: '{reward["page_colour"]}' is invalid")
+
+        await send_embedded_message(
+            interaction,
+            colour=page_colour,
+            main_content={
+                "title": f"Reward | {reward["name"]}",
+                "desc": f"**ID**: {reward["_id"]}\n**Ticket Cost**: {reward["cost"]}{f"\n\n{reward["desc"]}" if len(reward["desc"]) > 0 else ""}",
+            },
+            image=reward["image"] if len(reward["image"]) > 0 else None,
+        )
 
     async def handle_redeem(self, interaction: discord.Interaction) -> None:
         pass
