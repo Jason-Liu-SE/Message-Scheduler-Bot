@@ -77,6 +77,21 @@ class PymongoManager:
         return {}
 
     @staticmethod
+    def count_in_collection(
+        collectionName: str,
+        query: dict,
+    ) -> int:
+        try:
+            collection = PymongoManager.__db[collectionName]
+            return collection.count_documents(query)
+        except:
+            Logger.error(
+                f"Failed while counting documents in '{collectionName}' with query '{query}'"
+            )
+
+        return {}
+
+    @staticmethod
     def update_collection(collectionName: str, id: int | ObjectId, data: dict) -> None:
         try:
             collection = PymongoManager.__db[collectionName]

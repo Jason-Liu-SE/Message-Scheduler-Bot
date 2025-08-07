@@ -60,6 +60,10 @@ async def get_many_reward_objects(
     )
 
 
+async def count_rewards(query: dict) -> int:
+    return PymongoManager.count_in_collection("rewards", query)
+
+
 async def get_reward_object(reward_id: ObjectId) -> dict:
     return PymongoManager.find_in_collection_by_id("rewards", reward_id)
 
