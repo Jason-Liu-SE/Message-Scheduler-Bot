@@ -67,8 +67,8 @@ async def send_embedded_message(
     image: str | None = None,
 ) -> None:
     embed_var = discord.Embed(
-        title=main_content["title"],
-        description=main_content["desc"],
+        title=None if not "title" in main_content else main_content["title"],
+        description=None if not "desc" in main_content else main_content["desc"],
         color=color,
     )
 
