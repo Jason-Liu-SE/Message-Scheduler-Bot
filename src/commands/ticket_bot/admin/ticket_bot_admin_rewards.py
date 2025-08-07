@@ -30,14 +30,22 @@ class TicketBotAdminRewards(app_commands.Group):
             {
                 "$or": [
                     {"name": {"$regex": current, "$options": "i"}},
-                    {"_id": {"$regex": current, "$options": "i"}},
+                    {
+                        "$expr": {
+                            "$regexMatch": {
+                                "input": {"$toString": "$_id"},
+                                "regex": current,
+                                "options": "i",
+                            }
+                        }
+                    },
                 ]
             },
             sort_field="name",
         )
 
         for reward_id, reward in rewards.items():
-            if current.lower() in reward["name"] or f"{reward_id}":
+            if current.lower() in reward["name"] or current.lower() in f"{reward_id}":
                 choices.append(
                     app_commands.Choice(
                         name=f"{reward_id} | {reward["name"][:30]}",
