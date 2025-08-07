@@ -53,10 +53,11 @@ async def get_many_reward_objects(
     query: dict,
     sort_field: str | None = None,
     dir: Literal["ASC", "DESC"] = "ASC",
+    skip: int = 0,
     limit: int = 0,
 ) -> dict:
     return PymongoManager.find_many_in_collection(
-        "rewards", query, sort=sort_field, dir=dir, limit=limit
+        "rewards", query, sort=sort_field, dir=dir, skip=skip, limit=limit
     )
 
 
