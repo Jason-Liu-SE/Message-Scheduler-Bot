@@ -6,3 +6,4 @@ class Colour:
     PURPLE = 0x7E42F5
     MINT = 0x42F5BC
     ORANGE = 0xEBA434
+    RASPBERRY = 0xFC1462
