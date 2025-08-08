@@ -3,12 +3,14 @@ import discord
 from discord import app_commands
 
 from helpers.command_helper import *
+from helpers.exception_helpers import handle_error
 from helpers.id_helpers import *
 from helpers.message_utils import *
 from helpers.ticket_bot.autofill_helpers import *
 from helpers.ticket_bot.mongo_utils import *
 from helpers.time import *
 from helpers.validate import *
+from ui.ticket_bot.confirm_action import ConfirmActionView
 
 
 class TicketBotRewards(app_commands.Group):
@@ -40,6 +42,9 @@ class TicketBotRewards(app_commands.Group):
     # Inspect
     ac_inspect_item = generate_autocomplete([], get_reward_choices)
 
+    # Redeem
+    ac_redeem_item = generate_autocomplete([], get_reward_choices)
+
     ####################################################################################
     ################################### COMMANDS #######################################
     ####################################################################################
@@ -61,8 +66,12 @@ class TicketBotRewards(app_commands.Group):
         )
 
     @app_commands.command(name="redeem", description="Redeem items for tickets")
-    async def redeem(self, interaction: discord.Interaction):
-        await handle_command(self.handle_redeem, interaction, self.__allowed_roles)
+    @app_commands.describe(item="Item ID to be redeemed")
+    @app_commands.autocomplete(item=ac_redeem_item)
+    async def redeem(self, interaction: discord.Interaction, item: str):
+        await handle_command(
+            self.handle_redeem, interaction, self.__allowed_roles, item
+        )
 
     ####################################################################################
     ################################### HANDLERS #######################################
@@ -98,8 +107,8 @@ class TicketBotRewards(app_commands.Group):
 
         await send_embedded_message(
             interaction,
-            Colour.ORANGE,
-            {"title": "Rewards  :shopping_bags:"},
+            colour=Colour.ORANGE,
+            title="Rewards  :shopping_bags:",
             fields=[
                 {"name": "ID", "value": reward_ids, "inline": True},
                 {"name": "Name", "value": reward_names, "inline": True},
@@ -116,10 +125,13 @@ class TicketBotRewards(app_commands.Group):
 
         try:
             reward = await get_reward_object(reward_id)
+
+            if not reward:
+                raise Exception
         except Exception as e:
-            err_msg = f"Could not find any rewards with id: {reward_id}"
-            Logger.error(f"{err_msg}: {e}")
-            await send_error(interaction, err_msg)
+            await handle_error(
+                interaction, f"Could not find any rewards with id: {reward_id}", e
+            )
             return
 
         try:
@@ -131,12 +143,147 @@ class TicketBotRewards(app_commands.Group):
         await send_embedded_message(
             interaction,
             colour=page_colour,
-            main_content={
-                "title": f"Reward | {reward["name"]}",
-                "desc": f"**ID**: {reward["_id"]}\n**Ticket Cost**: {reward["cost"]}{f"\n\n{reward["desc"]}" if len(reward["desc"]) > 0 else ""}",
-            },
+            title=f"Reward | {reward["name"]}",
+            desc=f"**ID**: {reward["_id"]}\n**Ticket Cost**: {reward["cost"]}{f"\n\n{reward["desc"]}" if len(reward["desc"]) > 0 else ""}",
             image=reward["image"] if len(reward["image"]) > 0 else None,
         )
 
-    async def handle_redeem(self, interaction: discord.Interaction) -> None:
-        pass
+    async def handle_redeem(self, interaction: discord.Interaction, item: str) -> None:
+        if not ObjectId.is_valid(item):
+            raise ValueError(f"Item {item} is not valid")
+
+        reward_id = ObjectId(item)
+        redeemer = interaction.user
+
+        # attempt to order item
+        try:
+            reward = await get_reward_object(reward_id)
+
+            if not reward:
+                raise Exception
+        except Exception as e:
+            await handle_error(
+                interaction, f"Could not find any rewards with id: {reward_id}", e
+            )
+            return
+
+        try:
+            user_obj = await get_user_object(redeemer.id)
+        except Exception as e:
+            handle_error(
+                interaction, "There was an issue while retrieving your balance.", e
+            )
+            return
+
+        if not user_obj:
+            raise ValueError(
+                "You don't have a balance. Please contact an administrator or moderator."
+            )
+
+        if user_obj["tickets"] < reward["cost"]:
+            raise ValueError("You don't have enough tickets to purchase this item.")
+
+        async def on_reject(
+            interation: discord.Interaction, btn: discord.ui.Button
+        ) -> None:
+            await send_success(
+                interaction,
+                f"Successfully cancelled the redemption request for:\n\n**Redeemer**: {redeemer.mention}\n**Ticket Cost**: {reward["cost"]}\n**ID**: {reward["_id"]}\n"
+                + f"**Name**: {reward["name"]}",
+                title="Redemption Cancelled",
+            )
+
+        # proceed after confirmation
+        async def on_accept(
+            interation: discord.Interaction, btn: discord.ui.Button
+        ) -> None:
+            # update balance
+            prev_balance = user_obj["tickets"]
+            user_obj["tickets"] -= reward["cost"]
+
+            try:
+                await update_user_object(interaction.user.id, user_obj)
+            except Exception as e:
+                await handle_error(
+                    interaction, "Could not complete redemption process", e
+                )
+                return
+
+            async def reverse_redemption(prev_balance):
+                try:
+                    user_obj["tickets"] = prev_balance
+                    await update_user_object(interaction.user.id, user_obj)
+                except Exception as e:
+                    err_msg = f"Failed to reverse redemption of `{reward["_id"]}: {reward["name"]}` for `{reward["cost"]}` tickets by `{interaction.user.name}`. Expected balance `{prev_balance}`: {e}"
+                    Logger.error(err_msg)
+
+                    try:
+                        admin = interaction.guild.get_member(
+                            int(os.environ["REDEEM_TARGET"])
+                        )
+
+                        await admin.send(
+                            embed=generate_embedded_message(
+                                title="ERROR",
+                                desc=err_msg,
+                                colour=Colour.RED,
+                            )
+                        )
+                    except Exception as e:
+                        Logger.error(
+                            "Failed to notify admin of a redemption request reversal"
+                        )
+                        Logger.exception(e)
+
+            # send redemption message to admin
+            try:
+                dm_target = interaction.guild.get_member(
+                    int(os.environ["REDEEM_TARGET"])
+                )
+
+                order_msg = await dm_target.send(
+                    embed=generate_embedded_message(
+                        title="Redeem",
+                        desc=f"{interaction.user.mention} redeemed:\n\n**ID**: {reward["_id"]}\n**Ticket Cost**: {reward["cost"]}\n"
+                        + f"**Redemption Time**: {convert_to_timezone(datetime.now()).strftime("%Y-%m-%d %H:%M:%S")}\n"
+                        + f"**Name**: {reward["name"]}\n\nTheir new balance is `{user_obj["tickets"]}`",
+                        colour=Colour.RASPBERRY,
+                        thumbnail=interaction.user.display_avatar.url,
+                    )
+                )
+            except Exception as e:
+                Logger.error("Failed to DM admin")
+                await handle_error(
+                    interaction, f"Could not complete redemption process", e
+                )
+                await reverse_redemption(prev_balance)
+                return
+
+            # send success message to caller
+            try:
+                await send_success(
+                    interaction,
+                    f"Successfully redeemed `{reward["name"]}` for `{reward["cost"]}` tickets. {interaction.user.mention}'s balance is `{user_obj["tickets"]}`",
+                )
+            except Exception as e:
+                Logger.error("Failed to send success to redeemer")
+                await handle_error(
+                    interaction, f"Could not complete redemption process", e
+                )
+                await order_msg.delete()
+                await reverse_redemption(prev_balance)
+                return
+
+        # wait for confirmation
+        confirm = ConfirmActionView(
+            accept_cb=on_accept, reject_cb=on_reject, author=interaction.user.id
+        )
+        await send_embedded_message(
+            interaction,
+            colour=Colour.YELLOW,
+            title="Confirmation",
+            desc=f"Are you sure that you'd like to redeem the following reward?\n\n**Ticket Cost**: {reward["cost"]}\n**ID**: {reward["_id"]}\n"
+            + f"**Name**: {reward["name"]}",
+            view=confirm,
+        )
+        confirm.msg_ref = await interaction.original_response()
