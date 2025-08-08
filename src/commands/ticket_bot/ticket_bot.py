@@ -118,7 +118,7 @@ class TicketBot(
             user_obj = await get_user_object(user.id)
 
             if not user_obj:
-                raise ValueError(f"User with id {user.id} does not exist in DB")
+                raise ValueError(f"User with id {user.id} does not exist in records")
         except ValueError as e:
             Logger.warn(e)
             await send_error(
