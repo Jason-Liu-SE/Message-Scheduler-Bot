@@ -1,3 +1,4 @@
+from dataclasses import MISSING
 import discord
 from discord.ext.commands.bot import Bot
 from emoji import emojize
@@ -79,7 +80,9 @@ async def send_embedded_message(
         thumbnail=thumbnail,
     )
 
-    await interaction.followup.send(embed=embed, view=view)
+    await interaction.followup.send(
+        embed=embed, view=view if view else discord.utils.MISSING
+    )
 
 
 def generate_embedded_message(
