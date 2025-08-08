@@ -92,7 +92,7 @@ class TicketBot(
             user = interaction.guild.get_member(user_id)
 
             ranks += f"{index + 1}{"" if index + 1 >= len(user_objs) else "\n"}"
-            names += f"{user.name}{"" if index + 1 >= len(user_objs) else "\n"}"
+            names += f"{user.display_name}{"" if index + 1 >= len(user_objs) else "\n"}"
             tickets += (
                 f"{user_info["tickets"]}{"" if index + 1 >= len(user_objs) else "\n"}"
             )
