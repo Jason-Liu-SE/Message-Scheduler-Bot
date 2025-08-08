@@ -540,7 +540,7 @@ class MessageScheduler(
 
         await send_embedded_message(
             interaction,
-            Colour.PURPLE,
+            colour=Colour.PURPLE,
             title="Message Scheduler Commands",
             desc=help_desc,
             fields=fields,
