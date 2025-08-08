@@ -36,7 +36,7 @@ def run_discord_bot():
             Logger.info("Syncing commands...")
 
             if is_development():
-                Logger.info("In development mode")
+                Logger.info("[In development mode]...")
 
                 await bot.tree.sync(
                     guild=discord.Object(id=int(os.environ["TEST_DISCORD_SERVER"]))
