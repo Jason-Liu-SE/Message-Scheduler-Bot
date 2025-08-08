@@ -159,6 +159,7 @@ class TicketBotRewards(app_commands.Group):
 
         reward_id = ObjectId(item)
         redeemer = interaction.user
+        order_id = ObjectId()
 
         # attempt to order item
         try:
@@ -196,7 +197,8 @@ class TicketBotRewards(app_commands.Group):
         ) -> None:
             await send_success(
                 interaction,
-                f"Successfully cancelled the redemption request for:\n\n**Redeemer**: {redeemer.mention}\n**Ticket Cost**: {reward["cost"]}\n**ID**: {reward["_id"]}\n"
+                f"Successfully cancelled the redemption request for:\n\n"
+                + f"**Redeemer**: {redeemer.mention}\n**Order ID**: {order_id}\n**Ticket Cost**: {reward["cost"]}\n**ID**: {reward["_id"]}\n"
                 + f"**Name**: {reward["name"]}",
                 title="Redemption Cancelled",
             )
@@ -213,7 +215,9 @@ class TicketBotRewards(app_commands.Group):
                 await update_user_object(interaction.user.id, user_obj)
             except Exception as e:
                 await handle_error(
-                    interaction, "Could not complete redemption process", e
+                    interaction,
+                    f"Could not complete redemption process for order id: `{order_id}`",
+                    e,
                 )
                 return
 
@@ -221,8 +225,9 @@ class TicketBotRewards(app_commands.Group):
                 async def handle_reversal_failure(e: Exception, blame_msg) -> None:
                     err_msg = (
                         f"Failed to reverse redemption of `{reward["_id"]}: {reward["name"]}` for `{reward["cost"]}` tickets by `{interaction.user.name}`. "
-                        + f"Expected balance `{prev_balance}`. Expected stock `{prev_stock}`\n"
-                        + f"**Redemption Time**: {convert_to_timezone(datetime.now()).strftime("%Y-%m-%d %H:%M:%S")}"
+                        + f"Expected balance `{prev_balance}`. Expected stock `{prev_stock}`.\n\n"
+                        + f"**Redemption Time**: {convert_to_timezone(datetime.now()).strftime("%Y-%m-%d %H:%M:%S")}\n"
+                        + f"**Order ID**: {order_id}\n"
                         + f"\n\nCause: {blame_msg}:\n\n {e}"
                     )
                     Logger.error(err_msg)
@@ -241,23 +246,31 @@ class TicketBotRewards(app_commands.Group):
                         )
                     except Exception as e:
                         Logger.error(
-                            "Failed to notify admin of a redemption request reversal"
+                            f"Failed to notify admin of a redemption request reversal for order id: `{order_id}`"
                         )
                         Logger.exception(e)
 
                 try:
                     user_obj["tickets"] = prev_balance
                     await update_user_object(interaction.user.id, user_obj)
-                    Logger.info("Successfully reversed the user's balance")
+                    Logger.info(
+                        f"Successfully reversed the user's balance for order id: `{order_id}`"
+                    )
                 except Exception as e:
-                    await handle_reversal_failure(e, "Could not revert balance")
+                    await handle_reversal_failure(
+                        e, f"Could not revert balance for order id: `{order_id}`"
+                    )
 
                 try:
                     reward["stock"] = prev_stock
                     await update_reward_object(reward_id, reward)
-                    Logger.info("Successfully reversed reward stock")
+                    Logger.info(
+                        f"Successfully reversed reward stock for order id: `{order_id}`"
+                    )
                 except Exception as e:
-                    await handle_reversal_failure(e, "Could not revert reward stock")
+                    await handle_reversal_failure(
+                        e, f"Could not revert reward stock for order id: `{order_id}`"
+                    )
 
             # update the stock of the item
             prev_stock = reward["stock"]
@@ -270,7 +283,9 @@ class TicketBotRewards(app_commands.Group):
             except Exception as e:
                 Logger.error("Failed to update reward stock")
                 await handle_error(
-                    interaction, f"Could not complete redemption process", e
+                    interaction,
+                    f"Could not complete redemption process for order id: `{order_id}`",
+                    e,
                 )
                 await reverse_redemption(prev_balance, prev_stock)
                 return
@@ -286,6 +301,7 @@ class TicketBotRewards(app_commands.Group):
                         title="Redeem",
                         desc=f"{interaction.user.mention} redeemed:\n\n**ID**: {reward["_id"]}\n**Ticket Cost**: {reward["cost"]}\n**Remaining Stock**: {display_stock(reward["stock"])}\n\n"
                         + f"**Redemption Time**: {convert_to_timezone(datetime.now()).strftime("%Y-%m-%d %H:%M:%S")}\n"
+                        + f"**Order ID**: {order_id}\n"
                         + f"**Name**: {reward["name"]}\n\nTheir new balance is `{user_obj["tickets"]}`",
                         colour=Colour.RASPBERRY,
                         thumbnail=interaction.user.display_avatar.url,
@@ -294,7 +310,9 @@ class TicketBotRewards(app_commands.Group):
             except Exception as e:
                 Logger.error("Failed to DM admin")
                 await handle_error(
-                    interaction, f"Could not complete redemption process", e
+                    interaction,
+                    f"Could not complete redemption process for order id: `{order_id}`",
+                    e,
                 )
                 await reverse_redemption(prev_balance, prev_stock)
                 return
@@ -303,18 +321,21 @@ class TicketBotRewards(app_commands.Group):
             try:
                 await send_success(
                     interaction,
-                    f"Successfully redeemed `{reward["name"]}` for `{reward["cost"]}` tickets. {interaction.user.mention}'s new balance is `{user_obj["tickets"]}`",
+                    f"**Order ID**: {order_id}\n\n"
+                    + f"Successfully redeemed `{reward["name"]}` for `{reward["cost"]}` tickets. {interaction.user.mention}'s new balance is `{user_obj["tickets"]}`",
                 )
             except Exception as e:
                 Logger.error("Failed to send success to redeemer")
                 await handle_error(
-                    interaction, f"Could not complete redemption process", e
+                    interaction,
+                    f"Could not complete redemption process for order id: `{order_id}`",
+                    e,
                 )
                 await order_msg.delete()
                 await reverse_redemption(prev_balance, prev_stock)
                 return
 
-        # wait for confirmation
+        # request for confirmation
         confirm = ConfirmActionView(
             accept_cb=on_accept, reject_cb=on_reject, author=interaction.user.id
         )
@@ -322,7 +343,7 @@ class TicketBotRewards(app_commands.Group):
             interaction,
             colour=Colour.YELLOW,
             title="Confirmation",
-            desc=f"Are you sure that you'd like to redeem the following reward?\n\n**Ticket Cost**: {reward["cost"]}\n**ID**: {reward["_id"]}\n"
+            desc=f"**Order ID**: {order_id}\n\nAre you sure that you'd like to redeem the following reward?\n\n**Ticket Cost**: {reward["cost"]}\n**ID**: {reward["_id"]}\n"
             + f"**Name**: {reward["name"]}",
             view=confirm,
         )
