@@ -9,6 +9,9 @@ class ViewWrapper(discord.ui.View):
         self.msg_ref: discord.InteractionMessage | None = None
 
     async def on_timeout(self):
+        await self.disable_children()
+
+    async def disable_children(self) -> None:
         for child in self.children:
             if hasattr(child, "disabled"):
                 child.disabled = True
