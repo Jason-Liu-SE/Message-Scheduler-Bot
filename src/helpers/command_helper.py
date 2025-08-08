@@ -26,7 +26,6 @@ async def handle_command(
         # handling command
         await cmd(interaction, *cmd_args)
     except ValueError as e:  # this only throws if the user provided invalid input
-        Logger.error(e)
         await send_error(interaction, e)
     except Exception as e:
         Logger.exception(e)
