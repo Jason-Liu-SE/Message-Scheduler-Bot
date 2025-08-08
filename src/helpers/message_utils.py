@@ -69,6 +69,7 @@ async def send_embedded_message(
     image: str | None = None,
     thumbnail: str | None = None,
     view: discord.ui.View | None = None,
+    ephemeral: bool = False,
 ) -> None:
     embed = generate_embedded_message(
         title=title,
@@ -81,7 +82,7 @@ async def send_embedded_message(
     )
 
     await interaction.followup.send(
-        embed=embed, view=view if view else discord.utils.MISSING
+        embed=embed, view=view if view else discord.utils.MISSING, ephemeral=ephemeral
     )
 
 
@@ -157,8 +158,12 @@ async def add_emojis(msg: discord.Message, custom_emojis: list, emojis: list) ->
             Logger.error(f"Unknown emoji: {reaction}")
 
 
-async def send_error(interaction: discord.Interaction, msg: str) -> None:
-    await send_embedded_message(interaction, colour=Colour.RED, title="ERROR", desc=msg)
+async def send_error(
+    interaction: discord.Interaction, msg: str, ephemeral: bool = False
+) -> None:
+    await send_embedded_message(
+        interaction, colour=Colour.RED, title="ERROR", desc=msg, ephemeral=ephemeral
+    )
 
 
 async def send_success(
