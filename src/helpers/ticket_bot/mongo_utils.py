@@ -27,7 +27,7 @@ async def get_ranked_user_objects(
     sort_field: str, direction: Literal["ASC", "DESC"], query: dict = {}, limit: int = 0
 ) -> dict:
     return PymongoManager.find_many_in_collection(
-        "tickets", query, sort_field, direction, limit
+        "tickets", query, sort_field, dir=direction, limit=limit
     )
 
 
