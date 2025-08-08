@@ -13,6 +13,7 @@ from helpers.time import *
 from helpers.validate import *
 
 from ui.ticket_bot.confirm_action import ConfirmActionView
+from ui.ticket_bot.single_action import SingleActionView
 
 
 class TicketBotRewards(app_commands.Group):
@@ -21,7 +22,7 @@ class TicketBotRewards(app_commands.Group):
     def __init__(self, name: str, description: str, allowed_roles: list) -> None:
         super().__init__(name=name, description=description)
         self.__allowed_roles = allowed_roles
-        self.bot = None  # set by the parent
+        self.bot: Bot | None = None  # set by the parent
 
     ####################################################################################
     ################################ AUTOCOMPLETE ######################################
@@ -296,17 +297,37 @@ class TicketBotRewards(app_commands.Group):
                     int(os.environ["REDEEM_TARGET"])
                 )
 
-                order_msg = await dm_target.send(
-                    embed=generate_embedded_message(
-                        title="Redeem",
-                        desc=f"{interaction.user.mention} redeemed:\n\n**ID**: {reward["_id"]}\n**Ticket Cost**: {reward["cost"]}\n**Remaining Stock**: {display_stock(reward["stock"])}\n\n"
-                        + f"**Redemption Time**: {convert_to_timezone(datetime.now()).strftime("%Y-%m-%d %H:%M:%S")}\n"
-                        + f"**Order ID**: {order_id}\n"
-                        + f"**Name**: {reward["name"]}\n\nTheir new balance is `{user_obj["tickets"]}`",
-                        colour=Colour.RASPBERRY,
-                        thumbnail=interaction.user.display_avatar.url,
-                    )
+                # mark as read functionality
+                async def on_complete(
+                    interation: discord.Interaction, btn: discord.ui.Button
+                ) -> None:
+                    try:
+                        edited_embed = generate_embedded_message(
+                            title=f"{embed.title}: Completed",
+                            desc=embed.description,
+                            colour=Colour.GREEN,
+                            thumbnail=embed.thumbnail.url,
+                        )
+                        await order_msg.edit(embed=edited_embed, view=None)
+                    except Exception as e:
+                        Logger.error(
+                            f"Could not mark DM message (order id: {order_id}) as read: {e}"
+                        )
+
+                mark_as_complete = SingleActionView(
+                    label="Mark as Complete", action_cb=on_complete
                 )
+                embed = generate_embedded_message(
+                    title="Redeem",
+                    desc=f"{interaction.user.mention} redeemed:\n\n**ID**: {reward["_id"]}\n**Ticket Cost**: {reward["cost"]}\n**Remaining Stock**: {display_stock(reward["stock"])}\n\n"
+                    + f"**Redemption Time**: {convert_to_timezone(datetime.now()).strftime("%Y-%m-%d %H:%M:%S")}\n"
+                    + f"**Order ID**: {order_id}\n"
+                    + f"**Name**: {reward["name"]}\n\nTheir new balance is `{user_obj["tickets"]}`",
+                    colour=Colour.RASPBERRY,
+                    thumbnail=interaction.user.display_avatar.url,
+                )
+                order_msg = await dm_target.send(embed=embed, view=mark_as_complete)
+                mark_as_complete.msg_ref = order_msg
             except Exception as e:
                 Logger.error("Failed to DM admin")
                 await handle_error(
@@ -321,8 +342,10 @@ class TicketBotRewards(app_commands.Group):
             try:
                 await send_success(
                     interaction,
-                    f"**Order ID**: {order_id}\n\n"
-                    + f"Successfully redeemed `{reward["name"]}` for `{reward["cost"]}` tickets. {interaction.user.mention}'s new balance is `{user_obj["tickets"]}`",
+                    title="Purchase Complete",
+                    msg=f"**Order ID**: {order_id}\n\n"
+                    + f"Successfully redeemed `{reward["name"]}` for `{reward["cost"]}` tickets\n\n"
+                    + f"__**{interaction.user.mention}'s Post-Purchase Summary**__\n**Updated Balance**: `{user_obj["tickets"]}` ticket(s)",
                 )
             except Exception as e:
                 Logger.error("Failed to send success to redeemer")
