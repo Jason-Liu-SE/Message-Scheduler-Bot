@@ -46,6 +46,10 @@ class TicketBot(
     async def leaderboard(self, interaction: discord.Interaction):
         await handle_command(self.handle_leaderboard, interaction, self.__allowed_roles)
 
+    @app_commands.command(name="balance", description="View your balance")
+    async def balance(self, interaction: discord.Interaction):
+        await handle_command(self.handle_balance, interaction, self.__allowed_roles)
+
     @app_commands.command(name="view", description="View a user's tickets")
     @app_commands.describe(user="Target user")
     async def view(self, interaction: discord.Interaction, user: discord.Member):
@@ -105,6 +109,34 @@ class TicketBot(
                 {"name": "Name", "value": names, "inline": True},
                 {"name": "Tickets", "value": tickets, "inline": True},
             ],
+        )
+
+    async def handle_balance(self, interaction: discord.Interaction) -> None:
+        user = interaction.user
+
+        try:
+            user_obj = await get_user_object(user.id)
+
+            if not user_obj:
+                raise ValueError(f"User with id {user.id} does not exist in records")
+        except ValueError as e:
+            Logger.warn(e)
+            await send_error(
+                interaction, f"Could not retrieve {user.display_name}'s tickets"
+            )
+            return
+        except Exception as e:
+            Logger.exception(e)
+            await send_error(
+                interaction, f"Could not retrieve {user.display_name}'s tickets"
+            )
+            return
+
+        await send_embedded_message(
+            interaction,
+            colour=Colour.GREEN,
+            title=f"{user.mention}'s Tickets",
+            desc=f"{user_obj["tickets"]}",
         )
 
     async def handle_view(
