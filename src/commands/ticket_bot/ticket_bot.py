@@ -84,31 +84,37 @@ class TicketBot(
             return
 
         # creating leaderboard
-        ranks = ""
-        names = ""
-        tickets = ""
+        fields = []
 
         for index, user_obj in enumerate(user_objs.items()):
             user_id = user_obj[0]
             user_info = user_obj[1]
             user = interaction.guild.get_member(user_id)
 
-            ranks += f"{index + 1}{"" if index + 1 >= len(user_objs) else "\n"}"
-            names += f"{user.display_name}{"" if index + 1 >= len(user_objs) else "\n"}"
-            tickets += (
-                f"{user_info["tickets"]}{"" if index + 1 >= len(user_objs) else "\n"}"
+            fields.append(
+                {
+                    "name": (
+                        f"#{index + 1}\t{user.display_name} "
+                        + (
+                            ":first_place:"
+                            if index == 0
+                            else (
+                                ":second_place:"
+                                if index == 1
+                                else ":third_place:" if index == 2 else ""
+                            )
+                        )
+                    ),
+                    "value": f"> **{user_info["tickets"]}** tickets",
+                }
             )
 
         await send_embedded_message(
             interaction,
             colour=Colour.MINT,
-            title=f"{"Top 50 " if len(user_objs) >= 50 else ""}Leaderboard",
+            title=f"{"Top 50 " if len(user_objs) >= 50 else ""}Ticket Leaderboard",
             desc=None,
-            fields=[
-                {"name": "Rank", "value": ranks, "inline": True},
-                {"name": "Name", "value": names, "inline": True},
-                {"name": "Tickets", "value": tickets, "inline": True},
-            ],
+            fields=fields,
         )
 
     async def handle_balance(self, interaction: discord.Interaction) -> None:
