@@ -33,6 +33,7 @@ class TicketBotAdminRewards(app_commands.Group):
         name="Name of the reward",
         cost="Ticket cost of the reward",
         pagecolour="The hex colour of the reward's inspect page",
+        stock="Number of of this reward to sell",
     )
     async def add(
         self,
@@ -40,9 +41,16 @@ class TicketBotAdminRewards(app_commands.Group):
         name: str,
         cost: app_commands.Range[int, 0],
         pagecolour: str = "FFFFFF",
+        stock: int = -1,
     ):
         await handle_command(
-            self.handle_add, interaction, self.__allowed_roles, name, cost, pagecolour
+            self.handle_add,
+            interaction,
+            self.__allowed_roles,
+            name,
+            cost,
+            pagecolour,
+            stock,
         )
 
     @app_commands.command(name="remove", description="Removes a reward")
@@ -66,6 +74,7 @@ class TicketBotAdminRewards(app_commands.Group):
         name="Name of the reward",
         cost="Ticket cost of the reward",
         pagecolour="The hex colour of the reward's inspect page",
+        stock="Number of of this reward to sell",
         changedesc="True to change the description. False by default",
     )
     @app_commands.autocomplete(item=ac_edit_item)
@@ -76,6 +85,7 @@ class TicketBotAdminRewards(app_commands.Group):
         name: str | None = None,
         cost: app_commands.Range[int, 0] | None = None,
         pagecolour: str | None = None,
+        stock: int = -1,
         changedesc: bool = False,
     ):
         await handle_command(
@@ -86,6 +96,7 @@ class TicketBotAdminRewards(app_commands.Group):
             name,
             cost,
             pagecolour,
+            stock,
             changedesc,
         )
 
@@ -99,6 +110,7 @@ class TicketBotAdminRewards(app_commands.Group):
         name: str,
         cost: int,
         pagecolour: str,
+        stock: int,
         desc: str | None = None,
         img: str | None = None,  # Ensure img is valid, or don't pass it
     ) -> None:
@@ -159,6 +171,7 @@ class TicketBotAdminRewards(app_commands.Group):
                 "name": name,
                 "cost": cost,
                 "page_colour": hex_clr,
+                "stock": stock,
                 "desc": content,
                 "image": image,
             },
@@ -174,10 +187,16 @@ class TicketBotAdminRewards(app_commands.Group):
         interaction: discord.Interaction,
         name: str,
         cost: int,
+        stock: int,
         pagecolour: str,
     ) -> None:
         await self.handle_update_reward(
-            interaction, id=ObjectId(), name=name, cost=cost, pagecolour=pagecolour
+            interaction,
+            id=ObjectId(),
+            name=name,
+            cost=cost,
+            stock=stock,
+            pagecolour=pagecolour,
         )
 
     async def handle_remove(
@@ -206,6 +225,7 @@ class TicketBotAdminRewards(app_commands.Group):
         name: str | None,
         cost: app_commands.Range[int, 0] | None,
         pagecolour: str | None,
+        stock: int | None,
         changedesc: bool,
     ) -> None:
         if not ObjectId.is_valid(item_id):
@@ -223,6 +243,7 @@ class TicketBotAdminRewards(app_commands.Group):
             name=name if name else reward["name"],
             cost=cost if cost else reward["cost"],
             pagecolour=pagecolour if pagecolour else reward["page_colour"],
+            stock=stock if stock else reward["stock"],
             desc=None if changedesc else reward["desc"],
             img=None if changedesc else reward["image"],
         )
