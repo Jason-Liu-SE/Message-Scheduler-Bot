@@ -65,28 +65,54 @@ async def send_embedded_message(
     fields: list | None = None,
     footer: str | None = None,
     image: str | None = None,
+    thumbnail: str | None = None,
 ) -> None:
-    embed_var = discord.Embed(
-        title=None if not "title" in main_content else main_content["title"],
-        description=None if not "desc" in main_content else main_content["desc"],
+    embed = generate_embedded_message(
+        title=main_content["title"],
+        desc=main_content["desc"],
+        colour=colour,
+        fields=fields,
+        footer=footer,
+        image=image,
+        thumbnail=thumbnail,
+    )
+
+    await interaction.followup.send(embed=embed)
+
+
+def generate_embedded_message(
+    title: str | None = None,
+    desc: str | None = None,
+    colour: int | discord.Color | None = None,
+    fields: list | None = None,
+    footer: str | None = None,
+    image: str | None = None,
+    thumbnail: str | None = None,
+):
+    embed = discord.Embed(
+        title=title,
+        description=desc,
         color=colour,
     )
 
     if footer:
-        embed_var.set_footer(text=footer)
+        embed.set_footer(text=footer)
 
     if image:
-        embed_var.set_image(url=image)
+        embed.set_image(url=image)
+
+    if thumbnail:
+        embed.set_thumbnail(url=thumbnail)
 
     if fields:
         for field in fields:
-            embed_var.add_field(
+            embed.add_field(
                 name=None if not "name" in field else field["name"],
                 value=None if not "value" in field else field["value"],
                 inline=False if not "inline" in field else field["inline"],
             )
 
-    await interaction.followup.send(embed=embed_var)
+    return embed
 
 
 async def wait_for_msg(
