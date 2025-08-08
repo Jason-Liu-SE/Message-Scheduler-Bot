@@ -49,10 +49,19 @@ def get_seconds_from_next_minute() -> int:
         return 0
 
 
-def convert_to_utc(dt: datetime, timezone: str) -> datetime:
-    tz = pytz.timezone(timezone)
+# Converts dt to utc, assuming that it has a timezone of interpreted_timezone
+# Note: this only works for dt that don't already have a timezone. E.g.
+# new datetime objects that have been manually constructed.
+def convert_to_utc(dt: datetime, interpreted_timezone: str) -> datetime:
+    tz = pytz.timezone(interpreted_timezone)
     dt_localized = dt.astimezone(tz)
 
     utc_offset_s = 86400 - dt_localized.utcoffset().seconds
 
     return dt + timedelta(seconds=utc_offset_s)
+
+
+# Converts a dt (with an existing timezone) to the specified timezone
+def convert_to_timezone(dt: datetime, timezone: str = "Canada/Eastern") -> datetime:
+    tz = pytz.timezone(timezone)
+    return dt.astimezone(tz)
