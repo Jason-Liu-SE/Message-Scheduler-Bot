@@ -210,7 +210,7 @@ class TicketBotAdmin(
             Logger.exception(e)
             return
 
-        await send_embedded_message(
+        await send_success(
             interaction,
             f"Updated tickets for users with role `{role.name}` {"to" if is_override else "by"} {tickets}",
         )
@@ -331,9 +331,10 @@ class TicketBotAdmin(
 
         await send_embedded_message(
             interaction,
-            Colour.PURPLE,
-            {"title": "Ticket Admin Commands", "desc": help_desc},
-            fields,
+            colour=Colour.PURPLE,
+            title="Ticket Admin Commands",
+            desc=help_desc,
+            fields=fields,
         )
 
 

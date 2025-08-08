@@ -144,11 +144,9 @@ class TicketBotAdminRewards(app_commands.Group):
                         if len(images) >= 2:
                             await send_embedded_message(
                                 interaction,
-                                Colour.YELLOW,
-                                {
-                                    "title": "Warning",
-                                    "desc": "Only the first attached image will be used",
-                                },
+                                colour=Colour.YELLOW,
+                                title="Warning",
+                                desc="Only the first attached image will be used",
                                 image=image,
                             )
                             break

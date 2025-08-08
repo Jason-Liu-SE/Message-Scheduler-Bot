@@ -438,8 +438,9 @@ class MessageScheduler(
         if not schedule or len(schedule) == 0:
             await send_embedded_message(
                 interaction,
-                Colour.YELLOW,
-                {"title": "Warning", "desc": f"You don't have any scheduled posts!"},
+                colour=Colour.YELLOW,
+                title="Warning",
+                desc=f"You don't have any scheduled posts!",
             )
             return
 
@@ -465,7 +466,7 @@ class MessageScheduler(
 
         for message in msg_list:
             await send_embedded_message(
-                interaction, Colour.GREEN, {"title": "Posts", "desc": message}
+                interaction, colour=Colour.GREEN, title="Posts", desc=message
             )
 
     async def handle_help(self, interaction: discord.Interaction) -> None:
@@ -540,8 +541,9 @@ class MessageScheduler(
         await send_embedded_message(
             interaction,
             Colour.PURPLE,
-            {"title": "Message Scheduler Commands", "desc": help_desc},
-            fields,
+            title="Message Scheduler Commands",
+            desc=help_desc,
+            fields=fields,
         )
 
 

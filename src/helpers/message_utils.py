@@ -60,16 +60,18 @@ async def send_message_by_channel_id(
 
 async def send_embedded_message(
     interaction: discord.Interaction,
-    colour: int | discord.Color | None,
-    main_content: dict,
+    title: str = None,
+    desc: str = None,
+    colour: int | discord.Color | None = None,
     fields: list | None = None,
     footer: str | None = None,
     image: str | None = None,
     thumbnail: str | None = None,
+    view: discord.ui.View | None = None,
 ) -> None:
     embed = generate_embedded_message(
-        title=main_content["title"],
-        desc=main_content["desc"],
+        title=title,
+        desc=desc,
         colour=colour,
         fields=fields,
         footer=footer,
@@ -77,7 +79,7 @@ async def send_embedded_message(
         thumbnail=thumbnail,
     )
 
-    await interaction.followup.send(embed=embed)
+    await interaction.followup.send(embed=embed, view=view)
 
 
 def generate_embedded_message(
@@ -123,8 +125,9 @@ async def wait_for_msg(
 ) -> discord.Message:
     await send_embedded_message(
         interaction,
-        Colour.LIGHT_BLUE,
-        {"title": title, "desc": desc},
+        colour=Colour.LIGHT_BLUE,
+        title=title,
+        desc=desc,
     )
 
     def wait_for_input(msg: discord.Message):
@@ -152,9 +155,7 @@ async def add_emojis(msg: discord.Message, custom_emojis: list, emojis: list) ->
 
 
 async def send_error(interaction: discord.Interaction, msg: str) -> None:
-    await send_embedded_message(
-        interaction, Colour.RED, {"title": "ERROR", "desc": msg}
-    )
+    await send_embedded_message(interaction, colour=Colour.RED, title="ERROR", desc=msg)
 
 
 async def send_success(
@@ -165,9 +166,7 @@ async def send_success(
 ):
     await send_embedded_message(
         interaction,
-        colour,
-        {
-            "title": title,
-            "desc": msg,
-        },
+        title=title,
+        desc=msg,
+        colour=colour,
     )

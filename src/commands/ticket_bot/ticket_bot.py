@@ -73,11 +73,9 @@ class TicketBot(
         if len(user_objs) == 0:
             await send_embedded_message(
                 interaction,
-                Colour.YELLOW,
-                {
-                    "title": "Leaderboard",
-                    "desc": "No one has tickets yet!",
-                },
+                colour=Colour.YELLOW,
+                title="Leaderboard",
+                desc="No one has tickets yet!",
             )
             return
 
@@ -99,12 +97,10 @@ class TicketBot(
 
         await send_embedded_message(
             interaction,
-            Colour.MINT,
-            {
-                "title": f"{"Top 50 " if len(user_objs) >= 50 else ""}Leaderboard",
-                "desc": None,
-            },
-            [
+            colour=Colour.MINT,
+            title=f"{"Top 50 " if len(user_objs) >= 50 else ""}Leaderboard",
+            desc=None,
+            fields=[
                 {"name": "Rank", "value": ranks, "inline": True},
                 {"name": "Name", "value": names, "inline": True},
                 {"name": "Tickets", "value": tickets, "inline": True},
@@ -134,11 +130,9 @@ class TicketBot(
 
         await send_embedded_message(
             interaction,
-            Colour.GREEN,
-            {
-                "title": f"{user.display_name}'s Tickets",
-                "desc": f"{user_obj["tickets"]}",
-            },
+            colour=Colour.GREEN,
+            title=f"{user.display_name}'s Tickets",
+            desc=f"{user_obj["tickets"]}",
         )
 
     async def handle_help(self, interaction: discord.Interaction) -> None:
