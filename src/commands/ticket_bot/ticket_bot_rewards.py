@@ -95,31 +95,19 @@ class TicketBotRewards(app_commands.Group):
         )
 
         # constructing the listing
-        reward_ids = ""
-        reward_names = ""
-        reward_costs = ""
-        reward_stocks = ""
+        fields = []
 
         for index, reward in enumerate(rewards.items()):
-            reward_ids += f"`{reward[0]}`{"\n\n" if index + 1 < len(rewards) else ""}"
-            reward_names += (
-                f"{reward[1]["name"]}{"\n\n" if index + 1 < len(rewards) else ""}"
+            desc = f">>> **ID**: {reward[0]}\n**Cost**: {reward[1]["cost"]}\n**Stock**: {display_stock(reward[1]["stock"])}"
+            fields.append(
+                {"name": f"{index + skip + 1}\t{reward[1]['name']}", "value": desc}
             )
-            reward_costs += (
-                f"{reward[1]["cost"]}{"\n\n" if index + 1 < len(rewards) else ""}"
-            )
-            reward_stocks += f"{display_stock(reward[1]["stock"])}{"\n\n" if index + 1 < len(rewards) else ""}"
 
         await send_embedded_message(
             interaction,
             colour=Colour.ORANGE,
             title="Rewards  :shopping_bags:",
-            fields=[
-                {"name": "ID", "value": reward_ids, "inline": True},
-                {"name": "Name", "value": reward_names, "inline": True},
-                {"name": "Ticket Cost", "value": reward_costs, "inline": True},
-                {"name": "Stock", "value": reward_stocks, "inline": True},
-            ],
+            fields=fields,
             footer=f"Page: {page}/{pages}  |  Items {skip + 1}-{skip + len(rewards)} of {num_rewards}",
         )
 
