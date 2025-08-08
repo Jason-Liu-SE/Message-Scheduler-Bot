@@ -137,6 +137,7 @@ class TicketBot(
             colour=user.colour,
             title=f"{user.display_name}'s Tickets",
             desc=f"{user_obj["tickets"]}",
+            thumbnail=user.display_avatar.url,
         )
 
     async def handle_view(
@@ -165,6 +166,7 @@ class TicketBot(
             colour=user.color,
             title=f"{user.display_name}'s Tickets",
             desc=f"{user_obj["tickets"]}",
+            thumbnail=user.display_avatar.url,
         )
 
     async def handle_help(self, interaction: discord.Interaction) -> None:
