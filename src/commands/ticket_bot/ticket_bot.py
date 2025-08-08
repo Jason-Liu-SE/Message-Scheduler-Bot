@@ -162,7 +162,7 @@ class TicketBot(
 
         await send_embedded_message(
             interaction,
-            colour=Colour.GREEN,
+            colour=user.color,
             title=f"{user.display_name}'s Tickets",
             desc=f"{user_obj["tickets"]}",
         )
