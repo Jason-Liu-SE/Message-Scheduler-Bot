@@ -1,4 +1,4 @@
-from commands.message_scheduler import MessageScheduler
+from commands.message_scheduler.message_scheduler import MessageScheduler
 from helpers.colours import Colour
 from helpers.logger import *
 import discord
@@ -64,7 +64,7 @@ def run_discord_bot():
 
     async def start():
         async with bot:
-            await bot.load_extension("commands.message_scheduler")
+            await bot.load_extension("commands.message_scheduler.message_scheduler")
             await bot.load_extension("commands.ticket_bot.ticket_bot")
             await bot.load_extension("commands.ticket_bot.admin.ticket_bot_admin")
 
