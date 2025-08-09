@@ -93,6 +93,7 @@ class TicketBotTrade(app_commands.Group, CommandBot):
             tickets=tickets,
             trade_action="➡️ Send" if action == "send" else "⬅️ Request",
             flow_emoji="➡️" if action == "send" else "⬅️",
+            win_label="Ticket recipient",
             get_ticket_winner=get_ticket_winner,
         )
 
@@ -108,6 +109,7 @@ class TicketBotTrade(app_commands.Group, CommandBot):
             tickets=wager,
             trade_action="🎲 Coinflip",
             flow_emoji="⬅️❓➡️",
+            win_label="Winner",
             get_ticket_winner=get_ticket_winner,
         )
 
@@ -118,6 +120,7 @@ class TicketBotTrade(app_commands.Group, CommandBot):
         tickets: int,
         trade_action: str,
         flow_emoji: str,  # the direction that tickets will flow
+        win_label: str,
         get_ticket_winner: Callable[..., Awaitable[Literal["instigator", "target"]]],
     ) -> None:
         trade_id = ObjectId()
@@ -254,7 +257,7 @@ class TicketBotTrade(app_commands.Group, CommandBot):
                         invert = 1 if is_target_winner else -1
                         await send_success(
                             interaction,
-                            f"### Winnner: {target_user.mention if is_target_winner else instigator_user.mention}\n"
+                            f"### {win_label}: {target_user.mention if is_target_winner else instigator_user.mention}\n"
                             + f"{instigator_user.mention} now has `{instigator_user_init_tickets - tickets * invert}` tickets.\n"
                             + f"{target_user.mention} now has `{target_user_init_tickets + tickets * invert}` tickets.\n\n"
                             + f">>> Completes **`{trade_action.upper()}`** trade `id: {trade_id}` between {instigator_user.mention} and {target_user.mention}.",
@@ -291,11 +294,11 @@ class TicketBotTrade(app_commands.Group, CommandBot):
         def create_trade_msg(
             instigator_ready: bool, target_ready: bool, winner: str = ""
         ) -> str:
-            winner_msg = "" if len(winner) == 0 else f"**Winner**: {winner}\n"
+            winner_msg = "" if len(winner) == 0 else f"**{win_label}**: {winner}\n"
 
             return (
                 f"-# Trade ID: {trade_id}\n\n{instigator_user.mention} would like to **`{trade_action.upper()}`** trade with {target_user.mention}!\n\n"
-                + f"**Tickets in Trade**: `{tickets}`\n**Ticket flow**: {instigator_user.mention} {flow_emoji} {target_user.mention}\n{winner_msg}"
+                + f"**Tickets in trade**: `{tickets}`\n**Ticket flow**: {instigator_user.mention} {flow_emoji} {target_user.mention}\n{winner_msg}"
                 + f"### Confirmations ({self.__TRADE_TIMEOUT // 60}m timeout):\n>>> "
                 + f"{display_confirmation(instigator_ready)} {instigator_user.mention}\n{display_confirmation(target_ready)} {target_user.mention}"
             )
