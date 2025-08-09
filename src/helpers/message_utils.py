@@ -86,6 +86,17 @@ async def send_embedded_message(
     )
 
 
+async def send_existing_embedded_message(
+    interaction: discord.Interaction,
+    embed: discord.Embed,
+    view: discord.ui.View = None,
+    ephemeral: bool = False,
+) -> None:
+    await interaction.followup.send(
+        embed=embed, view=view if view else discord.utils.MISSING, ephemeral=ephemeral
+    )
+
+
 def generate_embedded_message(
     title: str | None = None,
     desc: str | None = None,
