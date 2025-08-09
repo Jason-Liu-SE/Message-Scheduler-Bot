@@ -202,7 +202,7 @@ class TicketBot(
         view_msg = (
             "Allows you to view another player's tickets.\n\n"
             + f"**Fields**:\n"
-            + f"`user`: a user to view. Fill via autocomplete.\n\n"
+            + f"`user`: a user to view. Fill via autocomplete.\n"
             + f">>> Format: `/ticket view <user>`\n\n"
             + f"E.g. **/ticket view @user**\nThis would display @user's tickets"
         )
@@ -210,7 +210,7 @@ class TicketBot(
         rewards_list_msg = (
             "This lists all the rewards that can be claimed.\n\n"
             + f"**Fields**:\n"
-            + f"`page`: the desired page to view. Default=1, must be >0.\n\n"
+            + f"`page`: the desired page to view. Default=1, must be >0.\n"
             + f">>> Format: `/ticket rewards list <*optional*:page>`\n\n"
             + f"E.g. **/ticket rewards list `page:`2**\nThis would display the 2nd page of the reward list."
         )
@@ -218,7 +218,7 @@ class TicketBot(
         rewards_inspect_msg = (
             "This shows more information about a particular reward.\n\n"
             + f"**Fields**:\n"
-            + f"`item`: desired reward. The `reward ID` can be found on the `/ticket rewards list`, or via autocomplete.\n\n"
+            + f"`item`: desired reward. The `reward ID` can be found on the `/ticket rewards list`, or via autocomplete.\n"
             + f">>> Format: `/ticket rewards inspect <reward>`\n\n"
             + f"E.g. **/ticket rewards inspect 97979f9175a4b91f17d8a472**\nThis would display more information about the reward corresponding to 97979f9175a4b91f17d8a472."
         )
@@ -239,7 +239,7 @@ class TicketBot(
             + f"`action`: The trade action. Either `send` (send tickets to `target`) or `request` (get tickets from `target`).\n"
             + f"`tickets`: The number of tickets to trade. Must be > 0.\n\n"
             + f"Once you submit the command, you'll need to `ready`-up for the trade. Once all parties in the trade are `ready`, the trade will proceed. "
-            + f"If either user wants to cancel the trade, they may press the `cancel` button. Alternatively, if `5 minutes` passes and the trade isn't completed, it cancels.\n\n"
+            + f"If either user wants to cancel the trade, they may press the `cancel` button. Alternatively, if `5 minutes` passes and the trade isn't completed, it cancels.\n"
             + f">>> Format: `/ticket trade start <target> <action> <tickets>`\n\n"
             + f"E.g. **/ticket trade start @user send 5**\n"
             + f"This would start a trade with @user, which if accepted by both parties, would transfer `5 tickets` from the `trade initiator` to @user."
