@@ -157,7 +157,7 @@ class TicketBotAdmin(
             user_obj = await get_user_object(user.id)
 
             if not user_obj:
-                user_obj = {"tickets": 0, "incoming_trades": [], "outgoing_trades": []}
+                user_obj = {"tickets": 0}
 
             user_obj["tickets"] = tickets + (0 if is_override else user_obj["tickets"])
             await update_user_object(user.id, user_obj)
