@@ -15,13 +15,25 @@ class TernaryActionView(ViewWrapper):
         secondary_style: discord.ButtonStyle = discord.ButtonStyle.secondary,
         danger_style: discord.ButtonStyle = discord.ButtonStyle.danger,
         primary_cb: (
-            Callable[[discord.Interaction, discord.ui.Button], Awaitable[None]] | None
+            Callable[
+                [discord.Interaction, discord.ui.View, discord.ui.Button],
+                Awaitable[None],
+            ]
+            | None
         ) = None,
         secondary_cb: (
-            Callable[[discord.Interaction, discord.ui.Button], Awaitable[None]] | None
+            Callable[
+                [discord.Interaction, discord.ui.View, discord.ui.Button],
+                Awaitable[None],
+            ]
+            | None
         ) = None,
         danger_cb: (
-            Callable[[discord.Interaction, discord.ui.Button], Awaitable[None]] | None
+            Callable[
+                [discord.Interaction, discord.ui.View, discord.ui.Button],
+                Awaitable[None],
+            ]
+            | None
         ) = None,
         authorized_ids: list[int] = [],
     ):
