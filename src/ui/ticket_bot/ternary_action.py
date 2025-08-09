@@ -46,37 +46,16 @@ class TernaryActionView(ViewWrapper):
     async def btn_primary(
         self, interaction: discord.Interaction, btn: discord.ui.Button
     ) -> None:
-        await self.handle_interaction(interaction, self.handle_primary, btn)
+        await self.handle_interaction(interaction, self.primary_cb, btn)
 
     @discord.ui.button(label="Secondary", style=discord.ButtonStyle.secondary)
     async def btn_secondary(
         self, interaction: discord.Interaction, btn: discord.ui.Button
     ) -> None:
-        await self.handle_interaction(interaction, self.handle_secondary, btn)
+        await self.handle_interaction(interaction, self.secondary_cb, btn)
 
     @discord.ui.button(label="Danger", style=discord.ButtonStyle.danger)
     async def btn_danger(
         self, interaction: discord.Interaction, btn: discord.ui.Button
     ) -> None:
-        await self.handle_interaction(interaction, self.handle_danger, btn)
-
-    #########################################################################################
-    ##################################### Handlers ##########################################
-    #########################################################################################
-    async def handle_primary(
-        self, interaction: discord.Interaction, btn: discord.ui.Button
-    ) -> None:
-        if self.primary_cb:
-            await self.primary_cb(interaction, btn)
-
-    async def handle_secondary(
-        self, interaction: discord.Interaction, btn: discord.ui.Button
-    ) -> None:
-        if self.secondary_cb:
-            await self.secondary_cb(interaction, btn)
-
-    async def handle_danger(
-        self, interaction: discord.Interaction, btn: discord.ui.Button
-    ) -> None:
-        if self.danger_cb:
-            await self.danger_cb(interaction, btn)
+        await self.handle_interaction(interaction, self.danger_cb, btn)
