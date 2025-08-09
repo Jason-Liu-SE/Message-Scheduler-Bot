@@ -15,6 +15,7 @@ async def handle_command(
     interaction: discord.Interaction,
     allowed_roles: list,
     *cmd_args,
+    **kwargs,
 ) -> None:
     await interaction.response.defer()
 
@@ -24,7 +25,7 @@ async def handle_command(
 
     @catch_and_log(interaction=interaction)
     async def run_cmd() -> None:
-        await cmd(interaction, *cmd_args)
+        await cmd(interaction, *cmd_args, **kwargs)
 
     await run_cmd()
 
