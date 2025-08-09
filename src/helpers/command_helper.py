@@ -22,14 +22,29 @@ async def handle_command(
         await send_error(interaction, "Insufficient role")
         return
 
-    try:
-        # handling command
+    @catch_and_log(interaction=interaction)
+    async def run_cmd() -> None:
         await cmd(interaction, *cmd_args)
-    except ValueError as e:  # this only throws if the user provided invalid input
-        await send_error(interaction, e)
-    except Exception as e:
-        Logger.exception(e)
-        await send_error(interaction, "An error occurred.")
+
+    await run_cmd()
+
+
+def catch_and_log(interaction: discord.Interaction):
+    def wrapper(func):
+        async def inner(*args, **kwargs) -> None:
+            try:
+                await func(*args, **kwargs)
+            except (
+                ValueError
+            ) as e:  # this only throws if the user provided invalid input
+                await send_error(interaction, e)
+            except Exception as e:
+                Logger.exception(e)
+                await send_error(interaction, "An error occurred.")
+
+        return inner
+
+    return wrapper
 
 
 def generate_autocomplete(
