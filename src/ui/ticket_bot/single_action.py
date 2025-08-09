@@ -12,7 +12,7 @@ class SingleActionView(ViewWrapper):
         timeout: float | None = 60.0,
         action_cb: (
             Callable[
-                [discord.ui.View, discord.Interaction, discord.ui.Button],
+                [discord.Interaction, discord.ui.View, discord.ui.Button],
                 Awaitable[None],
             ]
             | None

@@ -9,10 +9,18 @@ class ConfirmActionView(ViewWrapper):
         self,
         timeout: float | None = 60.0,
         accept_cb: (
-            Callable[[discord.Interaction, discord.ui.Button], Awaitable[None]] | None
+            Callable[
+                [discord.Interaction, discord.ui.View, discord.ui.Button],
+                Awaitable[None],
+            ]
+            | None
         ) = None,
         reject_cb: (
-            Callable[[discord.Interaction, discord.ui.Button], Awaitable[None]] | None
+            Callable[
+                [discord.Interaction, discord.ui.View, discord.ui.Button],
+                Awaitable[None],
+            ]
+            | None
         ) = None,
         authorized_ids: list[int] = [],
     ):
