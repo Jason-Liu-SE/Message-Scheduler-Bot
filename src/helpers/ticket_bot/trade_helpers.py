@@ -63,6 +63,21 @@ async def complete_trade(
         "instigator_to_target", "target_to_instigator"
     ] = "instigator_to_target",
 ) -> None:
+    user_objs = await verify_trade_users(
+        instigator_user=instigator_user, target_user=target_user, tickets=tickets
+    )
+
+    invert = 1 if send_direction == "instigator_to_target" else -1
+
+    user_objs[instigator_user.id]["tickets"] -= tickets * invert
+    user_objs[target_user.id]["tickets"] += tickets * invert
+
+    await update_user_objects(user_objs)
+
+
+async def verify_trade_users(
+    instigator_user: discord.Member, target_user: discord.Member, tickets: int
+) -> dict:
     user_objs = await get_user_objects([instigator_user.id, target_user.id])
 
     target_exists = target_user.id in user_objs
@@ -77,9 +92,16 @@ async def complete_trade(
             f"{target_user.mention if not target_exists else instigator_user.mention} does not exist in the system. Please contact an administrator or moderator."
         )
 
-    invert = 1 if send_direction == "instigator_to_target" else -1
+    instigator_lacks_tickets = user_objs[instigator_user.id]["tickets"] < tickets
+    target_lacks_tickets = user_objs[target_user.id]["tickets"] < tickets
 
-    user_objs[instigator_user.id]["tickets"] -= tickets * invert
-    user_objs[target_user.id]["tickets"] += tickets * invert
+    if instigator_lacks_tickets and target_lacks_tickets:
+        raise ValueError(
+            f"{instigator_user.mention} and {target_user.mention} do not have enough tickets for this trade."
+        )
+    elif instigator_lacks_tickets or target_lacks_tickets:
+        raise ValueError(
+            f"{target_user.mention if target_lacks_tickets else instigator_user.mention} does not have enough tickets for this trade."
+        )
 
-    await update_user_objects(user_objs)
+    return user_objs
