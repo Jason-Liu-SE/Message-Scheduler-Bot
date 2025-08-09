@@ -291,9 +291,9 @@ class TicketBotAdmin(
             + f"Note that after the initial '`rewards add`' command is sent, a followup message is required to set the description of the reward. "
             + f"While setting the description, it is also possible to attach an image to the reward. At most one image is allowed to be attached. "
             + f"If more than one image is attached, the first attached image is taken.\n"
-            + f">>> Format: `/ticketadmin rewards add <name> <cost> <*optional*:pagecolour>`\n\n"
-            + f"E.g. **/ticketadmin rewards add Diamonds 5 FFFF00**\n"
-            + f"This would add a reward with name `Diamonds` for a cost of `5 tickets`. Additionally, "
+            + f">>> Format: `/ticketadmin rewards add <name> <cost> <*optional*:stock> <*optional*:pagecolour>`\n\n"
+            + f"E.g. **/ticketadmin rewards add Diamonds 5 4 FFFF00**\n"
+            + f"This would add a reward with name `Diamonds` for a cost of `5 tickets` with `4` items in stock. Additionally, "
             + f"the colour of the reward's `/ticketadmin rewards inspect` page would be yellow, or `FFFF00` in hex."
         )
 
@@ -309,9 +309,9 @@ class TicketBotAdmin(
             + f"parameter, the provided value will override the existing value on the reward item. "
             + f"All non-specified values are left unchanged. In the case where changedesc "
             + f"is set to True, a prompt will request a new description (and optionally a new reward image).\n"
-            + f">>> Format: `/ticketadmin rewards edit <item id> <*optional*:name> <*optional*:cost> <*optional*:pagecolour> <*optional*:changedesc>`\n\n"
+            + f">>> Format: `/ticketadmin rewards edit <item id> <*optional*:name> <*optional*:cost> <*optional*:stock> <*optional*:pagecolour> <*optional*:changedesc>`\n\n"
             + f"E.g. **/ticketadmin rewards edit 123asd123 `name:`z `changedesc:`True**\n"
-            + f"In the above, reward `123asd123` would have its name updated to `z`, but its cost and pagecolour "
+            + f"In the above, reward `123asd123` would have its name updated to `z`, but its cost, stock, and pagecolour "
             + f"would not be changed. Since `changedesc` is set to True, a following prompt would request a "
             + f"new description for the reward. At this point, you could also provide a new reward image."
         )
