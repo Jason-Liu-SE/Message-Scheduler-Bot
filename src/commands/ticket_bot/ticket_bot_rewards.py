@@ -191,7 +191,7 @@ class TicketBotRewards(app_commands.Group):
             await send_success(
                 interaction,
                 f"Successfully cancelled the redemption request for:\n\n"
-                + f"**Redeemer**: {redeemer.mention}\n**Order ID**: {order_id}\n**Ticket Cost**: {reward["cost"]}\n**ID**: {reward["_id"]}\n"
+                + f"**Redeemer**: {redeemer.mention}\n>>> **Order ID**: {order_id}\n**Ticket Cost**: {reward["cost"]}\n**ID**: {reward["_id"]}\n"
                 + f"**Name**: {reward["name"]}",
                 title="Redemption Cancelled",
             )
@@ -304,7 +304,7 @@ class TicketBotRewards(app_commands.Group):
 
                     try:
                         edited_embed = generate_embedded_message(
-                            title=f"{embed.title}: Completed",
+                            title=f"{embed.title}: Completed  :white_check_mark:",
                             desc=embed.description,
                             colour=Colour.GREEN,
                             thumbnail=embed.thumbnail.url,
@@ -316,14 +316,15 @@ class TicketBotRewards(app_commands.Group):
                         )
 
                 mark_as_complete = SingleActionView(
-                    label="Mark as Complete", action_cb=on_complete
+                    label="Mark as Complete", action_cb=on_complete, timeout=None
                 )
                 embed = generate_embedded_message(
-                    title="Redeem",
-                    desc=f"{interaction.user.mention} redeemed:\n\n**ID**: {reward["_id"]}\n**Ticket Cost**: {reward["cost"]}\n**Remaining Stock**: {display_stock(reward["stock"])}\n\n"
-                    + f"**Redemption Time**: {convert_to_timezone(datetime.now()).strftime("%Y-%m-%d %H:%M:%S")}\n"
-                    + f"**Order ID**: {order_id}\n"
-                    + f"**Name**: {reward["name"]}\n\nTheir new balance is `{user_obj["tickets"]}`",
+                    title="Order",
+                    desc=f"{interaction.user.mention} redeemed:\n\n> **ID**: {reward["_id"]}\n> **Ticket Cost**: {reward["cost"]}\n> **Remaining Stock**: {display_stock(reward["stock"])}\n"
+                    + f"> **Order ID**: {order_id}\n"
+                    + f"> **Name**: {reward["name"]}\n\n"
+                    + f"**Redemption Time**: {convert_to_timezone(datetime.now()).strftime("%Y-%m-%d %H:%M:%S")}\n\n"
+                    + f"Their new balance is `{user_obj["tickets"]}`",
                     colour=Colour.RASPBERRY,
                     thumbnail=interaction.user.display_avatar.url,
                 )
@@ -346,7 +347,7 @@ class TicketBotRewards(app_commands.Group):
                     title="Purchase Complete",
                     msg=f"**Order ID**: {order_id}\n\n"
                     + f"Successfully redeemed `{reward["name"]}` for `{reward["cost"]}` tickets\n\n"
-                    + f"__**{interaction.user.mention}'s Post-Purchase Summary**__\n**Updated Balance**: `{user_obj["tickets"]}` ticket(s)",
+                    + f"**{interaction.user.mention}'s Post-Purchase Summary**:\n>>> **Updated Balance**: `{user_obj["tickets"]}` ticket(s)",
                 )
             except Exception as e:
                 Logger.error("Failed to send success to redeemer")
@@ -369,7 +370,7 @@ class TicketBotRewards(app_commands.Group):
             interaction,
             colour=Colour.YELLOW,
             title="Confirmation",
-            desc=f"**Order ID**: {order_id}\n\nAre you sure that you'd like to redeem the following reward?\n\n**Ticket Cost**: {reward["cost"]}\n**ID**: {reward["_id"]}\n"
+            desc=f"**Order ID**: {order_id}\n\nAre you sure that you'd like to redeem the following reward?\n\n>>> **Ticket Cost**: {reward["cost"]}\n**ID**: {reward["_id"]}\n"
             + f"**Name**: {reward["name"]}",
             view=confirm,
         )
