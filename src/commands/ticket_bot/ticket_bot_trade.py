@@ -37,8 +37,26 @@ class TicketBotTrade(app_commands.Group):
     @app_commands.command(
         name="start", description="Request to trade with another user"
     )
-    async def start(self, interaction: discord.Interaction):
-        await handle_command(self.handle_start, interaction, self.__allowed_roles)
+    @app_commands.describe(
+        target="The player to start a coinflip with",
+        action="Whether to 'send' or 'request' tickets to/from the target",
+        tickets="The number of tickets to send/receive to/from the target",
+    )
+    async def start(
+        self,
+        interaction: discord.Interaction,
+        target: discord.Member,
+        action: Literal["send", "request"],
+        tickets: app_commands.Range[int, 1],
+    ):
+        await handle_command(
+            self.handle_start,
+            interaction,
+            self.__allowed_roles,
+            target,
+            action,
+            tickets,
+        )
 
     @app_commands.command(
         name="coinflip", description="Coinflip for tickets with another user"
@@ -60,11 +78,48 @@ class TicketBotTrade(app_commands.Group):
     ####################################################################################
     ################################### HANDLERS #######################################
     ####################################################################################
-    async def handle_start(self, interaction: discord.Interaction) -> None:
-        pass
+    async def handle_start(
+        self,
+        interaction: discord.Interaction,
+        target: discord.Member,
+        action: Literal["send", "request"],
+        tickets: app_commands.Range[int, 1],
+    ) -> None:
+        async def get_ticket_winner() -> Literal["instigator", "target"]:
+            return "target" if action == "send" else "instigator"
+
+        await self.handle_trade(
+            interaction,
+            target_user=target,
+            tickets=tickets,
+            trade_action="➡️ Send" if action == "send" else "⬅️ Request",
+            flow_emoji="➡️" if action == "send" else "⬅️",
+            get_ticket_winner=get_ticket_winner,
+        )
 
     async def handle_coinflip(
         self, interaction: discord.Interaction, target_user: discord.Member, wager: int
+    ) -> None:
+        async def get_ticket_winner() -> Literal["instigator", "target"]:
+            return "target" if randint(0, 1) == 0 else "instigator"
+
+        await self.handle_trade(
+            interaction,
+            target_user=target_user,
+            tickets=wager,
+            trade_action="🎲 Coinflip",
+            flow_emoji="⬅️❓➡️",
+            get_ticket_winner=get_ticket_winner,
+        )
+
+    async def handle_trade(
+        self,
+        interaction: discord.Interaction,
+        target_user: discord.Member,
+        tickets: int,
+        trade_action: str,
+        flow_emoji: str,  # the direction that tickets will flow
+        get_ticket_winner: Callable[..., Awaitable[Literal["instigator", "target"]]],
     ) -> None:
         trade_id = ObjectId()
         instigator_user = interaction.user
@@ -75,11 +130,11 @@ class TicketBotTrade(app_commands.Group):
         if target_user.id == instigator_user.id:
             raise ValueError("You cannot start a trade with yourself")
 
-        if wager < 1:
-            raise ValueError("Wager must be greater than 0")
+        if tickets < 1:
+            raise ValueError("Tickets traded must be greater than 0")
 
         user_objs = await verify_trade_users(
-            instigator_user=instigator_user, target_user=target_user, tickets=wager
+            instigator_user=instigator_user, target_user=target_user, tickets=tickets
         )
 
         # User event handlers
@@ -94,15 +149,15 @@ class TicketBotTrade(app_commands.Group):
             await update_trade_msg(
                 view=view,
                 msg_embed_ref=trade_embed,
-                desc=create_coinflip_msg(
+                desc=create_trade_msg(
                     confirmations[instigator_user.id], confirmations[target_user.id]
                 ),
                 is_successful=False,
             )
             await send_success(
                 interaction,
-                f"Successfully cancelled trade request `id: {trade_id}` between {instigator_user.mention} and {target_user.mention}.",
-                title="Trade Cancelled",
+                f"Successfully cancelled **`{trade_action.upper()}`** trade request `id: {trade_id}` between {instigator_user.mention} and {target_user.mention}.",
+                title=f"{trade_action.title()} Trade Cancelled",
             )
 
         async def on_unready(
@@ -116,7 +171,7 @@ class TicketBotTrade(app_commands.Group):
             await update_trade_msg(
                 view=view,
                 msg_embed_ref=trade_embed,
-                desc=create_coinflip_msg(
+                desc=create_trade_msg(
                     confirmations[instigator_user.id], confirmations[target_user.id]
                 ),
             )
@@ -132,12 +187,12 @@ class TicketBotTrade(app_commands.Group):
             await update_trade_msg(
                 view=view,
                 msg_embed_ref=trade_embed,
-                desc=create_coinflip_msg(
+                desc=create_trade_msg(
                     confirmations[instigator_user.id], confirmations[target_user.id]
                 ),
             )
 
-            # Attempt to complete coinflip
+            # Attempt to complete trade
             if confirmations[instigator_user.id] and confirmations[target_user.id]:
                 await view.disable_children()
                 view.timeout = 15
@@ -148,11 +203,11 @@ class TicketBotTrade(app_commands.Group):
                 has_error = False
 
                 try:
-                    is_target_winner = randint(0, 1) == 0
+                    is_target_winner = await get_ticket_winner() == "target"
                     await complete_trade(
                         instigator_user=instigator_user,
                         target_user=target_user,
-                        tickets=wager,
+                        tickets=tickets,
                         send_direction=(
                             "instigator_to_target"
                             if is_target_winner
@@ -170,7 +225,7 @@ class TicketBotTrade(app_commands.Group):
                     has_error = True
                     await handle_error(
                         interaction,
-                        f"Could not complete trade `id: {trade_id}` between {instigator_user.mention} and {target_user.mention}",
+                        f"Could not complete **`{trade_action.upper()}`** trade `id: {trade_id}` between {instigator_user.mention} and {target_user.mention}",
                         e,
                     )
                 else:
@@ -181,7 +236,7 @@ class TicketBotTrade(app_commands.Group):
                         await update_trade_msg(
                             view=view,
                             msg_embed_ref=trade_embed,
-                            desc=create_coinflip_msg(
+                            desc=create_trade_msg(
                                 confirmations[instigator_user.id],
                                 confirmations[target_user.id],
                                 winner=(
@@ -201,10 +256,10 @@ class TicketBotTrade(app_commands.Group):
                         await send_success(
                             interaction,
                             f"### Winnner: {target_user.mention if is_target_winner else instigator_user.mention}\n"
-                            + f"{instigator_user.mention} now has `{instigator_user_init_tickets - wager * invert}` tickets.\n"
-                            + f"{target_user.mention} now has `{target_user_init_tickets + wager * invert}` tickets.\n\n"
-                            + f">>> Completes coinflip `id: {trade_id}` between {instigator_user.mention} and {target_user.mention}.",
-                            title="Coinflip Completed",
+                            + f"{instigator_user.mention} now has `{instigator_user_init_tickets - tickets * invert}` tickets.\n"
+                            + f"{target_user.mention} now has `{target_user_init_tickets + tickets * invert}` tickets.\n\n"
+                            + f">>> Completes **`{trade_action.upper()}`** trade `id: {trade_id}` between {instigator_user.mention} and {target_user.mention}.",
+                            title=f"{trade_action.title()} Trade Completed",
                         )
                     except Exception as e:
                         message_errors += 1
@@ -220,34 +275,34 @@ class TicketBotTrade(app_commands.Group):
                         await update_user_objects(user_objs)
 
                         Logger.info(
-                            f"Reverted trade id: `{trade_id}` between `{target_user.name}` and `{instigator_user.name}`"
+                            f"Reverted **`{trade_action.upper()}`** trade id: `{trade_id}` between `{target_user.name}` and `{instigator_user.name}`"
                         )
 
                 if has_error:
                     await update_trade_msg(
                         view=view,
                         msg_embed_ref=trade_embed,
-                        desc=create_coinflip_msg(
+                        desc=create_trade_msg(
                             confirmations[instigator_user.id],
                             confirmations[target_user.id],
                         ),
                         is_successful=False,
                     )
 
-        def create_coinflip_msg(
+        def create_trade_msg(
             instigator_ready: bool, target_ready: bool, winner: str = ""
         ) -> str:
             winner_msg = "" if len(winner) == 0 else f"**Winner**: {winner}\n"
 
             return (
-                f"-# Trade ID: {trade_id}\n\n{instigator_user.mention} would like to coinflip trade with {target_user.mention}!\n\n"
-                + f"**Tickets wagered**: `{wager}`\n{winner_msg}"
+                f"-# Trade ID: {trade_id}\n\n{instigator_user.mention} would like to **`{trade_action.upper()}`** trade with {target_user.mention}!\n\n"
+                + f"**Tickets in Trade**: `{tickets}`\n**Ticket flow**: {instigator_user.mention} {flow_emoji} {target_user.mention}\n{winner_msg}"
                 + f"### Confirmations ({self.__TRADE_TIMEOUT // 60}m timeout):\n>>> "
                 + f"{display_confirmation(instigator_ready)} {instigator_user.mention}\n{display_confirmation(target_ready)} {target_user.mention}"
             )
 
-        # creating a coinflip interaction
-        coinflip_view = TernaryActionView(
+        # creating a trade interaction
+        trade_view = TernaryActionView(
             primary_label="Ready",
             secondary_label="Un-ready",
             danger_label="Cancel",
@@ -258,13 +313,13 @@ class TicketBotTrade(app_commands.Group):
             timeout=self.__TRADE_TIMEOUT,
         )
         trade_embed = generate_embedded_message(
-            title="Coinflip Trade",
-            desc=create_coinflip_msg(
+            title=f"{trade_action.title()} Trade",
+            desc=create_trade_msg(
                 confirmations[instigator_user.id], confirmations[target_user.id]
             ),
             colour=Colour.YELLOW,
         )
         await send_existing_embedded_message(
-            interaction, embed=trade_embed, view=coinflip_view
+            interaction, embed=trade_embed, view=trade_view
         )
-        coinflip_view.msg_ref = await interaction.original_response()
+        trade_view.msg_ref = await interaction.original_response()
