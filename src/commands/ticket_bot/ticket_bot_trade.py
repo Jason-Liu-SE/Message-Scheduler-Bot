@@ -3,14 +3,24 @@ import discord
 from discord import app_commands
 
 from helpers.command_helper import *
+from helpers.exception_helpers import handle_error
 from helpers.id_helpers import *
 from helpers.message_utils import *
 from helpers.ticket_bot.mongo_utils import *
+from helpers.ticket_bot.trade_helpers import (
+    complete_trade,
+    display_confirmation,
+    update_confirmation_state,
+    update_trade_msg,
+)
 from helpers.time import *
 from helpers.validate import *
+from ui.ticket_bot.ternary_action import TernaryActionView
 
 
 class TicketBotTrade(app_commands.Group):
+    __TRADE_TIMEOUT = 300
+
     def __init__(self, name: str, description: str, allowed_roles: list) -> None:
         super().__init__(name=name, description=description)
         self.__allowed_roles = allowed_roles
@@ -55,11 +65,167 @@ class TicketBotTrade(app_commands.Group):
     async def handle_coinflip(
         self, interaction: discord.Interaction, target_user: discord.Member, wager: int
     ) -> None:
+        trade_id = ObjectId()
+        instigator_user = interaction.user
+
+        confirmations = {instigator_user.id: False, target_user.id: False}
+
+        if target_user.id == instigator_user.id:
+            raise ValueError("You cannot start a trade with yourself")
+
         if wager < 1:
             raise ValueError("Wager must be greater than 0")
 
-        # Determining coinflip winner
-        target_is_winner = False
+        async def on_cancel(
+            interaction: discord.Interaction,
+            view: TernaryActionView,
+            btn: discord.ui.Button,
+        ) -> None:
+            await view.disable_children()
+            view.timeout = 30
 
-        if randint(1, 100) > 50:
-            target_is_winner = True
+            await update_trade_msg(
+                view=view,
+                msg_embed_ref=trade_embed,
+                desc=create_coinflip_msg(
+                    confirmations[instigator_user.id], confirmations[target_user.id]
+                ),
+                is_successful=False,
+            )
+            await send_success(
+                interaction,
+                f"Successfully cancelled trade request `id: {trade_id}` between {instigator_user.mention} and {target_user.mention}.",
+                title="Trade Cancelled",
+            )
+
+        async def on_unready(
+            interaction: discord.Interaction,
+            view: TernaryActionView,
+            btn: discord.ui.Button,
+        ) -> None:
+            update_confirmation_state(
+                interaction.user.id, confirmation_states=confirmations, new_state=False
+            )
+            await update_trade_msg(
+                view=view,
+                msg_embed_ref=trade_embed,
+                desc=create_coinflip_msg(
+                    confirmations[instigator_user.id], confirmations[target_user.id]
+                ),
+            )
+
+        async def on_ready(
+            interaction: discord.Interaction,
+            view: TernaryActionView,
+            btn: discord.ui.Button,
+        ) -> None:
+            update_confirmation_state(
+                interaction.user.id, confirmation_states=confirmations, new_state=True
+            )
+            await update_trade_msg(
+                view=view,
+                msg_embed_ref=trade_embed,
+                desc=create_coinflip_msg(
+                    confirmations[instigator_user.id], confirmations[target_user.id]
+                ),
+            )
+
+            # Attempt to complete coinflip
+            if confirmations[instigator_user.id] and confirmations[target_user.id]:
+                await view.disable_children()
+                view.timeout = 10
+
+                has_error = False
+
+                try:
+                    is_target_winner = randint(1, 100) > 50
+                    await complete_trade(
+                        instigator_user=instigator_user,
+                        target_user=target_user,
+                        tickets=wager,
+                        send_direction=(
+                            "instigator_to_target"
+                            if is_target_winner
+                            else "target_to_instigator"
+                        ),
+                    )
+                    await update_trade_msg(
+                        view=view,
+                        msg_embed_ref=trade_embed,
+                        desc=create_coinflip_msg(
+                            confirmations[instigator_user.id],
+                            confirmations[target_user.id],
+                            winner=(
+                                target_user.mention
+                                if is_target_winner
+                                else instigator_user.mention
+                            ),
+                        ),
+                        is_successful=True,
+                    )
+                    await send_success(
+                        interaction,
+                        f"### Winnner: {target_user.mention if is_target_winner else instigator_user.mention}\n"
+                        + f">>> Successfully completed the coinflip with `id: {trade_id}` between {instigator_user.mention} and {target_user.mention}.",
+                        title="Coinflip Completed",
+                    )
+                except ValueError as e:
+                    has_error = True
+                    await handle_error(
+                        interaction,
+                        e,
+                        None,
+                    )
+                except Exception as e:
+                    has_error = True
+                    await handle_error(
+                        interaction,
+                        f"Could not complete trade `id: {trade_id}` between {instigator_user.mention} and {target_user.mention}",
+                        e,
+                    )
+
+                if has_error:
+                    await update_trade_msg(
+                        view=view,
+                        msg_embed_ref=trade_embed,
+                        desc=create_coinflip_msg(
+                            confirmations[instigator_user.id],
+                            confirmations[target_user.id],
+                        ),
+                        is_successful=False,
+                    )
+
+        def create_coinflip_msg(
+            instigator_ready: bool, target_ready: bool, winner: str = ""
+        ) -> str:
+            winner_msg = "" if len(winner) == 0 else f"**Winner**: {winner}\n"
+
+            return (
+                f"-# Trade ID: {trade_id}\n\n{instigator_user.mention} would like to coinflip trade with {target_user.mention}!\n\n"
+                + f"**Tickets wagered**: `{wager}`\n{winner_msg}"
+                + f"### Confirmations ({self.__TRADE_TIMEOUT // 60}m timeout):\n>>> "
+                + f"{display_confirmation(instigator_ready)} {instigator_user.mention}\n{display_confirmation(target_ready)} {target_user.mention}"
+            )
+
+        # creating a coinflip interaction
+        coinflip_view = TernaryActionView(
+            primary_label="Ready",
+            secondary_label="Un-ready",
+            danger_label="Cancel",
+            primary_cb=on_ready,
+            secondary_cb=on_unready,
+            danger_cb=on_cancel,
+            authorized_ids=[instigator_user.id, target_user.id],
+            timeout=self.__TRADE_TIMEOUT,
+        )
+        trade_embed = generate_embedded_message(
+            title="Coinflip Trade",
+            desc=create_coinflip_msg(
+                confirmations[instigator_user.id], confirmations[target_user.id]
+            ),
+            colour=Colour.YELLOW,
+        )
+        await send_existing_embedded_message(
+            interaction, embed=trade_embed, view=coinflip_view
+        )
+        coinflip_view.msg_ref = await interaction.original_response()
