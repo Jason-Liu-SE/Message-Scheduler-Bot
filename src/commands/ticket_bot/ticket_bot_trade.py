@@ -1,3 +1,4 @@
+from random import randint
 import discord
 from discord import app_commands
 
@@ -22,20 +23,6 @@ class TicketBotTrade(app_commands.Group):
     ####################################################################################
     ################################### COMMANDS #######################################
     ####################################################################################
-    @app_commands.command(name="accept", description="Accept a user's trade request")
-    async def accept(self, interaction: discord.Interaction):
-        await handle_command(self.handle_accept, interaction, self.__allowed_roles)
-
-    @app_commands.command(name="reject", description="Reject a user's trade request")
-    async def reject(self, interaction: discord.Interaction):
-        await handle_command(self.handle_reject, interaction, self.__allowed_roles)
-
-    @app_commands.command(
-        name="cancel", description="Cancels an existing trade request"
-    )
-    async def cancel(self, interaction: discord.Interaction):
-        await handle_command(self.handle_cancel, interaction, self.__allowed_roles)
-
     @app_commands.command(
         name="start", description="Request to trade with another user"
     )
@@ -45,23 +32,34 @@ class TicketBotTrade(app_commands.Group):
     @app_commands.command(
         name="coinflip", description="Coinflip for tickets with another user"
     )
-    async def coinflip(self, interaction: discord.Interaction):
-        await handle_command(self.handle_coinflip, interaction, self.__allowed_roles)
+    @app_commands.describe(
+        target="The player to start a coinflip with",
+        wager="The number of tickets that the loser of the coinflip will give to the winner of the coinflip",
+    )
+    async def coinflip(
+        self,
+        interaction: discord.Interaction,
+        target: discord.Member,
+        wager: app_commands.Range[int, 1],
+    ):
+        await handle_command(
+            self.handle_coinflip, interaction, self.__allowed_roles, target, wager
+        )
 
     ####################################################################################
     ################################### HANDLERS #######################################
     ####################################################################################
-    async def handle_accept(self, interaction: discord.Interaction) -> None:
-        pass
-
-    async def handle_reject(self, interaction: discord.Interaction) -> None:
-        pass
-
-    async def handle_cancel(self, interaction: discord.Interaction) -> None:
-        pass
-
     async def handle_start(self, interaction: discord.Interaction) -> None:
         pass
 
-    async def handle_coinflip(self, interaction: discord.Interaction) -> None:
-        pass
+    async def handle_coinflip(
+        self, interaction: discord.Interaction, target_user: discord.Member, wager: int
+    ) -> None:
+        if wager < 1:
+            raise ValueError("Wager must be greater than 0")
+
+        # Determining coinflip winner
+        target_is_winner = False
+
+        if randint(1, 100) > 50:
+            target_is_winner = True
