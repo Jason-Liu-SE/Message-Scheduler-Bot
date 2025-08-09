@@ -253,46 +253,46 @@ class TicketBotAdmin(
         add_msg = (
             "Adds tickets to a user. The tickets must be >= 0.\n"
             + f">>> Format: `/ticketadmin add <user> <tickets>`\n\n"
-            + f"E.g. /ticketadmin add @user 2\nThis would add 2 tickets to @user"
+            + f"E.g. **/ticketadmin add @user 2**\nThis would add 2 tickets to @user"
         )
 
         remove_msg = (
             "Removes tickets from a user. This tickets must be >= 0.\n"
             + f">>> Format: `/ticketadmin remove <user> <tickets>`\n\n"
-            + f"E.g. /ticketadmin remove @user 2\nThis would remove 2 tickets from @user"
+            + f"E.g. **/ticketadmin remove @user 2**\nThis would remove 2 tickets from @user"
         )
 
         set_msg = (
             "Sets a user's tickets. This tickets must be >= 0.\n"
             + f">>> Format: `/ticketadmin set <user> <tickets>`\n\n"
-            + f"E.g. /ticketadmin set @user 2\nThis would set @user's tickets to 2"
+            + f"E.g. **/ticketadmin set @user 2**\nThis would set @user's tickets to 2"
         )
 
         bulkadd_msg = (
             "Adds tickets to all user with a specific role. The tickets must be >= 0.\n"
             + f">>> Format: `/ticketadmin bulkadd <role> <tickets>`\n\n"
-            + f"E.g. /ticketadmin bulkadd @mods 2\nThis would add 2 tickets to all @mods"
+            + f"E.g. **/ticketadmin bulkadd @mods 2**\nThis would add 2 tickets to all @mods"
         )
 
         bulkremove_msg = (
             "Removes tickets from all users with a specific role. This tickets must be >= 0.\n"
             + f">>> Format: `/ticketadmin bulkremove <role> <tickets>`\n\n"
-            + f"E.g. /ticketadmin bulkremove @mods 2\nThis would remove 2 tickets from all @mods"
+            + f"E.g. **/ticketadmin bulkremove @mods 2**\nThis would remove 2 tickets from all @mods"
         )
 
         bulkset_msg = (
             "Sets the ticket value for all users with a specific role. This tickets must be >= 0.\n"
             + f">>> Format: `/ticketadmin bulkset <role> <tickets>`\n\n"
-            + f"E.g. /ticketadmin bulkset @mods 2\nThis would set all @mods' tickets to 2"
+            + f"E.g. **/ticketadmin bulkset @mods 2**\nThis would set all @mods' tickets to 2"
         )
 
         rewards_add_msg = (
-            "Adds a reward to the rewards listing (/ticket rewards list).\n\n"
+            "Adds a reward to the rewards listing (`/ticket rewards list`).\n\n"
             + f"Note that after the initial '`rewards add`' command is sent, a followup message is required to set the description of the reward. "
             + f"While setting the description, it is also possible to attach an image to the reward. At most one image is allowed to be attached. "
             + f"If more than one image is attached, the first attached image is taken.\n"
             + f">>> Format: `/ticketadmin rewards add <name> <cost> <*optional*:pagecolour>`\n\n"
-            + f"E.g. /ticketadmin rewards add Diamonds 5 FFFF00\n"
+            + f"E.g. **/ticketadmin rewards add Diamonds 5 FFFF00**\n"
             + f"This would add a reward with name `Diamonds` for a cost of `5 tickets`. Additionally, "
             + f"the colour of the reward's `/ticketadmin rewards inspect` page would be yellow, or `FFFF00` in hex."
         )
@@ -300,7 +300,7 @@ class TicketBotAdmin(
         rewards_remove_msg = (
             "Removes a reward from the listing, based on provided the reward id.\n"
             + f">>> Format: `/ticketadmin rewards remove <item>`\n\n"
-            + f"E.g. /ticketadmin rewards remove 1231asd213\nThis would attempt to remove a reward with id: `1231asd213`"
+            + f"E.g. **/ticketadmin rewards remove 1231asd213**\nThis would attempt to remove a reward with id: `1231asd213`"
         )
 
         rewards_edit_msg = (
@@ -310,7 +310,7 @@ class TicketBotAdmin(
             + f"All non-specified values are left unchanged. In the case where changedesc "
             + f"is set to True, a prompt will request a new description (and optionally a new reward image).\n"
             + f">>> Format: `/ticketadmin rewards edit <item id> <*optional*:name> <*optional*:cost> <*optional*:pagecolour> <*optional*:changedesc>`\n\n"
-            + f"E.g. /ticketadmin rewards edit 123asd123 `name:z` `changedesc:True`\n"
+            + f"E.g. **/ticketadmin rewards edit 123asd123 `name:`z `changedesc:`True**\n"
             + f"In the above, reward `123asd123` would have its name updated to `z`, but its cost and pagecolour "
             + f"would not be changed. Since `changedesc` is set to True, a following prompt would request a "
             + f"new description for the reward. At this point, you could also provide a new reward image."
