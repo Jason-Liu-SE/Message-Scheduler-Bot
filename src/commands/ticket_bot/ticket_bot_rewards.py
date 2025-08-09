@@ -182,8 +182,12 @@ class TicketBotRewards(app_commands.Group):
             raise ValueError("You don't have enough tickets to purchase this item.")
 
         async def on_reject(
-            interation: discord.Interaction, btn: discord.ui.Button
+            interation: discord.Interaction,
+            view: discord.ui.View,
+            btn: discord.ui.Button,
         ) -> None:
+            await view.disable_children()
+
             await send_success(
                 interaction,
                 f"Successfully cancelled the redemption request for:\n\n"
@@ -194,8 +198,12 @@ class TicketBotRewards(app_commands.Group):
 
         # proceed after confirmation
         async def on_accept(
-            interation: discord.Interaction, btn: discord.ui.Button
+            interation: discord.Interaction,
+            view: discord.ui.View,
+            btn: discord.ui.Button,
         ) -> None:
+            await view.disable_children()
+
             # update balance
             prev_balance = user_obj["tickets"]
             user_obj["tickets"] -= reward["cost"]
@@ -287,8 +295,13 @@ class TicketBotRewards(app_commands.Group):
 
                 # mark as read functionality
                 async def on_complete(
-                    interation: discord.Interaction, btn: discord.ui.Button
+                    interation: discord.Interaction,
+                    view: discord.ui.View,
+                    btn: discord.ui.Button,
                 ) -> None:
+                    await view.disable_children()
+                    view.timeout = 30
+
                     try:
                         edited_embed = generate_embedded_message(
                             title=f"{embed.title}: Completed",

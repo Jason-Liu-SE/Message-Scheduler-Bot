@@ -1,4 +1,4 @@
-from typing import Any, Callable
+from typing import Any, Awaitable, Callable
 import discord
 
 from helpers.message_utils import send_error
@@ -29,7 +29,9 @@ class ViewWrapper(discord.ui.View):
     async def handle_interaction(
         self,
         interaction: discord.Interaction,
-        callback: Callable[[discord.Interaction], Any],
+        callback: (
+            Callable[[discord.Interaction, discord.ui.View], Awaitable[None]] | None
+        ),
         *args
     ) -> bool:
         await interaction.response.defer()
@@ -44,4 +46,5 @@ class ViewWrapper(discord.ui.View):
                 ephemeral=True,
             )
         else:
-            await callback(interaction, *args)
+            if callback:
+                await callback(interaction, self, *args)

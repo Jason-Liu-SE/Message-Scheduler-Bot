@@ -11,7 +11,11 @@ class SingleActionView(ViewWrapper):
         style: discord.ButtonStyle = discord.ButtonStyle.primary,
         timeout: int = None,
         action_cb: (
-            Callable[[discord.Interaction, discord.ui.Button], Awaitable[None]] | None
+            Callable[
+                [discord.ui.View, discord.Interaction, discord.ui.Button],
+                Awaitable[None],
+            ]
+            | None
         ) = None,
         authorized_ids: list[int] = [],
     ):
@@ -28,15 +32,4 @@ class SingleActionView(ViewWrapper):
     async def btn_action(
         self, interaction: discord.Interaction, btn: discord.ui.Button
     ) -> None:
-        await self.handle_interaction(interaction, self.handle_action, btn)
-
-    #########################################################################################
-    ##################################### Handlers ##########################################
-    #########################################################################################
-    async def handle_action(
-        self, interaction: discord.Interaction, btn: discord.ui.Button
-    ) -> None:
-        await self.disable_children()
-        self.timeout = 30
-        if self.action_cb:
-            await self.action_cb(interaction, btn)
+        await self.handle_interaction(interaction, self.action_cb, btn)

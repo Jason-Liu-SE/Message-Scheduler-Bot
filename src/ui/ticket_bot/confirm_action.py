@@ -28,27 +28,10 @@ class ConfirmActionView(ViewWrapper):
     async def btn_yes(
         self, interaction: discord.Interaction, btn: discord.ui.Button
     ) -> None:
-        await self.handle_interaction(interaction, self.handle_yes, btn)
+        await self.handle_interaction(interaction, self.accept_cb, btn)
 
     @discord.ui.button(label="No", style=discord.ButtonStyle.gray)
     async def btn_no(
         self, interaction: discord.Interaction, btn: discord.ui.Button
     ) -> None:
-        await self.handle_interaction(interaction, self.handle_no, btn)
-
-    #########################################################################################
-    ##################################### Handlers ##########################################
-    #########################################################################################
-    async def handle_yes(
-        self, interaction: discord.Interaction, btn: discord.ui.Button
-    ) -> None:
-        await self.disable_children()
-        if self.accept_cb:
-            await self.accept_cb(interaction, btn)
-
-    async def handle_no(
-        self, interaction: discord.Interaction, btn: discord.ui.Button
-    ) -> None:
-        await self.disable_children()
-        if self.reject_cb:
-            await self.reject_cb(interaction, btn)
+        await self.handle_interaction(interaction, self.reject_cb, btn)
