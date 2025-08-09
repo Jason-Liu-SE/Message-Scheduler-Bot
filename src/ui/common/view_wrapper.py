@@ -15,10 +15,16 @@ class ViewWrapper(discord.ui.View):
         # a list of ids that have authorization to use the view
         self.authorized_ids = authorized_ids
 
+        # a flag to prevent unnecessary updating
+        self.children_disabled = False
+
     async def on_timeout(self):
         await self.disable_children()
 
     async def disable_children(self) -> None:
+        if self.children_disabled:
+            return
+
         for child in self.children:
             if hasattr(child, "disabled"):
                 child.disabled = True
@@ -26,6 +32,8 @@ class ViewWrapper(discord.ui.View):
         # update message
         if self.msg_ref:
             await self.msg_ref.edit(view=self)
+
+        self.children_disabled = True
 
     async def handle_interaction(
         self,
