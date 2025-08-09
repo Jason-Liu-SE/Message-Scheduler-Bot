@@ -345,7 +345,7 @@ class TicketBotRewards(app_commands.Group):
                 await send_success(
                     interaction,
                     title="Purchase Complete",
-                    msg=f"**Order ID**: {order_id}\n\n"
+                    msg=f"-# **Order ID**: {order_id}\n\n"
                     + f"Successfully redeemed `{reward["name"]}` for `{reward["cost"]}` tickets\n\n"
                     + f"**{interaction.user.mention}'s Post-Purchase Summary**:\n>>> **Updated Balance**: `{user_obj["tickets"]}` ticket(s)",
                 )
@@ -370,7 +370,7 @@ class TicketBotRewards(app_commands.Group):
             interaction,
             colour=Colour.YELLOW,
             title="Confirmation",
-            desc=f"**Order ID**: {order_id}\n\nAre you sure that you'd like to redeem the following reward?\n\n>>> **Ticket Cost**: {reward["cost"]}\n**ID**: {reward["_id"]}\n"
+            desc=f"-# **Order ID**: {order_id}\n\nAre you sure that you'd like to redeem the following reward?\n\n>>> **Ticket Cost**: {reward["cost"]}\n**ID**: {reward["_id"]}\n"
             + f"**Name**: {reward["name"]}",
             view=confirm,
         )
