@@ -5,7 +5,7 @@ from helpers.message_utils import send_error
 
 
 class ViewWrapper(discord.ui.View):
-    def __init__(self, timeout: int = 60, authorized_ids: list[int] = []):
+    def __init__(self, timeout: float | None = 60.0, authorized_ids: list[int] = []):
         super().__init__(timeout=timeout)
 
         # reference to the message containing this View

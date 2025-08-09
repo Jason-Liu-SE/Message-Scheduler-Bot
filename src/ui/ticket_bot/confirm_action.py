@@ -7,7 +7,7 @@ from ui.common.view_wrapper import ViewWrapper
 class ConfirmActionView(ViewWrapper):
     def __init__(
         self,
-        timeout: int = 60,
+        timeout: float | None = 60.0,
         accept_cb: (
             Callable[[discord.Interaction, discord.ui.Button], Awaitable[None]] | None
         ) = None,

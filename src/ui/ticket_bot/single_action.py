@@ -9,7 +9,7 @@ class SingleActionView(ViewWrapper):
         self,
         label: str = "Action",
         style: discord.ButtonStyle = discord.ButtonStyle.primary,
-        timeout: int = None,
+        timeout: float | None = 60.0,
         action_cb: (
             Callable[
                 [discord.ui.View, discord.Interaction, discord.ui.Button],
