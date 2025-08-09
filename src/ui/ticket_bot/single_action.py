@@ -13,9 +13,9 @@ class SingleActionView(ViewWrapper):
         action_cb: (
             Callable[[discord.Interaction, discord.ui.Button], Awaitable[None]] | None
         ) = None,
-        author: int | None = None,
+        authorized_ids: list[int] = [],
     ):
-        super().__init__(timeout=timeout, author=author)
+        super().__init__(timeout=timeout, authorized_ids=authorized_ids)
 
         self.action_cb = action_cb
         self.btn_action.label = label

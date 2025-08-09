@@ -14,9 +14,9 @@ class ConfirmActionView(ViewWrapper):
         reject_cb: (
             Callable[[discord.Interaction, discord.ui.Button], Awaitable[None]] | None
         ) = None,
-        author: int | None = None,
+        authorized_ids: list[int] = [],
     ):
-        super().__init__(timeout=timeout, author=author)
+        super().__init__(timeout=timeout, authorized_ids=authorized_ids)
 
         self.accept_cb = accept_cb
         self.reject_cb = reject_cb

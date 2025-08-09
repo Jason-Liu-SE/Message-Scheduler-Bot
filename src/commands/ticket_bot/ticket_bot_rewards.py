@@ -348,7 +348,9 @@ class TicketBotRewards(app_commands.Group):
 
         # request for confirmation
         confirm = ConfirmActionView(
-            accept_cb=on_accept, reject_cb=on_reject, author=interaction.user.id
+            accept_cb=on_accept,
+            reject_cb=on_reject,
+            authorized_ids=[interaction.user.id],
         )
         await send_embedded_message(
             interaction,

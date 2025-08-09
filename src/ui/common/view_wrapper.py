@@ -5,14 +5,14 @@ from helpers.message_utils import send_error
 
 
 class ViewWrapper(discord.ui.View):
-    def __init__(self, timeout: int = 60, author: int = None):
+    def __init__(self, timeout: int = 60, authorized_ids: list[int] = []):
         super().__init__(timeout=timeout)
 
         # reference to the message containing this View
         self.msg_ref: discord.InteractionMessage | None = None
 
-        # id of some user
-        self.author: int | None = author
+        # a list of ids that have authorization to use the view
+        self.authorized_ids = authorized_ids
 
     async def on_timeout(self):
         await self.disable_children()
@@ -34,7 +34,10 @@ class ViewWrapper(discord.ui.View):
     ) -> bool:
         await interaction.response.defer()
 
-        if self.author and self.author != interaction.user.id:
+        if (
+            len(self.authorized_ids) > 0
+            and interaction.user.id not in self.authorized_ids
+        ):
             await send_error(
                 interaction,
                 "You do not have permission to perform this action.",
