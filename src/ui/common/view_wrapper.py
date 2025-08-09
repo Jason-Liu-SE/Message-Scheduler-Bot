@@ -1,6 +1,7 @@
-from typing import Any, Awaitable, Callable
+from typing import Awaitable, Callable
 import discord
 
+from helpers.command_helper import catch_and_log
 from helpers.message_utils import send_error
 
 
@@ -34,6 +35,11 @@ class ViewWrapper(discord.ui.View):
         ),
         *args
     ) -> bool:
+        @catch_and_log(interaction=interaction)
+        async def run_callback() -> None:
+            if callback:
+                await callback(interaction, self, *args)
+
         await interaction.response.defer()
 
         if (
@@ -46,5 +52,4 @@ class ViewWrapper(discord.ui.View):
                 ephemeral=True,
             )
         else:
-            if callback:
-                await callback(interaction, self, *args)
+            await run_callback()
