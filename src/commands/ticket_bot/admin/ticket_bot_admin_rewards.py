@@ -170,7 +170,7 @@ class TicketBotAdminRewards(app_commands.Group, CommandBot):
 
         await send_success(
             interaction,
-            "The reward has been updated",
+            f"The reward `id: {id}` has been updated",
         )
 
     async def handle_add(
