@@ -245,76 +245,76 @@ class TicketBotAdmin(
         await self.bulk_update_tickets(interaction, role, tickets, is_override=True)
 
     async def handle_help(self, interaction: discord.Interaction) -> None:
-        help_desc = """Ticket Admin is the administrative version of the Ticket bot. This bot allows those with sufficient permissions to add, remove, and set tickets for users.
-        
-    The commands are as follows:"""
+        help_desc = (
+            "Ticket Admin is the administrative version of the Ticket bot. This bot allows those with sufficient permissions to"
+            + f"\n* add tickets\n* remove tickets\n* set tickets\n* add rewards\n* remove rewards\n* edit rewards\n\n### The commands are as follows:"
+        )
 
-        add_msg = """Adds tickets to a user. The tickets must be >= 0.
-        
-    Format: /ticketadmin add <user> <tickets>
-        
-    E.g. /ticketadmin add @user 2
-    This would add 2 tickets to @user"""
+        add_msg = (
+            "Adds tickets to a user. The tickets must be >= 0.\n"
+            + f">>> Format: `/ticketadmin add <user> <tickets>`\n\n"
+            + f"E.g. /ticketadmin add @user 2\nThis would add 2 tickets to @user"
+        )
 
-        remove_msg = """Removes tickets from a user. This tickets must be >= 0.
-        
-    Format: /ticketadmin remove <user> <tickets>
-        
-    E.g. /ticketadmin remove @user 2
-    This would remove 2 tickets from @user"""
+        remove_msg = (
+            "Removes tickets from a user. This tickets must be >= 0.\n"
+            + f">>> Format: `/ticketadmin remove <user> <tickets>`\n\n"
+            + f"E.g. /ticketadmin remove @user 2\nThis would remove 2 tickets from @user"
+        )
 
-        set_msg = """Sets a user's tickets. This tickets must be >= 0.
-        
-    Format: /ticketadmin set <user> <tickets>
-        
-    E.g. /ticketadmin set @user 2
-    This would set @user's tickets to 2"""
+        set_msg = (
+            "Sets a user's tickets. This tickets must be >= 0.\n"
+            + f">>> Format: `/ticketadmin set <user> <tickets>`\n\n"
+            + f"E.g. /ticketadmin set @user 2\nThis would set @user's tickets to 2"
+        )
 
-        bulkadd_msg = """Adds tickets to all user with a specific role. The tickets must be >= 0.
-        
-    Format: /ticketadmin bulkadd <role> <tickets>
-        
-    E.g. /ticketadmin bulkadd @mods 2
-    This would add 2 tickets to all @mods"""
+        bulkadd_msg = (
+            "Adds tickets to all user with a specific role. The tickets must be >= 0.\n"
+            + f">>> Format: `/ticketadmin bulkadd <role> <tickets>`\n\n"
+            + f"E.g. /ticketadmin bulkadd @mods 2\nThis would add 2 tickets to all @mods"
+        )
 
-        bulkremove_msg = """Removes tickets from all users with a specific role. This tickets must be >= 0.
-        
-    Format: /ticketadmin bulkremove <role> <tickets>
-        
-    E.g. /ticketadmin bulkremove @mods 2
-    This would remove 2 tickets from all @mods"""
+        bulkremove_msg = (
+            "Removes tickets from all users with a specific role. This tickets must be >= 0.\n"
+            + f">>> Format: `/ticketadmin bulkremove <role> <tickets>`\n\n"
+            + f"E.g. /ticketadmin bulkremove @mods 2\nThis would remove 2 tickets from all @mods"
+        )
 
-        bulkset_msg = """Sets the ticket value for all users with a specific role. This tickets must be >= 0.
-        
-    Format: /ticketadmin bulkset <role> <tickets>
-        
-    E.g. /ticketadmin bulkset @mods 2
-    This would set all @mods' tickets to 2"""
+        bulkset_msg = (
+            "Sets the ticket value for all users with a specific role. This tickets must be >= 0.\n"
+            + f">>> Format: `/ticketadmin bulkset <role> <tickets>`\n\n"
+            + f"E.g. /ticketadmin bulkset @mods 2\nThis would set all @mods' tickets to 2"
+        )
 
-        rewards_add_msg = """Adds a reward to the rewards listing (/ticket rewards list).
-        
-    Note that after the initial 'rewards add' command is sent, a followup message is required to set the description of the reward. While setting the description, it is also possible to attach an image to the reward. At most one image is allowed to be attached. If more than one image is attached, the first attached image is taken.
-        
-    Format: /ticketadmin rewards add <name> <cost> <*optional*:pagecolour>
-        
-    E.g. /ticketadmin rewards add Diamonds 5 FFFF00
-    This would add a reward with name `Diamonds` for a cost of `5 tickets`. Additionally, the colour of the reward's `/ticketadmin rewards inspect` page would be yellow, or `FFFF00` in hex."""
+        rewards_add_msg = (
+            "Adds a reward to the rewards listing (/ticket rewards list).\n\n"
+            + f"Note that after the initial '`rewards add`' command is sent, a followup message is required to set the description of the reward. "
+            + f"While setting the description, it is also possible to attach an image to the reward. At most one image is allowed to be attached. "
+            + f"If more than one image is attached, the first attached image is taken.\n"
+            + f">>> Format: `/ticketadmin rewards add <name> <cost> <*optional*:pagecolour>`\n\n"
+            + f"E.g. /ticketadmin rewards add Diamonds 5 FFFF00\n"
+            + f"This would add a reward with name `Diamonds` for a cost of `5 tickets`. Additionally, "
+            + f"the colour of the reward's `/ticketadmin rewards inspect` page would be yellow, or `FFFF00` in hex."
+        )
 
-        rewards_remove_msg = """Removes a reward from the listing, based on provided the reward id.
-        
-    Format: /ticketadmin rewards remove <item>
-        
-    E.g. /ticketadmin rewards remove 1231asd213
-    This would attempt to remove a reward with id: `1231asd213`"""
+        rewards_remove_msg = (
+            "Removes a reward from the listing, based on provided the reward id.\n"
+            + f">>> Format: `/ticketadmin rewards remove <item>`\n\n"
+            + f"E.g. /ticketadmin rewards remove 1231asd213\nThis would attempt to remove a reward with id: `1231asd213`"
+        )
 
-        rewards_edit_msg = """This edits an existing reward listing. If the provided reward id doens't exist, this command does nothing.
-    
-    There are several optional parameters for this command. When an argument is provided to an optional parameter, the provided value will override the existing value on the reward item. All non-specified values are left unchanged. In the case where changedesc is set to True, a prompt will request a new description (and optionally a new reward image).
-        
-    Format: /ticketadmin rewards edit <item id> <*optional*:name> <*optional*:cost> <*optional*:pagecolour> <*optional*:changedesc>
-        
-    E.g. /ticketadmin rewards edit 123asd123 `name:z` `changedesc:True`
-    In the above, reward `123asd123` would have its name updated to `z`, but its cost and pagecolour would not be changed. Since `changedesc` is set to True, a following prompt would request a new description for the reward. At this point, you could also provide a new reward image."""
+        rewards_edit_msg = (
+            "This edits an existing reward listing. If the provided reward id doens't exist, this command does nothing.\n\n"
+            + f"There are several optional parameters for this command. When an argument is provided to an optional "
+            + f"parameter, the provided value will override the existing value on the reward item. "
+            + f"All non-specified values are left unchanged. In the case where changedesc "
+            + f"is set to True, a prompt will request a new description (and optionally a new reward image).\n"
+            + f">>> Format: `/ticketadmin rewards edit <item id> <*optional*:name> <*optional*:cost> <*optional*:pagecolour> <*optional*:changedesc>`\n\n"
+            + f"E.g. /ticketadmin rewards edit 123asd123 `name:z` `changedesc:True`\n"
+            + f"In the above, reward `123asd123` would have its name updated to `z`, but its cost and pagecolour "
+            + f"would not be changed. Since `changedesc` is set to True, a following prompt would request a "
+            + f"new description for the reward. At this point, you could also provide a new reward image."
+        )
 
         fields = [
             {"name": "[1] add", "value": add_msg},
