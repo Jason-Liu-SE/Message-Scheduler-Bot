@@ -39,8 +39,34 @@ class MessageScheduler(
     ################################ AUTOCOMPLETE ######################################
     ####################################################################################
     # add
+    async def get_month_choices(
+        interaction: discord.Interaction, current: str
+    ) -> list[app_commands.Choice]:
+        choices = []
+
+        months = {
+            1: "January",
+            2: "February",
+            3: "March",
+            4: "April",
+            5: "May",
+            6: "June",
+            7: "July",
+            8: "August",
+            9: "September",
+            10: "October",
+            11: "November",
+            12: "December",
+        }
+
+        for key, value in months.items():
+            if current.lower() in f"{key}" or current.lower() in f"{value}":
+                choices.append(app_commands.Choice(name=f"{key} | {value}", value=key))
+
+        return choices
+
     ac_set_day = generate_autocomplete(range(1, 32))
-    ac_set_month = generate_autocomplete(range(1, 13))
+    ac_set_month = generate_autocomplete([], get_month_choices)
     ac_set_year = generate_autocomplete(
         range(datetime.now().year, datetime.now().year + 6)
     )
