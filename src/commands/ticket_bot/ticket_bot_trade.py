@@ -148,7 +148,7 @@ class TicketBotTrade(app_commands.Group):
                 has_error = False
 
                 try:
-                    is_target_winner = randint(1, 100) > 50
+                    is_target_winner = randint(0, 1) == 0
                     await complete_trade(
                         instigator_user=instigator_user,
                         target_user=target_user,
@@ -197,10 +197,13 @@ class TicketBotTrade(app_commands.Group):
                         Logger.error(e)
 
                     try:
+                        invert = 1 if is_target_winner else -1
                         await send_success(
                             interaction,
                             f"### Winnner: {target_user.mention if is_target_winner else instigator_user.mention}\n"
-                            + f">>> Successfully completed the coinflip with `id: {trade_id}` between {instigator_user.mention} and {target_user.mention}.",
+                            + f"{instigator_user.mention} now has `{instigator_user_init_tickets - wager * invert}` tickets.\n"
+                            + f"{target_user.mention} now has `{target_user_init_tickets + wager * invert}` tickets.\n\n"
+                            + f">>> Completes coinflip `id: {trade_id}` between {instigator_user.mention} and {target_user.mention}.",
                             title="Coinflip Completed",
                         )
                     except Exception as e:
