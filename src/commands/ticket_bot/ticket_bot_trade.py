@@ -2,6 +2,7 @@ from random import randint
 import discord
 from discord import app_commands
 
+from commands.command_bot import CommandBot
 from helpers.command_helper import *
 from helpers.exception_helpers import handle_error
 from helpers.id_helpers import *
@@ -19,12 +20,12 @@ from helpers.validate import *
 from ui.ticket_bot.ternary_action import TernaryActionView
 
 
-class TicketBotTrade(app_commands.Group):
+class TicketBotTrade(app_commands.Group, CommandBot):
     __TRADE_TIMEOUT = 300
 
     def __init__(self, name: str, description: str, allowed_roles: list) -> None:
         super().__init__(name=name, description=description)
-        self.__allowed_roles = allowed_roles
+        self._allowed_roles = allowed_roles
         self.bot = None  # set by the parent
 
     ####################################################################################
@@ -42,6 +43,7 @@ class TicketBotTrade(app_commands.Group):
         action="Whether to 'send' or 'request' tickets to/from the target",
         tickets="The number of tickets to send/receive to/from the target",
     )
+    @enrich_command
     async def start(
         self,
         interaction: discord.Interaction,
@@ -49,13 +51,11 @@ class TicketBotTrade(app_commands.Group):
         action: Literal["send", "request"],
         tickets: app_commands.Range[int, 1],
     ):
-        await handle_command(
-            self.handle_start,
+        await self.handle_start(
             interaction,
-            self.__allowed_roles,
-            target,
-            action,
-            tickets,
+            target_user=target,
+            action=action,
+            tickets=tickets,
         )
 
     @app_commands.command(
@@ -65,15 +65,14 @@ class TicketBotTrade(app_commands.Group):
         target="The player to start a coinflip with",
         wager="The number of tickets that the loser of the coinflip will give to the winner of the coinflip",
     )
+    @enrich_command
     async def coinflip(
         self,
         interaction: discord.Interaction,
         target: discord.Member,
         wager: app_commands.Range[int, 1],
     ):
-        await handle_command(
-            self.handle_coinflip, interaction, self.__allowed_roles, target, wager
-        )
+        await self.handle_coinflip(interaction, target_user=target, wager=wager)
 
     ####################################################################################
     ################################### HANDLERS #######################################
@@ -81,7 +80,7 @@ class TicketBotTrade(app_commands.Group):
     async def handle_start(
         self,
         interaction: discord.Interaction,
-        target: discord.Member,
+        target_user: discord.Member,
         action: Literal["send", "request"],
         tickets: app_commands.Range[int, 1],
     ) -> None:
@@ -90,7 +89,7 @@ class TicketBotTrade(app_commands.Group):
 
         await self.handle_trade(
             interaction,
-            target_user=target,
+            target_user=target_user,
             tickets=tickets,
             trade_action="➡️ Send" if action == "send" else "⬅️ Request",
             flow_emoji="➡️" if action == "send" else "⬅️",

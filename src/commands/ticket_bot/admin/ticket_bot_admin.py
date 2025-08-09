@@ -3,6 +3,7 @@ from discord.ext import commands
 from discord.ext.commands.bot import Bot
 from discord import app_commands
 
+from commands.command_bot import CommandBot
 from commands.ticket_bot.admin.ticket_bot_admin_rewards import TicketBotAdminRewards
 from helpers.command_helper import *
 from helpers.id_helpers import *
@@ -13,9 +14,12 @@ from helpers.validate import *
 
 
 class TicketBotAdmin(
-    commands.GroupCog, group_name="ticketadmin", group_description="Manage your tickets"
+    commands.GroupCog,
+    CommandBot,
+    group_name="ticketadmin",
+    group_description="Manage your tickets",
 ):
-    __allowed_roles = [
+    _allowed_roles = [
         807340774781878333,
         838169320461697085,
         "👁‍🗨 Head Moderator 👁‍🗨",
@@ -33,7 +37,7 @@ class TicketBotAdmin(
     rewards = TicketBotAdminRewards(
         name="rewards",
         description="Manage the rewards",
-        allowed_roles=__allowed_roles,
+        allowed_roles=_allowed_roles,
     )
 
     ####################################################################################
@@ -44,43 +48,40 @@ class TicketBotAdmin(
         user="User to add tickets to",
         tickets="The number of tickets to add",
     )
+    @enrich_command
     async def add(
         self,
         interaction: discord.Interaction,
         user: discord.Member,
         tickets: app_commands.Range[int, 0],
     ):
-        await handle_command(
-            self.handle_add, interaction, self.__allowed_roles, user, tickets
-        )
+        await self.handle_add(interaction, user=user, tickets=tickets)
 
     @app_commands.command(name="remove", description="Remove tickets from a user")
     @app_commands.describe(
         user="User to add tickets to", tickets="The number of tickets to add"
     )
+    @enrich_command
     async def remove(
         self,
         interaction: discord.Interaction,
         user: discord.Member,
         tickets: app_commands.Range[int, 0],
     ):
-        await handle_command(
-            self.handle_remove, interaction, self.__allowed_roles, user, tickets
-        )
+        await self.handle_remove(interaction, user=user, tickets=tickets)
 
     @app_commands.command(name="set", description="Sets a user's tickets")
     @app_commands.describe(
         user="User to add tickets to", tickets="The number of tickets to add"
     )
+    @enrich_command
     async def set(
         self,
         interaction: discord.Interaction,
         user: discord.Member,
         tickets: app_commands.Range[int, 0],
     ):
-        await handle_command(
-            self.handle_set, interaction, self.__allowed_roles, user, tickets
-        )
+        await self.handle_set(interaction, user=user, tickets=tickets)
 
     @app_commands.command(
         name="bulkadd", description="Adds tickets to all users with a specific role"
@@ -88,15 +89,14 @@ class TicketBotAdmin(
     @app_commands.describe(
         role="Target user role", tickets="The number of tickets to add"
     )
+    @enrich_command
     async def bulk_add(
         self,
         interaction: discord.Interaction,
         role: discord.Role,
         tickets: app_commands.Range[int, 0],
     ):
-        await handle_command(
-            self.handle_bulk_add, interaction, self.__allowed_roles, role, tickets
-        )
+        await self.handle_bulk_add(interaction, role=role, tickets=tickets)
 
     @app_commands.command(
         name="bulkremove",
@@ -105,15 +105,14 @@ class TicketBotAdmin(
     @app_commands.describe(
         role="Target user role", tickets="The number of tickets to add"
     )
+    @enrich_command
     async def bulk_remove(
         self,
         interaction: discord.Interaction,
         role: discord.Role,
         tickets: app_commands.Range[int, 0],
     ):
-        await handle_command(
-            self.handle_bulk_remove, interaction, self.__allowed_roles, role, tickets
-        )
+        await self.handle_bulk_remove(interaction, role, tickets)
 
     @app_commands.command(
         name="bulkset", description="Sets the tickets of all users with a specific role"
@@ -121,21 +120,21 @@ class TicketBotAdmin(
     @app_commands.describe(
         role="Target user role", tickets="The number of tickets to add"
     )
+    @enrich_command
     async def bulk_set(
         self,
         interaction: discord.Interaction,
         role: discord.Role,
         tickets: app_commands.Range[int, 0],
     ):
-        await handle_command(
-            self.handle_bulk_set, interaction, self.__allowed_roles, role, tickets
-        )
+        await self.handle_bulk_set(interaction, role=role, tickets=tickets)
 
     @app_commands.command(
         name="help", description="List more info about the Admin Ticket Bot commands"
     )
+    @enrich_command
     async def help(self, interaction: discord.Interaction):
-        await handle_command(self.handle_help, interaction, self.__allowed_roles)
+        await self.handle_help(interaction)
 
     ####################################################################################
     ################################### HANDLERS #######################################

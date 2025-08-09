@@ -2,6 +2,7 @@ from math import ceil
 import discord
 from discord import app_commands
 
+from commands.command_bot import CommandBot
 from helpers.command_helper import *
 from helpers.exception_helpers import handle_error
 from helpers.id_helpers import *
@@ -16,12 +17,12 @@ from ui.ticket_bot.confirm_action import ConfirmActionView
 from ui.ticket_bot.single_action import SingleActionView
 
 
-class TicketBotRewards(app_commands.Group):
+class TicketBotRewards(app_commands.Group, CommandBot):
     __ITEMS_PER_PAGE = 20
 
     def __init__(self, name: str, description: str, allowed_roles: list) -> None:
         super().__init__(name=name, description=description)
-        self.__allowed_roles = allowed_roles
+        self._allowed_roles = allowed_roles
         self.bot: Bot | None = None  # set by the parent
 
     ####################################################################################
@@ -57,24 +58,23 @@ class TicketBotRewards(app_commands.Group):
     )
     @app_commands.describe(page="The rewards page. Default = 1")
     @app_commands.autocomplete(page=ac_list_page)
+    @enrich_command
     async def list(self, interaction: discord.Interaction, page: int = 1):
-        await handle_command(self.handle_list, interaction, self.__allowed_roles, page)
+        await self.handle_list(interaction, page=page)
 
     @app_commands.command(name="inspect", description="View more about a reward")
     @app_commands.describe(item="The ID of the item to be inspected")
     @app_commands.autocomplete(item=ac_inspect_item)
+    @enrich_command
     async def inspect(self, interaction: discord.Interaction, item: str):
-        await handle_command(
-            self.handle_inspect, interaction, self.__allowed_roles, item
-        )
+        await self.handle_inspect(interaction, item=item)
 
     @app_commands.command(name="redeem", description="Redeem items for tickets")
     @app_commands.describe(item="Item ID to be redeemed")
     @app_commands.autocomplete(item=ac_redeem_item)
+    @enrich_command
     async def redeem(self, interaction: discord.Interaction, item: str):
-        await handle_command(
-            self.handle_redeem, interaction, self.__allowed_roles, item
-        )
+        await self.handle_redeem(interaction, item=item)
 
     ####################################################################################
     ################################### HANDLERS #######################################
@@ -153,14 +153,14 @@ class TicketBotRewards(app_commands.Group):
         # attempt to order item
         try:
             reward = await get_reward_object(reward_id)
-
-            if not reward:
-                raise Exception
         except Exception as e:
             await handle_error(
                 interaction, f"Could not find any rewards with id: {reward_id}", e
             )
             return
+
+        if not reward:
+            raise ValueError(f"The provided reward `id: {reward_id}` was not found")
 
         if reward["stock"] == 0:
             raise ValueError(f"Reward with id: `{reward_id}` is OUT OF STOCK")

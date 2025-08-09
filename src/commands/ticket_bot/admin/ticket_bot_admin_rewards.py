@@ -1,6 +1,7 @@
 import discord
 from discord import app_commands
 
+from commands.command_bot import CommandBot
 from helpers.command_helper import *
 from helpers.id_helpers import *
 from helpers.message_utils import *
@@ -10,10 +11,10 @@ from helpers.time import *
 from helpers.validate import *
 
 
-class TicketBotAdminRewards(app_commands.Group):
+class TicketBotAdminRewards(app_commands.Group, CommandBot):
     def __init__(self, name: str, description: str, allowed_roles: list) -> None:
         super().__init__(name=name, description=description)
-        self.__allowed_roles = allowed_roles
+        self._allowed_roles = allowed_roles
         self.bot = None  # set by the parent
 
     ####################################################################################
@@ -35,6 +36,7 @@ class TicketBotAdminRewards(app_commands.Group):
         stock="Number of of this reward to sel. Use a negative number for unlimited stock",
         pagecolour="The hex colour of the reward's inspect page",
     )
+    @enrich_command
     async def add(
         self,
         interaction: discord.Interaction,
@@ -43,30 +45,20 @@ class TicketBotAdminRewards(app_commands.Group):
         stock: int = -1,
         pagecolour: str = "FFFFFF",
     ):
-        await handle_command(
-            self.handle_add,
-            interaction,
-            self.__allowed_roles,
-            name,
-            cost,
-            stock,
-            pagecolour,
+        await self.handle_add(
+            interaction, name=name, cost=cost, stock=stock, pagecolour=pagecolour
         )
 
     @app_commands.command(name="remove", description="Removes a reward")
     @app_commands.describe(item="ID of the item to be removed from listing")
     @app_commands.autocomplete(item=ac_remove_item)
+    @enrich_command
     async def remove(
         self,
         interaction: discord.Interaction,
         item: str,
     ):
-        await handle_command(
-            self.handle_remove,
-            interaction,
-            self.__allowed_roles,
-            item,
-        )
+        await self.handle_remove(interaction, item_id=item)
 
     @app_commands.command(name="edit", description="Edits a reward")
     @app_commands.describe(
@@ -78,6 +70,7 @@ class TicketBotAdminRewards(app_commands.Group):
         changedesc="True to change the description. False by default",
     )
     @app_commands.autocomplete(item=ac_edit_item)
+    @enrich_command
     async def edit(
         self,
         interaction: discord.Interaction,
@@ -88,16 +81,14 @@ class TicketBotAdminRewards(app_commands.Group):
         pagecolour: str | None = None,
         changedesc: bool = False,
     ):
-        await handle_command(
-            self.handle_edit,
+        await self.handle_edit(
             interaction,
-            self.__allowed_roles,
-            item,
-            name,
-            cost,
-            stock,
-            pagecolour,
-            changedesc,
+            item_id=item,
+            name=name,
+            cost=cost,
+            stock=stock,
+            pagecolour=pagecolour,
+            changedesc=changedesc,
         )
 
     ####################################################################################

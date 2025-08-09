@@ -3,6 +3,7 @@ from discord.ext import commands
 from discord.ext.commands.bot import Bot
 from discord import app_commands
 
+from commands.command_bot import CommandBot
 from commands.ticket_bot.ticket_bot_rewards import TicketBotRewards
 from commands.ticket_bot.ticket_bot_trade import TicketBotTrade
 from helpers.command_helper import *
@@ -14,9 +15,12 @@ from helpers.validate import *
 
 
 class TicketBot(
-    commands.GroupCog, group_name="ticket", group_description="Manage your tickets"
+    commands.GroupCog,
+    CommandBot,
+    group_name="ticket",
+    group_description="Manage your tickets",
 ):
-    __allowed_roles = [807335525798117407, "@everyone"]
+    _allowed_roles = [807335525798117407, "@everyone"]
 
     def __init__(self, bot: Bot) -> None:
         self.__bot = bot
@@ -29,12 +33,12 @@ class TicketBot(
     trade = TicketBotTrade(
         name="trade",
         description="Manage ticket trading",
-        allowed_roles=__allowed_roles,
+        allowed_roles=_allowed_roles,
     )
     rewards = TicketBotRewards(
         name="rewards",
         description="Interact with the rewards system",
-        allowed_roles=__allowed_roles,
+        allowed_roles=_allowed_roles,
     )
 
     ####################################################################################
@@ -43,23 +47,27 @@ class TicketBot(
     @app_commands.command(
         name="leaderboard", description="Displays a leaderboard with all users' tickets"
     )
+    @enrich_command
     async def leaderboard(self, interaction: discord.Interaction):
-        await handle_command(self.handle_leaderboard, interaction, self.__allowed_roles)
+        await self.handle_leaderboard(interaction)
 
     @app_commands.command(name="balance", description="View your balance")
+    @enrich_command
     async def balance(self, interaction: discord.Interaction):
-        await handle_command(self.handle_balance, interaction, self.__allowed_roles)
+        await self.handle_balance(interaction)
 
     @app_commands.command(name="view", description="View a user's tickets")
     @app_commands.describe(user="Target user")
+    @enrich_command
     async def view(self, interaction: discord.Interaction, user: discord.Member):
-        await handle_command(self.handle_view, interaction, self.__allowed_roles, user)
+        await self.handle_view(interaction, user=user)
 
     @app_commands.command(
         name="help", description="List more info about Ticket Bot commands"
     )
+    @enrich_command
     async def help(self, interaction: discord.Interaction):
-        await handle_command(self.handle_help, interaction, self.__allowed_roles)
+        await self.handle_help(interaction)
 
     ####################################################################################
     ################################### HANDLERS #######################################

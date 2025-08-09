@@ -5,6 +5,7 @@ from discord.ext import commands
 from discord.ext.commands.bot import Bot
 from discord import app_commands
 
+from commands.command_bot import CommandBot
 from helpers.colours import Colour
 from helpers.command_helper import *
 from helpers.id_helpers import *
@@ -16,12 +17,15 @@ from helpers.validate import *
 
 
 class MessageScheduler(
-    commands.GroupCog, group_name="ms", group_description="Tools to schedule messages"
+    commands.GroupCog,
+    CommandBot,
+    group_name="ms",
+    group_description="Tools to schedule messages",
 ):
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
 
-        self.__allowed_roles = [
+        self._allowed_roles = [
             807340774781878333,
             838169320461697085,
             807340024088625192,
@@ -89,6 +93,7 @@ class MessageScheduler(
         hour=ac_set_hour,
         minute=ac_set_minute,
     )
+    @enrich_command
     async def add(
         self,
         interaction: discord.Interaction,
@@ -99,16 +104,14 @@ class MessageScheduler(
         hour: app_commands.Range[int, 0, 23],
         minute: app_commands.Range[int, 0, 59],
     ):
-        await handle_command(
-            self.handle_add,
+        await self.handle_add(
             interaction,
-            self.__allowed_roles,
-            channel,
-            day,
-            month,
-            year,
-            hour,
-            minute,
+            channel=channel,
+            day=day,
+            month=month,
+            year=year,
+            hour=hour,
+            minute=minute,
         )
 
     @app_commands.command(
@@ -116,54 +119,56 @@ class MessageScheduler(
     )
     @app_commands.describe(postid="The scheduled post that you'd like to remove")
     @app_commands.autocomplete(postid=ac_remove_postid)
+    @enrich_command
     async def remove(self, interaction: discord.Interaction, postid: str):
-        await handle_command(
-            self.handle_remove, interaction, self.__allowed_roles, postid
-        )
+        await self.handle_remove(interaction, post_id=postid)
 
     @app_commands.command(
         name="set", description="Sets a message that'll be added to the schedule later"
     )
+    @enrich_command
     async def set(self, interaction: discord.Interaction):
-        await handle_command(self.handle_set, interaction, self.__allowed_roles)
+        await self.handle_set(interaction)
 
     @app_commands.command(
         name="reaction", description="Adds reactions to the current message"
     )
     @app_commands.describe(emojis="A space-separated list of emojis")
     @app_commands.autocomplete(emojis=ac_reaction_emojis)
+    @enrich_command
     async def reaction(self, interaction: discord.Interaction, emojis: str):
-        await handle_command(
-            self.handle_set_reaction, interaction, self.__allowed_roles, emojis
-        )
+        await self.handle_set_reaction(interaction, msg=emojis)
 
     @app_commands.command(name="reset", description="Clears the current message")
+    @enrich_command
     async def reset(self, interaction: discord.Interaction):
-        await handle_command(self.handle_reset, interaction, self.__allowed_roles)
+        await self.handle_reset(interaction)
 
     @app_commands.command(
         name="clearschedule", description="Removes all scheduled messages"
     )
+    @enrich_command
     async def clear_schedule(self, interaction: discord.Interaction):
-        await handle_command(self.handle_clear, interaction, self.__allowed_roles)
+        await self.handle_clear(interaction)
 
     @app_commands.command(name="preview", description="Previews a specified message")
     @app_commands.describe(target="Either 'current' or the scheduled post id")
     @app_commands.autocomplete(target=ac_preview_target)
+    @enrich_command
     async def preview(self, interaction: discord.Interaction, target: str):
-        await handle_command(
-            self.handle_preview, interaction, self.__allowed_roles, target
-        )
+        await self.handle_preview(interaction, target=target)
 
     @app_commands.command(name="list", description="Lists all scheduled messages")
+    @enrich_command
     async def list(self, interaction: discord.Interaction):
-        await handle_command(self.handle_list, interaction, self.__allowed_roles)
+        await self.handle_list(interaction)
 
     @app_commands.command(
         name="help", description="List more info about Message Scheduler commands"
     )
+    @enrich_command
     async def help(self, interaction: discord.Interaction):
-        await handle_command(self.handle_help, interaction, self.__allowed_roles)
+        await self.handle_help(interaction)
 
     ####################################################################################
     ################################### HANDLERS #######################################
