@@ -202,7 +202,7 @@ class TicketBot(
         view_msg = (
             "Allows you to view another player's tickets.\n\n"
             + f"**Fields**:\n"
-            + f"`user`: a user. Fill via autocomplete.\n\n"
+            + f"`user`: a user to view. Fill via autocomplete.\n\n"
             + f">>> Format: `/ticket view <user>`\n\n"
             + f"E.g. **/ticket view @user**\nThis would display @user's tickets"
         )
@@ -218,7 +218,7 @@ class TicketBot(
         rewards_inspect_msg = (
             "This shows more information about a particular reward.\n\n"
             + f"**Fields**:\n"
-            + f"`item`: a `reward ID` that can be found on the `/ticket rewards list`, or via autocomplete.\n\n"
+            + f"`item`: desired reward. The `reward ID` can be found on the `/ticket rewards list`, or via autocomplete.\n\n"
             + f">>> Format: `/ticket rewards inspect <reward>`\n\n"
             + f"E.g. **/ticket rewards inspect 97979f9175a4b91f17d8a472**\nThis would display more information about the reward corresponding to 97979f9175a4b91f17d8a472."
         )
@@ -237,7 +237,7 @@ class TicketBot(
             + f"**Fields**:\n"
             + f"`target`: The user that you'd like to trade with. Use the autocomplete to fill this.\n"
             + f"`action`: The trade action. Either `send` (send tickets to `target`) or `request` (get tickets from `target`).\n"
-            + f"`tickets`: The number of tickets to trade.\n\n"
+            + f"`tickets`: The number of tickets to trade. Must be > 0.\n\n"
             + f"Once you submit the command, you'll need to `ready`-up for the trade. Once all parties in the trade are `ready`, the trade will proceed. "
             + f"If either user wants to cancel the trade, they may press the `cancel` button. Alternatively, if `5 minutes` passes and the trade isn't completed, it cancels.\n\n"
             + f">>> Format: `/ticket trade start <target> <action> <tickets>`\n\n"
@@ -249,7 +249,7 @@ class TicketBot(
             "This starts a coinflip trade with another user. Each user has a 50% chance to win.\n\n"
             + f"**Fields**:\n"
             + f"`target`: the target user to start a coinflip trade with.\n"
-            + f"`wager`: the number of tickets that the winner should get and the loser should lose.\n"
+            + f"`wager`: the number of tickets that the winner should get and the loser should lose. Must be > 0.\n"
             + f">>> Format: `/ticket trade coinflip <target> <wager>`\n\n"
             + f"E.g. **/ticket trade coinflip @user 5**\nThis would start a coinflip trade with @user. If @user won, they would get `5 tickets` and the `trade initiator` would lose `5 ticket`."
         )
