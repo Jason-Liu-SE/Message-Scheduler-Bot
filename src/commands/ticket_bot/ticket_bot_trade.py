@@ -12,6 +12,7 @@ from helpers.ticket_bot.trade_helpers import (
     display_confirmation,
     update_confirmation_state,
     update_trade_msg,
+    verify_trade_users,
 )
 from helpers.time import *
 from helpers.validate import *
@@ -70,19 +71,25 @@ class TicketBotTrade(app_commands.Group):
 
         confirmations = {instigator_user.id: False, target_user.id: False}
 
+        # Input verification
         if target_user.id == instigator_user.id:
             raise ValueError("You cannot start a trade with yourself")
 
         if wager < 1:
             raise ValueError("Wager must be greater than 0")
 
+        user_objs = await verify_trade_users(
+            instigator_user=instigator_user, target_user=target_user, tickets=wager
+        )
+
+        # User event handlers
         async def on_cancel(
             interaction: discord.Interaction,
             view: TernaryActionView,
             btn: discord.ui.Button,
         ) -> None:
             await view.disable_children()
-            view.timeout = 30
+            view.timeout = 15
 
             await update_trade_msg(
                 view=view,
@@ -133,7 +140,10 @@ class TicketBotTrade(app_commands.Group):
             # Attempt to complete coinflip
             if confirmations[instigator_user.id] and confirmations[target_user.id]:
                 await view.disable_children()
-                view.timeout = 10
+                view.timeout = 15
+
+                target_user_init_tickets = user_objs[target_user.id]["tickets"]
+                instigator_user_init_tickets = user_objs[instigator_user.id]["tickets"]
 
                 has_error = False
 
@@ -149,26 +159,6 @@ class TicketBotTrade(app_commands.Group):
                             else "target_to_instigator"
                         ),
                     )
-                    await update_trade_msg(
-                        view=view,
-                        msg_embed_ref=trade_embed,
-                        desc=create_coinflip_msg(
-                            confirmations[instigator_user.id],
-                            confirmations[target_user.id],
-                            winner=(
-                                target_user.mention
-                                if is_target_winner
-                                else instigator_user.mention
-                            ),
-                        ),
-                        is_successful=True,
-                    )
-                    await send_success(
-                        interaction,
-                        f"### Winnner: {target_user.mention if is_target_winner else instigator_user.mention}\n"
-                        + f">>> Successfully completed the coinflip with `id: {trade_id}` between {instigator_user.mention} and {target_user.mention}.",
-                        title="Coinflip Completed",
-                    )
                 except ValueError as e:
                     has_error = True
                     await handle_error(
@@ -183,6 +173,52 @@ class TicketBotTrade(app_commands.Group):
                         f"Could not complete trade `id: {trade_id}` between {instigator_user.mention} and {target_user.mention}",
                         e,
                     )
+                else:
+                    # Handle successful trade completion
+                    message_errors = 0
+
+                    try:
+                        await update_trade_msg(
+                            view=view,
+                            msg_embed_ref=trade_embed,
+                            desc=create_coinflip_msg(
+                                confirmations[instigator_user.id],
+                                confirmations[target_user.id],
+                                winner=(
+                                    target_user.mention
+                                    if is_target_winner
+                                    else instigator_user.mention
+                                ),
+                            ),
+                            is_successful=True,
+                        )
+                    except Exception as e:
+                        message_errors += 1
+                        Logger.error(e)
+
+                    try:
+                        await send_success(
+                            interaction,
+                            f"### Winnner: {target_user.mention if is_target_winner else instigator_user.mention}\n"
+                            + f">>> Successfully completed the coinflip with `id: {trade_id}` between {instigator_user.mention} and {target_user.mention}.",
+                            title="Coinflip Completed",
+                        )
+                    except Exception as e:
+                        message_errors += 1
+                        Logger.error(e)
+
+                    # Revert trade if both attempt to inform users of the trade outcome fail
+                    if message_errors == 2:
+                        user_objs[target_user.id]["tickets"] = target_user_init_tickets
+                        user_objs[instigator_user.id][
+                            "tickets"
+                        ] = instigator_user_init_tickets
+
+                        await update_user_objects(user_objs)
+
+                        Logger.info(
+                            f"Reverted trade id: `{trade_id}` between `{target_user.name}` and `{instigator_user.name}`"
+                        )
 
                 if has_error:
                     await update_trade_msg(
