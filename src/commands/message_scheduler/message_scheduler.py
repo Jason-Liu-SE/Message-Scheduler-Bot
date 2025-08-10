@@ -512,7 +512,7 @@ class MessageScheduler(
         )
 
         add_msg = (
-            "Adds the created message to the schedule. Note that a message must be created before it can be added to the schedule, "
+            ">>> Adds the created message to the schedule. Note that a message must be created before it can be added to the schedule, "
             + f"times are specified in EST/EDT, and you can only schedule posts for the future (e.g. if the time is 5:04, you can't schedule "
             + f"a post for any time prior to or equal to 5:04).\n\n"
             + f"**Fields**:\n"
@@ -521,50 +521,50 @@ class MessageScheduler(
             + f"`month`: month of post.\n"
             + f"`year`: year of post >= current year.\n"
             + f"`hour`: hour of post (0-23).\n"
-            + f"`minute`: minute of post (0-59).\n"
-            + f">>> Format: `/ms add <channel> <day> <month> <year> <hour> <minute>`\n\n"
+            + f"`minute`: minute of post (0-59).\n\n"
+            + f"**Format**: `/ms add <channel> <day> <month> <year> <hour> <minute>`\n\n"
             + f"E.g. **/ms add 1143322446909407323 30 1 2023 23 59**\n"
             + f"This would post the message on January 30, 2023 at 11:59 PM to the channel with ID 1143322446909407323"
         )
 
         remove_msg = (
-            "Removes a message from the schedule based on a post ID.\n\n"
+            ">>> Removes a message from the schedule based on a post ID.\n\n"
             + f"**Fields**:\n"
-            + f"`postid`: ID of the post to remove.\n"
-            + f">>> Format: `/ms remove <message post id>`\n\n"
+            + f"`postid`: ID of the post to remove.\n\n"
+            + f"**Format**: `/ms remove <message post id>`\n\n"
             + f"E.g. **/ms remove 123**\n"
             + f"This would remove a post with `id: 123`"
         )
 
         set_msg = (
-            "Sets the message to be scheduled. After submitting this command, the bot will take your next message as the message to be set.\n"
-            + f">>> Format: `/ms set`"
+            ">>> Sets the message to be scheduled. After submitting this command, the bot will take your next message as the message to be set.\n\n"
+            + f"**Format**: `/ms set`"
         )
 
         reaction_msg = (
-            "Sets the reactions for the message.\n\n"
+            ">>> Sets the reactions for the message.\n\n"
             + f"**Fields**:\n"
             + f"`emojis`: a list of emojis to add as reactions. `clear` can be input to reset the set reactions.\n\n"
-            + f"Note that each emoji is of the format `:<emoji name>:`.\n"
-            + f">>> Format: `/ms reaction <emojis>`\n\n"
+            + f"Note that each emoji is of the format `:<emoji name>:`.\n\n"
+            + f"**Format**: `/ms reaction <emojis>`\n\n"
             + f"E.g. **/ms reaction 😄😢🥯**"
         )
 
-        reset_msg = "Resets the message and all modifications made to it.\n>>> Format: `/ms reset`"
+        reset_msg = ">>> Resets the message and all modifications made to it.\n\n**Format**: `/ms reset`"
 
-        clear_msg = "Un-schedules all previously scheduled messages\n>>> Format: `/ms clearschedule`"
+        clear_msg = ">>> Un-schedules all previously scheduled messages\n\n**Format**: `/ms clearschedule`"
 
         preview_msg = (
-            "Displays either the message that is currently being worked on (`current`) or a particular scheduled post (`post ID`).\n\n"
+            ">>> Displays either the message that is currently being worked on (`current`) or a particular scheduled post (`post ID`).\n\n"
             + f"**Fields**:\n"
-            + f"`target`: can either be `current` to view the current draft message, or a `post ID` to view a scheduled post.\n"
-            + f">>> Format: `/ms preview <target>`\n\n"
+            + f"`target`: can either be `current` to view the current draft message, or a `post ID` to view a scheduled post.\n\n"
+            + f"**Format**: `/ms preview <target>`\n\n"
             + f"E.g. **/ms preview current**"
         )
 
         list_msg = (
-            "Lists all the currently scheduled messages, with their postID, post time, and a preview of their content. "
-            + f"These are ordered by earliest post date first\n>>> Format: `/ms list`"
+            ">>> Lists all the currently scheduled messages, with their postID, post time, and a preview of their content. "
+            + f"These are ordered by earliest post date first\n\n**Format**: `/ms list`"
         )
 
         fields = [
