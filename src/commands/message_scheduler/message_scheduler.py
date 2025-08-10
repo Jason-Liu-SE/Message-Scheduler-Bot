@@ -573,7 +573,7 @@ class MessageScheduler(
             {"name": "[3] set", "value": set_msg},
             {"name": "[4] reaction", "value": reaction_msg},
             {"name": "[5] reset", "value": reset_msg},
-            {"name": "[6] clearSchedule", "value": clear_msg},
+            {"name": "[6] clearschedule", "value": clear_msg},
             {"name": "[7] preview", "value": preview_msg},
             {"name": "[8] list", "value": list_msg},
         ]
