@@ -190,67 +190,68 @@ class TicketBot(
         )
 
         leaderboard_msg = (
-            "Lists a ranking of users based on how many tickets they have. If someone isn't listed on the leaderboard, "
+            ">>> Lists a ranking of users based on how many tickets they have. If someone isn't listed on the leaderboard, "
             + f"it probably means that they don't exist in the ticket system yet.\n"
-            + f">>> Format: `/ticket leaderboard`"
+            + f"\n**Format**: `/ticket leaderboard`"
         )
 
         balance_msg = (
-            "Shows how many tickets you have.\n" + f">>> Format: `/ticket balance`"
+            ">>> Shows how many tickets you have.\n"
+            + f"\n**Format**: `/ticket balance`"
         )
 
         view_msg = (
-            "Allows you to view another player's tickets.\n\n"
+            ">>> Allows you to view another player's tickets.\n\n"
             + f"**Fields**:\n"
             + f"`user`: a user to view. Fill via autocomplete.\n"
-            + f">>> Format: `/ticket view <user>`\n\n"
+            + f"\n**Format**: `/ticket view <user>`\n\n"
             + f"E.g. **/ticket view @user**\nThis would display @user's tickets"
         )
 
         rewards_list_msg = (
-            "This lists all the rewards that can be claimed.\n\n"
+            ">>> This lists all the rewards that can be claimed.\n\n"
             + f"**Fields**:\n"
             + f"`page`: the desired page to view. Default=1, must be >0.\n"
-            + f">>> Format: `/ticket rewards list <*optional*:page>`\n\n"
+            + f"\n**Format**: `/ticket rewards list <*optional*:page>`\n\n"
             + f"E.g. **/ticket rewards list `page:`2**\nThis would display the 2nd page of the reward list."
         )
 
         rewards_inspect_msg = (
-            "This shows more information about a particular reward.\n\n"
+            ">>> This shows more information about a particular reward.\n\n"
             + f"**Fields**:\n"
             + f"`item`: desired reward. The `reward ID` can be found on the `/ticket rewards list`, or via autocomplete.\n"
-            + f">>> Format: `/ticket rewards inspect <reward>`\n\n"
+            + f"\n**Format**: `/ticket rewards inspect <reward>`\n\n"
             + f"E.g. **/ticket rewards inspect 97979f9175a4b91f17d8a472**\nThis would display more information about the reward corresponding to 97979f9175a4b91f17d8a472."
         )
 
         rewards_redeem_msg = (
-            "This allows you to redeem one of the rewards on the `/ticket rewards list` list. To redeem an item, type the `reward ID` of the reward into the `item` "
+            ">>> This allows you to redeem one of the rewards on the `/ticket rewards list` list. To redeem an item, type the `reward ID` of the reward into the `item` "
             + f"field. You can find this value on the `/ticket rewards list` list, and/or use the autocomplete dropdown.\n\n"
             + f"Note that you'll need to confirm your transaction before it goes through. Once confirmed, please wait patiently "
             + f"for your order to be fullfilled by an admin/moderator.\n"
-            + f">>> Format: `/ticket rewards redeem <item>`\n\n"
+            + f"\n**Format**: `/ticket rewards redeem <item>`\n\n"
             + f"E.g. **/ticket rewards redeem 97979f9175a4b91f17d8a472**\nThis would start the redemption process for the reward corresponding to 97979f9175a4b91f17d8a472."
         )
 
         trade_start_msg = (
-            "This starts a trade request with another user.\n\n"
+            ">>> This starts a trade request with another user.\n\n"
             + f"**Fields**:\n"
             + f"`target`: The user that you'd like to trade with. Use the autocomplete to fill this.\n"
             + f"`action`: The trade action. Either `send` (send tickets to `target`) or `request` (get tickets from `target`).\n"
             + f"`tickets`: The number of tickets to trade. Must be > 0.\n\n"
             + f"Once you submit the command, you'll need to `ready`-up for the trade. Once all parties in the trade are `ready`, the trade will proceed. "
             + f"If either user wants to cancel the trade, they may press the `cancel` button. Alternatively, if `5 minutes` passes and the trade isn't completed, it cancels.\n"
-            + f">>> Format: `/ticket trade start <target> <action> <tickets>`\n\n"
+            + f"\n**Format**: `/ticket trade start <target> <action> <tickets>`\n\n"
             + f"E.g. **/ticket trade start @user send 5**\n"
             + f"This would start a trade with @user, which if accepted by both parties, would transfer `5 tickets` from the `trade initiator` to @user."
         )
 
         trade_coinflip_msg = (
-            "This starts a coinflip trade with another user. Each user has a 50% chance to win.\n\n"
+            ">>> This starts a coinflip trade with another user. Each user has a 50% chance to win.\n\n"
             + f"**Fields**:\n"
             + f"`target`: the target user to start a coinflip trade with.\n"
             + f"`wager`: the number of tickets that the winner should get and the loser should lose. Must be > 0.\n"
-            + f">>> Format: `/ticket trade coinflip <target> <wager>`\n\n"
+            + f"\n**Format**: `/ticket trade coinflip <target> <wager>`\n\n"
             + f"E.g. **/ticket trade coinflip @user 5**\nThis would start a coinflip trade with @user. If @user won, they would get `5 tickets` and the `trade initiator` would lose `5 ticket`."
         )
 
