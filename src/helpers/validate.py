@@ -1,5 +1,5 @@
 import os
-
+import inspect
 import discord
 
 
@@ -25,3 +25,10 @@ def has_role(interaction: discord.Interaction, allowed_roles: list) -> bool:
         (role.id in allowed_roles_lower or role.name.lower() in allowed_roles_lower)
         for role in interaction.user.roles
     )
+
+
+def filter_valid_kwargs(func, **kwargs):
+    sig = inspect.signature(func)
+    valid_params = sig.parameters
+    filtered_kwargs = {k: v for k, v in kwargs.items() if k in valid_params}
+    return func(**filtered_kwargs)
