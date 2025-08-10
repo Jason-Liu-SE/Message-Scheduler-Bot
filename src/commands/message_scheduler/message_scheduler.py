@@ -14,9 +14,9 @@ from helpers.logger import Logger
 from helpers.message_utils import *
 from helpers.time import *
 from helpers.validate import *
-from ui.ticket_bot.dual_action import DualActionView
-from ui.ticket_bot.single_action import SingleActionView
-from ui.ticket_bot.ternary_action import TernaryActionView
+from ui.common.dual_action import DualActionView
+from ui.common.single_action import SingleActionView
+from ui.common.ternary_action import TernaryActionView
 
 
 class MessageScheduler(
@@ -570,9 +570,9 @@ class MessageScheduler(
         for index, post_id in enumerate(sorted_items):
             msg += (
                 f"**#{index + 1}**\n"
-                f"**Post ID**: {post_id}\n"
-                f"**Post Time**: {schedule[post_id]['time']}\n"
-                f"**Preview**: {schedule[post_id]['message'] if len(schedule[post_id]['message']) < 50 else schedule[post_id]['message'][0:47] + '...'}\n\n"
+                f"> **Post ID**: {post_id}\n"
+                f"> **Post Time**: {schedule[post_id]['time']}\n"
+                f"> **Preview**: {schedule[post_id]['message'] if len(schedule[post_id]['message']) < 50 else schedule[post_id]['message'][0:47] + '...'}\n\n"
             )
 
             if len(msg) > 1500:
