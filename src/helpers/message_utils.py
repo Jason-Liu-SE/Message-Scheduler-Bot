@@ -182,10 +182,8 @@ async def send_success(
     msg: str,
     title: str = "Success",
     colour: int | discord.Colour = Colour.GREEN,
+    view: discord.ui.View | None = None,
 ):
     await send_embedded_message(
-        interaction,
-        title=title,
-        desc=msg,
-        colour=colour,
+        interaction, title=title, desc=msg, colour=colour, view=view
     )
