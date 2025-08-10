@@ -501,62 +501,71 @@ class MessageScheduler(
             )
 
     async def handle_help(self, interaction: discord.Interaction) -> None:
-        help_desc = """The Message Scheduler is used to schedule your posts based on the message that you set via the 'set' command (and any modifications made with appropriate commands. E.g. 'reaction'). If you don't like your message, you can override it with another message via the 'set' command, or if you have made other modifications to the message (e.g. via 'reaction'), you can use the 'reset' command to reset the message entirely.
-    
-    Once you are happy with the message, you can schedule it via the 'add' command. If you want to delete the message after it has been scheduled, simply use the 'remove' command with the ID that you were provided when the messaged was scheduled.
-        
-    The commands are as follows:"""
+        help_desc = (
+            "The Message Scheduler is used to schedule your posts based on the message that you set via the 'set' "
+            + f"command (and any modifications made with appropriate commands. E.g. 'reaction'). If you don't like your message, "
+            + f"you can override it with another message via the 'set' command, or if you have made other modifications to the "
+            + f"message (e.g. via 'reaction'), you can use the 'reset' command to reset the message entirely.\n\n"
+            + f"Once you are happy with the message, you can schedule it via the 'add' command. If you want to delete the message after "
+            + f"it has been scheduled, simply use the 'remove' command with the ID that you were provided when the messaged was scheduled.\n\n"
+            + f"### The commands are as follows:"
+        )
 
-        add_msg = """Adds the created message to the schedule. Note that a message must be created before it can be added to the schedule, times are specified in EST/EDT, and you can only schedule posts for the future (e.g. if the time is 5:04, you can't schedule a post for any time prior to or equal to 5:04). As for the other parameters, they are to be input as integers, restricted appropriately.
-        
-    Format: /ms add <channel> <day> <month> <year> <hour> <minute>
-        
-    E.g. /ms add 1143322446909407323 30 1 2023 23 59
-    This would post the message on January 30, 2023 at 11:59 PM to the channel with ID 1143322446909407323"""
+        add_msg = (
+            "Adds the created message to the schedule. Note that a message must be created before it can be added to the schedule, "
+            + f"times are specified in EST/EDT, and you can only schedule posts for the future (e.g. if the time is 5:04, you can't schedule "
+            + f"a post for any time prior to or equal to 5:04).\n\n"
+            + f"**Fields**:\n"
+            + f"`channel`: channel ID to send post.\n"
+            + f"`day`: day of post.\n"
+            + f"`month`: month of post.\n"
+            + f"`year`: year of post >= current year.\n"
+            + f"`hour`: hour of post (0-23).\n"
+            + f"`minute`: minute of post (0-59).\n"
+            + f">>> Format: `/ms add <channel> <day> <month> <year> <hour> <minute>`\n\n"
+            + f"E.g. **/ms add 1143322446909407323 30 1 2023 23 59**\n"
+            + f"This would post the message on January 30, 2023 at 11:59 PM to the channel with ID 1143322446909407323"
+        )
 
-        remove_msg = """Removes a message from the schedule based on a post ID.
-        
-    Format: /ms remove <message post id>
-        
-    E.g. /ms remove 123"""
+        remove_msg = (
+            "Removes a message from the schedule based on a post ID.\n\n"
+            + f"**Fields**:\n"
+            + f"`postid`: ID of the post to remove.\n"
+            + f">>> Format: `/ms remove <message post id>`\n\n"
+            + f"E.g. **/ms remove 123**\n"
+            + f"This would remove a post with `id: 123`"
+        )
 
-        set_msg = """Sets the message to be scheduled. After submitting this command, the bot will take your next message as the message to be set.
-        
-    Format: /ms set
-        
-    E.g. /ms set"""
+        set_msg = (
+            "Sets the message to be scheduled. After submitting this command, the bot will take your next message as the message to be set.\n"
+            + f">>> Format: `/ms set`"
+        )
 
-        reaction_msg = """Sets the reactions for the message. If 'clear' is provided, it will reset the current message's emojis.
+        reaction_msg = (
+            "Sets the reactions for the message.\n\n"
+            + f"**Fields**:\n"
+            + f"`emojis`: a list of emojis to add as reactions. `clear` can be input to reset the set reactions.\n\n"
+            + f"Note that each emoji is of the format `:<emoji name>:`.\n"
+            + f">>> Format: `/ms reaction <emojis>`\n\n"
+            + f"E.g. **/ms reaction 😄😢🥯**"
+        )
 
-    Note that each emoji is of the format `:<emoji name>:`.
-        
-    Format: /ms reaction [<emoji>]
-        
-    E.g. !ms reaction 😄😢🥯"""
+        reset_msg = "Resets the message and all modifications made to it.\n>>> Format: `/ms reset`"
 
-        reset_msg = """Resets the message and all modifications made to it
-        
-    Format: /ms reset
-        
-    E.g. /ms reset"""
+        clear_msg = "Un-schedules all previously scheduled messages\n>>> Format: `/ms clearschedule`"
 
-        clear_msg = """Un-schedules all previously scheduled messages
-        
-    Format: /ms clearSchedule
-        
-    E.g. /ms clearSchedule"""
+        preview_msg = (
+            "Displays either the message that is currently being worked on (`current`) or a particular scheduled post (`post ID`).\n\n"
+            + f"**Fields**:\n"
+            + f"`target`: can either be `current` to view the current draft message, or a `post ID` to view a scheduled post.\n"
+            + f">>> Format: `/ms preview <target>`\n\n"
+            + f"E.g. **/ms preview current**"
+        )
 
-        preview_msg = """Displays either the message that is currently being worked on (`current`) or a particular scheduled post (`post ID`).
-        
-    Format: /ms preview <current|post ID>
-        
-    E.g. /ms preview current"""
-
-        list_msg = """Lists all the currently scheduled messages, with their postID, post time, and a preview of their content. These are ordered by earliest post date first
-        
-    Format: /ms list
-        
-    E.g. /ms list"""
+        list_msg = (
+            "Lists all the currently scheduled messages, with their postID, post time, and a preview of their content. "
+            + f"These are ordered by earliest post date first\n>>> Format: `/ms list`"
+        )
 
         fields = [
             {"name": "[1] add", "value": add_msg},
