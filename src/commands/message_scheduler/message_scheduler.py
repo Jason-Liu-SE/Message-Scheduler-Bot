@@ -14,6 +14,9 @@ from helpers.logger import Logger
 from helpers.message_utils import *
 from helpers.time import *
 from helpers.validate import *
+from ui.ticket_bot.dual_action import DualActionView
+from ui.ticket_bot.single_action import SingleActionView
+from ui.ticket_bot.ternary_action import TernaryActionView
 
 
 class MessageScheduler(
@@ -197,6 +200,69 @@ class MessageScheduler(
         await self.handle_help(interaction)
 
     ####################################################################################
+    ############################## COMMON UI HANDLERS ##################################
+    ####################################################################################
+    async def on_list(
+        self,
+        interaction: discord.Interaction,
+        view: discord.ui.View,
+        btn: discord.ui.Button,
+    ) -> None:
+        await self.handle_list(interaction)
+
+    async def on_preview_current(
+        self,
+        interaction: discord.Interaction,
+        view: discord.ui.View,
+        btn: discord.ui.Button,
+    ) -> None:
+        await self.handle_preview(interaction, target="current")
+
+    async def on_preview_post(
+        self,
+        interaction: discord.Interaction,
+        view: discord.ui.View,
+        btn: discord.ui.Button,
+    ) -> None:
+        if not hasattr(view, "call_context"):
+            Logger.error(
+                "view passed to on_preview_post does not have a 'call_context'"
+            )
+
+        if "post_id" not in view.call_context:
+            Logger.error(
+                "view.call_context does not contain 'post_id,' but is required for on_preview_post"
+            )
+
+        await self.handle_preview(interaction, target=f"{view.call_context["post_id"]}")
+
+    async def on_remove_post(
+        self,
+        interaction: discord.Interaction,
+        view: discord.ui.View,
+        btn: discord.ui.Button,
+    ) -> None:
+        if not hasattr(view, "call_context"):
+            Logger.error(
+                "view passed to 'on_remove_post' does not have a 'call_context'"
+            )
+
+        if "post_id" not in view.call_context:
+            Logger.error(
+                "view.call_context does not contain 'post_id,' but is required for 'on_remove_post'"
+            )
+
+        await self.handle_remove(interaction, post_id=f"{view.call_context["post_id"]}")
+
+    async def on_reset_reactions(
+        self,
+        interaction: discord.Interaction,
+        view: discord.ui.View,
+        btn: discord.ui.Button,
+    ) -> None:
+        await self.handle_set_reaction(interaction, msg="clear")
+
+    ####################################################################################
     ################################### HANDLERS #######################################
     ####################################################################################
     async def handle_print(
@@ -321,10 +387,21 @@ class MessageScheduler(
             return
 
         # informing the user
+        add_view = TernaryActionView(
+            primary_label="Preview",
+            primary_cb=self.on_preview_post,
+            secondary_label="List",
+            secondary_cb=self.on_list,
+            danger_label="Remove",
+            danger_cb=self.on_remove_post,
+        )
         await send_success(
             interaction,
             f"Message added to post schedule!\n\n**Post ID**: {post_id}",
+            view=add_view,
         )
+        add_view.msg_ref = await interaction.original_response()
+        add_view.call_context = {"post_id": f"{post_id}"}
 
     async def handle_remove(
         self, interaction: discord.Interaction, post_id: str
@@ -351,10 +428,13 @@ class MessageScheduler(
             )
             return
 
+        remove_view = SingleActionView(label="List Posts", action_cb=self.on_list)
         await send_success(
             interaction,
             f"Post with ID {post_id} was removed from the post schedule!",
+            view=remove_view,
         )
+        remove_view.msg_ref = await interaction.original_response()
 
     async def handle_set(self, interaction: discord.Interaction) -> None:
         # prompting for subsequent input
@@ -378,10 +458,11 @@ class MessageScheduler(
             )
             return
 
-        await send_success(
-            interaction,
-            "The message has been set!",
+        set_view = SingleActionView(
+            label="Preview Message", action_cb=self.on_preview_current
         )
+        await send_success(interaction, "The message has been set!", view=set_view)
+        set_view.msg_ref = await interaction.original_response()
 
     async def handle_set_reaction(
         self, interaction: discord.Interaction, msg: str
@@ -397,18 +478,23 @@ class MessageScheduler(
 
         await update_message_object(interaction.guild.id, msg_obj)
 
-        # no emojis specified
-        if len(emojis) == 1 and emojis[0] == "":
-            await send_success(
-                interaction,
-                f"Reactions were cleared!",
-            )
-            return
-
+        set_reactions_view = DualActionView(
+            primary_label="Preview Message",
+            primary_cb=self.on_preview_current,
+            secondary_label="Reset Reactions",
+            secondary_cb=self.on_reset_reactions,
+            secondary_style=discord.ButtonStyle.danger,
+        )
         await send_success(
             interaction,
-            f"Reaction(s) {msg} added to message!",
+            (
+                "Reactions cleared!"
+                if len(msg) == 0
+                else f"Reaction(s) {msg} added to message!"
+            ),
+            view=set_reactions_view,
         )
+        set_reactions_view.msg_ref = await interaction.original_response()
 
     async def handle_reset(self, interaction: discord.Interaction) -> None:
         try:
