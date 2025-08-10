@@ -14,7 +14,7 @@ from helpers.time import *
 from helpers.validate import *
 
 from ui.ticket_bot.confirm_action import ConfirmActionView
-from ui.ticket_bot.single_action import SingleActionView
+from ui.common.single_action import SingleActionView
 
 
 class TicketBotRewards(app_commands.Group, CommandBot):

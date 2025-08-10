@@ -17,7 +17,7 @@ from helpers.ticket_bot.trade_helpers import (
 )
 from helpers.time import *
 from helpers.validate import *
-from ui.ticket_bot.ternary_action import TernaryActionView
+from ui.common.ternary_action import TernaryActionView
 
 
 class TicketBotTrade(app_commands.Group, CommandBot):
