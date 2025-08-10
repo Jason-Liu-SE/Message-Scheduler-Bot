@@ -18,6 +18,9 @@ class ViewWrapper(discord.ui.View):
         # a flag to prevent unnecessary updating
         self.children_disabled = False
 
+        # executation state/context that the view was created around
+        self.call_context: dict[str, any] = {}
+
     async def on_timeout(self):
         await self.disable_children()
 
