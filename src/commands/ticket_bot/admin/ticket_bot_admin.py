@@ -167,7 +167,8 @@ class TicketBotAdmin(
 
         await send_success(
             interaction,
-            f"Updated user `{user.display_name}`'s tickets {"to" if is_override else "by"} {tickets}",
+            f"Updated user `{user.display_name}`'s tickets {"to" if is_override else "by"} {tickets}. "
+            + f"Their new balance is: `{user_obj["tickets"]}`",
         )
 
     async def bulk_update_tickets(
