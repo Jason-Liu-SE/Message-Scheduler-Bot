@@ -76,7 +76,11 @@ async def complete_trade(
 
 
 async def verify_trade_users(
-    instigator_user: discord.Member, target_user: discord.Member, tickets: int
+    instigator_user: discord.Member,
+    target_user: discord.Member,
+    tickets: int,
+    check_instigator_balance: bool = True,
+    check_target_balance: bool = True,
 ) -> dict:
     user_objs = await get_user_objects([instigator_user.id, target_user.id])
 
@@ -95,13 +99,20 @@ async def verify_trade_users(
     instigator_lacks_tickets = user_objs[instigator_user.id]["tickets"] < tickets
     target_lacks_tickets = user_objs[target_user.id]["tickets"] < tickets
 
-    if instigator_lacks_tickets and target_lacks_tickets:
+    if (
+        check_instigator_balance
+        and check_target_balance
+        and instigator_lacks_tickets
+        and target_lacks_tickets
+    ):
         raise ValueError(
             f"{instigator_user.mention} and {target_user.mention} do not have enough tickets for this trade."
         )
-    elif instigator_lacks_tickets or target_lacks_tickets:
+    elif (check_instigator_balance and instigator_lacks_tickets) or (
+        check_target_balance and target_lacks_tickets
+    ):
         raise ValueError(
-            f"{target_user.mention if target_lacks_tickets else instigator_user.mention} does not have enough tickets for this trade."
+            f"{target_user.mention if check_target_balance and target_lacks_tickets else instigator_user.mention} does not have enough tickets for this trade."
         )
 
     return user_objs

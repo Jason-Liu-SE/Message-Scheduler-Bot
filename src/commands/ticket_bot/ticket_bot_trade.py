@@ -95,6 +95,7 @@ class TicketBotTrade(app_commands.Group, CommandBot):
             flow_emoji="➡️" if action == "send" else "⬅️",
             win_label="Ticket recipient",
             get_ticket_winner=get_ticket_winner,
+            check_balance="instigator" if action == "send" else "target",
         )
 
     async def handle_coinflip(
@@ -122,6 +123,7 @@ class TicketBotTrade(app_commands.Group, CommandBot):
         flow_emoji: str,  # the direction that tickets will flow
         win_label: str,
         get_ticket_winner: Callable[..., Awaitable[Literal["instigator", "target"]]],
+        check_balance: Literal["instigator", "target", "both"] | None = "both",
     ) -> None:
         trade_id = ObjectId()
         instigator_user = interaction.user
@@ -136,7 +138,13 @@ class TicketBotTrade(app_commands.Group, CommandBot):
             raise ValueError("Tickets traded must be greater than 0")
 
         user_objs = await verify_trade_users(
-            instigator_user=instigator_user, target_user=target_user, tickets=tickets
+            instigator_user=instigator_user,
+            target_user=target_user,
+            tickets=tickets,
+            check_target_balance=check_balance
+            and (check_balance == "target" or check_balance == "both"),
+            check_instigator_balance=check_balance
+            and (check_balance == "instigator" or check_balance == "both"),
         )
 
         # User event handlers
