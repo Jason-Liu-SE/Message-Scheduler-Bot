@@ -39,7 +39,7 @@ class TicketBotTrade(app_commands.Group, CommandBot):
         name="start", description="Request to trade with another user"
     )
     @app_commands.describe(
-        target="The player to start a coinflip with",
+        target="The player to start a trade with",
         action="Whether to 'send' or 'request' tickets to/from the target",
         tickets="The number of tickets to send/receive to/from the target",
     )
