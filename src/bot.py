@@ -56,7 +56,9 @@ def run_discord_bot():
         if member.bot:
             return
 
-        Logger.info(f"{member.display_name} `id: {member.id}` was registered in the DB")
+        Logger.info(
+            f"Player: {member.display_name} `id: {member.id}` was registered in the DB"
+        )
         await register_user_with_db(member)
 
     @bot.event
