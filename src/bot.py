@@ -56,10 +56,12 @@ def run_discord_bot():
         if member.bot:
             return
 
+        Logger.info(f"{member.display_name} `id: {member.id}` was registered in the DB")
         await register_user_with_db(member)
 
     @bot.event
     async def on_guild_join(guild: discord.Guild):
+        Logger.info(f"Server: {guild.name} `id: {guild.id}` was registered in the DB")
         await register_server_with_db(guild)
 
     async def start():
