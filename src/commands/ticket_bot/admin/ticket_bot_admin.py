@@ -87,7 +87,9 @@ class TicketBotAdmin(
         name="bulkadd", description="Adds tickets to all users with a specific role"
     )
     @app_commands.describe(
-        role="Target user role", tickets="The number of tickets to add"
+        role="Target user role",
+        tickets="The number of tickets to add",
+        ignore="The role of users to not add tickets to",
     )
     @enrich_command
     async def bulk_add(
@@ -95,15 +97,20 @@ class TicketBotAdmin(
         interaction: discord.Interaction,
         role: discord.Role,
         tickets: app_commands.Range[int, 0],
+        ignore: discord.Role | None = None,
     ):
-        await self.handle_bulk_add(interaction, role=role, tickets=tickets)
+        await self.handle_bulk_add(
+            interaction, role=role, tickets=tickets, ignore_role=ignore
+        )
 
     @app_commands.command(
         name="bulkremove",
         description="Remove tickets from all users with a specific role",
     )
     @app_commands.describe(
-        role="Target user role", tickets="The number of tickets to add"
+        role="Target user role",
+        tickets="The number of tickets to add",
+        ignore="The role of users to not remove tickets from",
     )
     @enrich_command
     async def bulk_remove(
@@ -111,14 +118,17 @@ class TicketBotAdmin(
         interaction: discord.Interaction,
         role: discord.Role,
         tickets: app_commands.Range[int, 0],
+        ignore: discord.Role | None = None,
     ):
-        await self.handle_bulk_remove(interaction, role, tickets)
+        await self.handle_bulk_remove(interaction, role, tickets, ignore_role=ignore)
 
     @app_commands.command(
         name="bulkset", description="Sets the tickets of all users with a specific role"
     )
     @app_commands.describe(
-        role="Target user role", tickets="The number of tickets to add"
+        role="Target user role",
+        tickets="The number of tickets to add",
+        ignore="The role of users to not set tickets for",
     )
     @enrich_command
     async def bulk_set(
@@ -126,8 +136,12 @@ class TicketBotAdmin(
         interaction: discord.Interaction,
         role: discord.Role,
         tickets: app_commands.Range[int, 0],
+        ignore: discord.Role | None = None,
     ):
-        await self.handle_bulk_set(interaction, role=role, tickets=tickets)
+
+        await self.handle_bulk_set(
+            interaction, role=role, tickets=tickets, ignore_role=ignore
+        )
 
     @app_commands.command(
         name="help", description="List more info about the Admin Ticket Bot commands"
@@ -178,6 +192,7 @@ class TicketBotAdmin(
         tickets: int,
         multiplier: int = 1,
         is_override: bool = False,
+        ignore_role: discord.Role | None = None,
     ) -> None:
         if tickets < 0:
             raise ValueError("Tickets must be non-negative")
@@ -189,7 +204,11 @@ class TicketBotAdmin(
             return
 
         try:
-            members = [m for m in interaction.guild.members if role in m.roles]
+            members = [
+                m
+                for m in interaction.guild.members
+                if role in m.roles and (not ignore_role or ignore_role not in m.roles)
+            ]
             member_ids = [m.id for m in members]
 
             await create_user_objects(member_ids)
@@ -212,7 +231,8 @@ class TicketBotAdmin(
 
         await send_success(
             interaction,
-            f"Updated tickets for users with role `{role.name}` {"to" if is_override else "by"} {tickets}",
+            f"Updated tickets for users with role `{role.name}`"
+            + f"{f" and not role `{ignore_role.name}`" if ignore_role else ""} {"to" if is_override else "by"} {tickets}",
         )
 
     async def handle_add(
@@ -231,19 +251,37 @@ class TicketBotAdmin(
         await self.update_tickets(interaction, user, tickets, is_override=True)
 
     async def handle_bulk_add(
-        self, interaction: discord.Interaction, role: discord.Member, tickets: int
+        self,
+        interaction: discord.Interaction,
+        role: discord.Member,
+        tickets: int,
+        ignore_role: discord.Role | None,
     ) -> None:
-        await self.bulk_update_tickets(interaction, role, tickets)
+        await self.bulk_update_tickets(
+            interaction, role, tickets, ignore_role=ignore_role
+        )
 
     async def handle_bulk_remove(
-        self, interaction: discord.Interaction, role: discord.Member, tickets: int
+        self,
+        interaction: discord.Interaction,
+        role: discord.Member,
+        tickets: int,
+        ignore_role: discord.Role | None,
     ) -> None:
-        await self.bulk_update_tickets(interaction, role, tickets, multiplier=-1)
+        await self.bulk_update_tickets(
+            interaction, role, tickets, multiplier=-1, ignore_role=ignore_role
+        )
 
     async def handle_bulk_set(
-        self, interaction: discord.Interaction, role: discord.Member, tickets: int
+        self,
+        interaction: discord.Interaction,
+        role: discord.Member,
+        tickets: int,
+        ignore_role: discord.Role | None,
     ) -> None:
-        await self.bulk_update_tickets(interaction, role, tickets, is_override=True)
+        await self.bulk_update_tickets(
+            interaction, role, tickets, is_override=True, ignore_role=ignore_role
+        )
 
     async def handle_help(self, interaction: discord.Interaction) -> None:
         help_desc = (
@@ -283,7 +321,8 @@ class TicketBotAdmin(
             + f"**Fields**:\n"
             + f"`role`: the role of users to add tickets to. Fill via autocomplete.\n"
             + f"`tickets`: the number of ticket to add to users with the role. Must be >= 0.\n"
-            + f"\n**Format**: `/ticketadmin bulkadd <role> <tickets>`\n\n"
+            + f"`ignore` (optional): the role of users to ignore when adding tickets. Fill via autocomplete.\n"
+            + f"\n**Format**: `/ticketadmin bulkadd <role> <tickets> <*optional*:ignore>`\n\n"
             + f"E.g. **/ticketadmin bulkadd @mods 2**\nThis would add 2 tickets to all @mods"
         )
 
@@ -292,8 +331,9 @@ class TicketBotAdmin(
             + f"**Fields**:\n"
             + f"`role`: the role of users to remove tickets from. Fill via autocomplete.\n"
             + f"`tickets`: the number of ticket to remove from users with the role. Must be >= 0.\n"
-            + f"\n**Format**: `/ticketadmin bulkremove <role> <tickets>`\n\n"
-            + f"E.g. **/ticketadmin bulkremove @mods 2**\nThis would remove 2 tickets from all @mods"
+            + f"`ignore` (optional): the role of users to ignore when removing tickets. Fill via autocomplete.\n"
+            + f"\n**Format**: `/ticketadmin bulkremove <role> <tickets> <*optional*:ignore>`\n\n"
+            + f"E.g. **/ticketadmin bulkremove @mods 2 `ignore:`@bots**\nThis would remove 2 tickets from all @mods that aren't @bots"
         )
 
         bulkset_msg = (
@@ -301,7 +341,8 @@ class TicketBotAdmin(
             + f"**Fields**:\n"
             + f"`role`: the role of users to set tickets for. Fill via autocomplete.\n"
             + f"`tickets`: the number of ticket to set users with the role at. Must be >= 0.\n"
-            + f"\n**Format**: `/ticketadmin bulkset <role> <tickets>`\n\n"
+            + f"`ignore` (optional): the role of users to ignore when setting tickets. Fill via autocomplete.\n"
+            + f"\n**Format**: `/ticketadmin bulkset <role> <tickets> <*optional*:ignore>`\n\n"
             + f"E.g. **/ticketadmin bulkset @mods 2**\nThis would set all @mods' tickets to 2"
         )
 
