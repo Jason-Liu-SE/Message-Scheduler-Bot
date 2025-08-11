@@ -217,6 +217,7 @@ class TicketBotTrade(app_commands.Group, CommandBot):
                     await complete_trade(
                         instigator_user=instigator_user,
                         target_user=target_user,
+                        user_objs=user_objs,
                         tickets=tickets,
                         send_direction=(
                             "instigator_to_target"

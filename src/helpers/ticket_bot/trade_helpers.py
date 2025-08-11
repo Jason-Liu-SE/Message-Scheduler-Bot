@@ -58,15 +58,12 @@ def display_confirmation(has_confirmed: bool):
 async def complete_trade(
     instigator_user: discord.Member,
     target_user: discord.Member,
+    user_objs: dict,
     tickets: int,
     send_direction: Literal[
         "instigator_to_target", "target_to_instigator"
     ] = "instigator_to_target",
 ) -> None:
-    user_objs = await verify_trade_users(
-        instigator_user=instigator_user, target_user=target_user, tickets=tickets
-    )
-
     invert = 1 if send_direction == "instigator_to_target" else -1
 
     user_objs[instigator_user.id]["tickets"] -= tickets * invert
