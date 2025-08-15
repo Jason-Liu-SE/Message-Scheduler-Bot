@@ -1,6 +1,6 @@
 import bot
 from dotenv import load_dotenv
-from helpers import keep_alive
+from helpers.keep_alive import keep_alive
 from managers.pymongo_manager import *
 
 load_dotenv()
