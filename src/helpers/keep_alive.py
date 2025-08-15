@@ -1,8 +1,8 @@
-from logging import Logger
 import os
 from flask import Flask
 from threading import Thread
 
+from helpers.logger import Logger
 from helpers.validate import is_development
 
 app = Flask("")
