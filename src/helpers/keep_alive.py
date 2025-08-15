@@ -1,4 +1,5 @@
 from logging import Logger
+import os
 from flask import Flask
 from threading import Thread
 
@@ -23,7 +24,8 @@ else:
     def run():
         from waitress import serve
 
-        serve(app, host="0.0.0.0", port=8080)
+        port = int(os.environ.get("PORT", 8080))
+        serve(app, host="0.0.0.0", port=port)
 
 
 def keep_alive():
