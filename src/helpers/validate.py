@@ -8,7 +8,7 @@ def validate_channel(channel: str) -> None:
         raise ValueError("The channel must be a numerical value")
 
 
-def is_development() -> None:
+def is_development() -> bool:
     is_dev = os.getenv("IS_DEV")
 
     return is_dev != None and is_dev.lower() == "true"
