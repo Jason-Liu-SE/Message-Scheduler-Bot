@@ -10,7 +10,9 @@ app = Flask("")
 
 @app.route("/")
 def home():
-    Logger.info("pinged")
+    if is_development():
+        Logger.info("pinged")
+
     return "Pong"
 
 
