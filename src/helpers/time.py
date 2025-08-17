@@ -65,3 +65,12 @@ def convert_to_utc(dt: datetime, interpreted_timezone: str) -> datetime:
 def convert_to_timezone(dt: datetime, timezone: str = "Canada/Eastern") -> datetime:
     tz = pytz.timezone(timezone)
     return dt.astimezone(tz)
+
+
+def format_date_time(dt: datetime) -> str:
+    return dt.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def replace_tz(dt: datetime, tz_name: str) -> datetime:
+    tz = pytz.timezone(tz_name)
+    return tz.localize(dt)

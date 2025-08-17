@@ -571,7 +571,7 @@ class MessageScheduler(
             msg += (
                 f"**#{index + 1}**\n"
                 f"> **Post ID**: {post_id}\n"
-                f"> **Post Time**: {schedule[post_id]['time']}\n"
+                f"> **Post Time**: {format_date_time(convert_to_timezone(replace_tz(schedule[post_id]['time'], "UTC")))}\n"
                 f"> **Preview**: {schedule[post_id]['message'] if len(schedule[post_id]['message']) < 50 else schedule[post_id]['message'][0:47] + '...'}\n\n"
             )
 
