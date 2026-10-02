@@ -6,4 +6,4 @@ from managers.pymongo_manager import *
 load_dotenv()
 keep_alive()
 PymongoManager.connect()
-bot.run_discord_bot()
+bot.run()

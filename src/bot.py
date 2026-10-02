@@ -12,7 +12,7 @@ import asyncio
 
 
 # main bot driver function
-def run_discord_bot():
+def run():
     # initialization
     intents = discord.Intents.default()
     intents.message_content = True
