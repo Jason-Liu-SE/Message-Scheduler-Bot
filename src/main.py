@@ -15,7 +15,7 @@ if __name__ == "__main__":
         try:
             install()
             Logger.info("Starting message scheduler bot subprocess")
-            bot_process = subprocess.Popen(["python", "./src/bot_main.py"])
+            bot_process = subprocess.Popen(["python", "./bot_main.py"])
             bot_process.wait()
             Logger.info("Exiting message scheduler bot subprocess")
         except Exception as e:
