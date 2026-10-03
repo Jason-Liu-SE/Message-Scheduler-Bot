@@ -63,6 +63,11 @@ cd src
 python main.py
 ```
 
+To run the tests, navigate to the `root` directory and run:
+```cmd
+python -m pytest
+```
+
 ## Project Structure
 
 ```text
