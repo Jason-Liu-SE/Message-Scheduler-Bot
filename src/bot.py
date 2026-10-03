@@ -19,7 +19,7 @@ def run():
     intents.typing = True
     intents.members = True
 
-    bot = commands.Bot(command_prefix="!", intents=intents)
+    bot = commands.Bot(command_prefix=commands.when_mentioned, intents=intents)
     event_manager = EventManager(bot)
 
     # trigger declarations
