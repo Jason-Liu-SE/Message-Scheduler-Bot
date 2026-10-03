@@ -6,6 +6,7 @@ from discord import app_commands
 from commands.command_bot import CommandBot
 from commands.ticket_bot.admin.ticket_bot_admin_rewards import TicketBotAdminRewards
 from helpers.command_helper import *
+from helpers.help_messages import TICKET_BOT_ADMIN_HELP_MSGS
 from helpers.id_helpers import *
 from helpers.message_utils import *
 from helpers.ticket_bot.mongo_utils import *
@@ -284,127 +285,19 @@ class TicketBotAdmin(
         )
 
     async def handle_help(self, interaction: discord.Interaction) -> None:
-        help_desc = (
-            "Ticket Admin is the administrative version of the Ticket bot. This bot allows those with sufficient permissions to"
-            + f"\n* add tickets\n* remove tickets\n* set tickets\n* add rewards\n* remove rewards\n* edit rewards\n\n### The commands are as follows:"
-        )
-
-        add_msg = (
-            ">>> Adds tickets to a user.\n\n"
-            + f"**Fields**:\n"
-            + f"`user`: a user to add tickets to. Fill via autocomplete.\n"
-            + f"`tickets`: the number of tickets to add to the user. Must be >= 0.\n"
-            + f"\n**Format**: `/ticketadmin add <user> <tickets>`\n\n"
-            + f"E.g. **/ticketadmin add @user 2**\nThis would add 2 tickets to @user"
-        )
-
-        remove_msg = (
-            ">>> Removes tickets from a user.\n\n"
-            + f"**Fields**:\n"
-            + f"`user`: a user to remove tickets from. Fill via autocomplete.\n"
-            + f"`tickets`: the number of tickets to remove from the user. Must be >= 0.\n"
-            + f"\n**Format**: `/ticketadmin remove <user> <tickets>`\n\n"
-            + f"E.g. **/ticketadmin remove @user 2**\nThis would remove 2 tickets from @user"
-        )
-
-        set_msg = (
-            ">>> Sets a user's tickets.\n\n"
-            + f"**Fields**:\n"
-            + f"`user`: a user to set tickets for. Fill via autocomplete.\n"
-            + f"`tickets`: the number of tickets to set the user at. Must be >= 0.\n"
-            + f"\n**Format**: `/ticketadmin set <user> <tickets>`\n\n"
-            + f"E.g. **/ticketadmin set @user 2**\nThis would set @user's tickets to 2"
-        )
-
-        bulkadd_msg = (
-            ">>> Adds tickets to all user with a specific role.\n"
-            + f"**Fields**:\n"
-            + f"`role`: the role of users to add tickets to. Fill via autocomplete.\n"
-            + f"`tickets`: the number of ticket to add to users with the role. Must be >= 0.\n"
-            + f"`ignore` (optional): the role of users to ignore when adding tickets. Fill via autocomplete.\n"
-            + f"\n**Format**: `/ticketadmin bulkadd <role> <tickets> <*optional*:ignore>`\n\n"
-            + f"E.g. **/ticketadmin bulkadd @mods 2**\nThis would add 2 tickets to all @mods"
-        )
-
-        bulkremove_msg = (
-            ">>> Removes tickets from all users with a specific role.\n\n"
-            + f"**Fields**:\n"
-            + f"`role`: the role of users to remove tickets from. Fill via autocomplete.\n"
-            + f"`tickets`: the number of ticket to remove from users with the role. Must be >= 0.\n"
-            + f"`ignore` (optional): the role of users to ignore when removing tickets. Fill via autocomplete.\n"
-            + f"\n**Format**: `/ticketadmin bulkremove <role> <tickets> <*optional*:ignore>`\n\n"
-            + f"E.g. **/ticketadmin bulkremove @mods 2 `ignore:`@bots**\nThis would remove 2 tickets from all @mods that aren't @bots"
-        )
-
-        bulkset_msg = (
-            ">>> Sets the ticket value for all users with a specific role.\n\n"
-            + f"**Fields**:\n"
-            + f"`role`: the role of users to set tickets for. Fill via autocomplete.\n"
-            + f"`tickets`: the number of ticket to set users with the role at. Must be >= 0.\n"
-            + f"`ignore` (optional): the role of users to ignore when setting tickets. Fill via autocomplete.\n"
-            + f"\n**Format**: `/ticketadmin bulkset <role> <tickets> <*optional*:ignore>`\n\n"
-            + f"E.g. **/ticketadmin bulkset @mods 2**\nThis would set all @mods' tickets to 2"
-        )
-
-        rewards_add_msg = (
-            ">>> Adds a reward to the rewards listing.\n\n"
-            + f"**Fields**:\n"
-            + f"`name`: reward name.\n"
-            + f"`cost`: reward cost. Must be >= 0.\n"
-            + f"`stock` (optional): amount of the reward to sell. Negative values mean `unlimited`. Default=-1.\n"
-            + f"`pagecolour` (optional): colour of the reward's `inspect` page. Must be a valid hex. Default=FFFFFF.\n\n"
-            + f"After the initial `rewards add` command is sent, a followup message is required to set the description. "
-            + f"You can attach an image to the reward when editing the description. One image can be attached. "
-            + f"If more than one image is attached, the first attached image is taken.\n"
-            + f"\n**Format**: `/ticketadmin rewards add <name> <cost> <*optional*:stock> <*optional*:pagecolour>`\n\n"
-            + f"E.g. **/ticketadmin rewards add Diamonds 5 4 FFFF00**\n"
-            + f"This would add a reward with name `Diamonds` for a cost of `5 tickets` with `4` items in stock. Additionally, "
-            + f"the colour of the reward's `/ticketadmin rewards inspect` page would be yellow, or `FFFF00` in hex."
-        )
-
-        rewards_remove_msg = (
-            ">>> Removes a reward from the listing, based on provided the reward id.\n\n"
-            + f"**Fields**:\n"
-            + f"`item`: ID of the item to be removed. This can be found on the `/ticket rewards list` listing.\n"
-            + f"\n**Format**: `/ticketadmin rewards remove <item>`\n\n"
-            + f"E.g. **/ticketadmin rewards remove 1231asd213**\nThis would attempt to remove a reward with id: `1231asd213`"
-        )
-
-        rewards_edit_msg = (
-            ">>> This edits an existing reward.\n\n"
-            + f"**Fields**:\n"
-            + f"`item`: ID of the reward. Found via `/ticket rewards list`.\n"
-            + f"`name` (optional): reward name.\n"
-            + f"`cost` (optional): reward cost. Must be >= 0.\n"
-            + f"`stock` (optional): amount of the reward to sell. Negative values mean `unlimited`.\n"
-            + f"`pagecolour` (optional): colour of the reward's `inspect` page. Must be a valid hex.\n"
-            + f"`changedesc` (optional): Set to True to be prompted to change the reward description.\n\n"
-            + f"When an optional field is provided, the value will override the existing value on the reward. "
-            + f"Non-specified values are left unchanged.\n"
-            + f"\n**Format**: `/ticketadmin rewards edit <item> <*optional*:name> <*optional*:cost> <*optional*:stock> <*optional*:pagecolour> <*optional*:changedesc>`\n\n"
-            + f"E.g. **/ticketadmin rewards edit 123asd123 `name:`z `changedesc:`True**\n"
-            + f"Reward `123asd123` would have its name updated to `z`. Its cost, stock, and pagecolour "
-            + f"would not be changed. Since `changedesc` = True, a description prompt would appear, which could be used to change the reward image."
-        )
-
-        fields = [
-            {"name": "[1] add", "value": add_msg},
-            {"name": "[2] remove", "value": remove_msg},
-            {"name": "[3] set", "value": set_msg},
-            {"name": "[4] bulkadd", "value": bulkadd_msg},
-            {"name": "[5] bulkremove", "value": bulkremove_msg},
-            {"name": "[6] bulkset", "value": bulkset_msg},
-            {"name": "[7] rewards add", "value": rewards_add_msg},
-            {"name": "[8] rewards remove", "value": rewards_remove_msg},
-            {"name": "[9] rewards edit", "value": rewards_edit_msg},
+        msgs = [
+            {"name": f"[{i + 1}] {key}", "value": TICKET_BOT_ADMIN_HELP_MSGS[key]}
+            for i, key in enumerate(
+                key for key in TICKET_BOT_ADMIN_HELP_MSGS if key != "description"
+            )
         ]
 
         await send_embedded_message(
             interaction,
             colour=Colour.PURPLE,
             title="Ticket Admin Commands",
-            desc=help_desc,
-            fields=fields,
+            desc=TICKET_BOT_ADMIN_HELP_MSGS["description"],
+            fields=msgs,
         )
 
 
