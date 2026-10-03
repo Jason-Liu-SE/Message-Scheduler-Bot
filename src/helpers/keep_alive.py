@@ -5,7 +5,7 @@ from threading import Thread
 from helpers.logger import Logger
 from helpers.validate import is_development
 
-app = Flask("")
+app = Flask(__name__)
 
 
 @app.route("/")

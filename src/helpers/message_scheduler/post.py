@@ -31,5 +31,5 @@ async def send_post(post: dict, bot: Bot) -> None:
     try:
         if server:
             await add_emojis(msg, server.emojis, post["reactions"])
-    except:
+    except Exception as e:
         Logger.error(f"Failed to add emojis to post message: {e}")

@@ -31,7 +31,10 @@ async def get_reward_choices(
     )
 
     for reward_id, reward in rewards.items():
-        if current.lower() in reward["name"] or current.lower() in f"{reward_id}":
+        if (
+            current.lower() in reward["name"].lower()
+            or current.lower() in f"{reward_id}".lower()
+        ):
             choices.append(
                 app_commands.Choice(
                     name=f"{reward_id} | {reward["name"][:30]}",
