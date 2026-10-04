@@ -3,7 +3,6 @@ from types import SimpleNamespace
 import pytest
 
 from helpers.validate import (
-    filter_valid_kwargs,
     has_role,
     is_development,
     validate_channel,
