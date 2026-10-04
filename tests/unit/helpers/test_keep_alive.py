@@ -17,3 +17,5 @@ def test_home_logs_in_development(monkeypatch, quiet_logger):
     assert is_development() is True
     assert home() == "Pong"
     quiet_logger.info.assert_called_once()
+
+    assert 0 == 1
