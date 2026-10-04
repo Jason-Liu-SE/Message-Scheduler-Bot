@@ -57,8 +57,7 @@ When `IS_DEV=True`, slash commands are synchronized only to `TEST_DISCORD_SERVER
 
 ## Database Structure
 
-The application uses the MongoDB database named by `DBNAME`. The main collections
-and their high-level relationships are:
+The application uses the MongoDB database named by `DBNAME`. The main collections are:
 
 ```text
 MongoDB database
@@ -72,8 +71,8 @@ MongoDB database
     ├── schedules             scheduled posts for each Discord server
     │   ├── _id               scheduled post ID (ObjectId)
     │   ├── server_id         Discord guild/server ID
-    │   ├── channel            destination channel ID
-    │   ├── message            message text
+    │   ├── channel           destination channel ID
+    │   ├── message           message text
     │   ├── time              scheduled date/time
     │   ├── reactions         reactions to add after sending
     │   └── attachments       source message/channel IDs for attachments
@@ -92,22 +91,6 @@ MongoDB database
         ├── stock             remaining stock; negative values represent unlimited stock
         ├── image             optional image URL
         └── page_colour       embed colour
-
-Relationships:
-
-```text
-Discord guild/server
-    ├── messages._id
-    └── schedules.server_id
-
-Discord channel
-    └── schedules.channel
-
-Discord user
-    └── tickets._id
-
-Scheduled post
-    └── schedules.attachments -> source Discord message/channel
 ```
 
 The application accesses these collections through
