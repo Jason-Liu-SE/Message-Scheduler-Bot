@@ -5,22 +5,22 @@ from helpers.ticket_bot.mongo_utils import *
 
 
 async def get_reward_choices(
-    interaction: discord.Interaction, current: str
+    interaction: discord.Interaction, reward_substr: str
 ) -> list[app_commands.Choice]:
     choices = []
 
-    current = current.strip()
+    reward_substr = reward_substr.strip()
 
     # rewards that partially match the current input in either id or name
     rewards = await get_many_reward_objects(
         {
             "$or": [
-                {"name": {"$regex": current, "$options": "i"}},
+                {"name": {"$regex": reward_substr, "$options": "i"}},
                 {
                     "$expr": {
                         "$regexMatch": {
                             "input": {"$toString": "$_id"},
-                            "regex": current,
+                            "regex": reward_substr,
                             "options": "i",
                         }
                     }
@@ -32,8 +32,8 @@ async def get_reward_choices(
 
     for reward_id, reward in rewards.items():
         if (
-            current.lower() in reward["name"].lower()
-            or current.lower() in f"{reward_id}".lower()
+            reward_substr.lower() in reward["name"].lower()
+            or reward_substr.lower() in f"{reward_id}".lower()
         ):
             choices.append(
                 app_commands.Choice(
