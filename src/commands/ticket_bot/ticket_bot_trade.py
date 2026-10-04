@@ -21,7 +21,7 @@ from ui.common.ternary_action import TernaryActionView
 
 
 class TicketBotTrade(app_commands.Group, CommandBot):
-    __TRADE_TIMEOUT = 300
+    _TRADE_TIMEOUT = 300
 
     def __init__(self, name: str, description: str, allowed_roles: list) -> None:
         super().__init__(name=name, description=description)
@@ -308,7 +308,7 @@ class TicketBotTrade(app_commands.Group, CommandBot):
             return (
                 f"-# Trade ID: {trade_id}\n\n{instigator_user.mention} would like to **`{trade_action.upper()}`** trade with {target_user.mention}!\n\n"
                 + f"**Tickets in trade**: `{tickets}`\n**Ticket flow**: {instigator_user.mention} {flow_emoji} {target_user.mention}\n{winner_msg}"
-                + f"### Confirmations ({self.__TRADE_TIMEOUT // 60}m timeout):\n>>> "
+                + f"### Confirmations ({self._TRADE_TIMEOUT // 60}m timeout):\n>>> "
                 + f"{display_confirmation(instigator_ready)} {instigator_user.mention}\n{display_confirmation(target_ready)} {target_user.mention}"
             )
 
@@ -321,7 +321,7 @@ class TicketBotTrade(app_commands.Group, CommandBot):
             secondary_cb=on_unready,
             danger_cb=on_cancel,
             authorized_ids=[instigator_user.id, target_user.id],
-            timeout=self.__TRADE_TIMEOUT,
+            timeout=self._TRADE_TIMEOUT,
         )
         trade_embed = generate_embedded_message(
             title=f"{trade_action.title()} Trade",

@@ -4,7 +4,7 @@ from rich.traceback import Traceback
 
 
 class Logger:
-    __colours = {
+    _colours = {
         "BLUE": "\033[94m",
         "YELLOW": "\033[93m",
         "RED": "\033[91m",
@@ -13,7 +13,7 @@ class Logger:
         "BOLD": "\033[1m",
     }
 
-    __console = Console()
+    _console = Console()
 
     @staticmethod
     def __get_date():
@@ -22,29 +22,29 @@ class Logger:
     @staticmethod
     def info(message: str) -> None:
         print(
-            f"{Logger.__colours["BOLD"]}{Logger.__colours["DARKGRAY"]}{Logger.__get_date()} "
-            + f"{Logger.__colours["BLUE"]}INFO\t{Logger.__colours["ENDC"]}{message}"
+            f"{Logger._colours["BOLD"]}{Logger._colours["DARKGRAY"]}{Logger.__get_date()} "
+            + f"{Logger._colours["BLUE"]}INFO\t{Logger._colours["ENDC"]}{message}"
         )
 
     @staticmethod
     def warn(message: str) -> None:
         print(
-            f"{Logger.__colours["BOLD"]}{Logger.__colours["DARKGRAY"]}{Logger.__get_date()} "
-            + f"{Logger.__colours["YELLOW"]}WARNING{Logger.__colours["ENDC"]}\t"
-            + f"{Logger.__colours["YELLOW"]}{message}{Logger.__colours["ENDC"]}"
+            f"{Logger._colours["BOLD"]}{Logger._colours["DARKGRAY"]}{Logger.__get_date()} "
+            + f"{Logger._colours["YELLOW"]}WARNING{Logger._colours["ENDC"]}\t"
+            + f"{Logger._colours["YELLOW"]}{message}{Logger._colours["ENDC"]}"
         )
 
     @staticmethod
     def error(message: str) -> None:
         print(
-            f"{Logger.__colours["BOLD"]}{Logger.__colours["DARKGRAY"]}{Logger.__get_date()} "
-            + f"{Logger.__colours["RED"]}ERROR{Logger.__colours["ENDC"]}\t"
-            + f"{Logger.__colours["RED"]}{message}{Logger.__colours["ENDC"]}"
+            f"{Logger._colours["BOLD"]}{Logger._colours["DARKGRAY"]}{Logger.__get_date()} "
+            + f"{Logger._colours["RED"]}ERROR{Logger._colours["ENDC"]}\t"
+            + f"{Logger._colours["RED"]}{message}{Logger._colours["ENDC"]}"
         )
 
     @staticmethod
     def traceback(error: error) -> None:
-        Logger.__console.print(
+        Logger._console.print(
             Traceback.from_exception(type(error), error, error.__traceback__)
         )
 

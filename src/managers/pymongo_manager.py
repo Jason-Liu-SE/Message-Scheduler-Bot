@@ -7,7 +7,7 @@ import os
 
 
 class PymongoManager:
-    __db = None
+    _db = None
 
     @staticmethod
     def connect() -> None:
@@ -16,7 +16,7 @@ class PymongoManager:
 
             client = MongoClient(CONNECTION_STRING)
 
-            PymongoManager.__db = client[os.environ["DBNAME"]]
+            PymongoManager._db = client[os.environ["DBNAME"]]
 
             Logger.info("Connected to MongoDB")
         except:
@@ -25,7 +25,7 @@ class PymongoManager:
     @staticmethod
     def insert_to_collection(collectionName: str, data: dict) -> None:
         try:
-            collection = PymongoManager.__db[collectionName]
+            collection = PymongoManager._db[collectionName]
 
             collection.insert_one(data)
         except:
@@ -35,7 +35,7 @@ class PymongoManager:
     @staticmethod
     def find_in_collection_by_id(collectionName: str, id: int | ObjectId) -> dict:
         try:
-            collection = PymongoManager.__db[collectionName]
+            collection = PymongoManager._db[collectionName]
             data = collection.find_one({"_id": id})
 
             return data
@@ -54,7 +54,7 @@ class PymongoManager:
         limit: int = 0,
     ) -> dict:
         try:
-            collection = PymongoManager.__db[collectionName]
+            collection = PymongoManager._db[collectionName]
             rawData = collection.find(query).skip(skip).limit(limit)
 
             if sort:
@@ -83,7 +83,7 @@ class PymongoManager:
         query: dict,
     ) -> int:
         try:
-            collection = PymongoManager.__db[collectionName]
+            collection = PymongoManager._db[collectionName]
             return collection.count_documents(query)
         except:
             Logger.error(
@@ -95,7 +95,7 @@ class PymongoManager:
     @staticmethod
     def update_collection(collectionName: str, id: int | ObjectId, data: dict) -> None:
         try:
-            collection = PymongoManager.__db[collectionName]
+            collection = PymongoManager._db[collectionName]
 
             collection.update_one({"_id": id}, {"$set": data}, upsert=True)
         except:
@@ -106,7 +106,7 @@ class PymongoManager:
         collectionName: str, id: int | ObjectId, data: dict
     ) -> None:
         try:
-            collection = PymongoManager.__db[collectionName]
+            collection = PymongoManager._db[collectionName]
 
             collection.update_one({"_id": id}, {"$setOnInsert": data}, upsert=True)
         except:
@@ -117,7 +117,7 @@ class PymongoManager:
     @staticmethod
     def delete_by_id(collectionName: str, id: int | ObjectId) -> None:
         try:
-            collection = PymongoManager.__db[collectionName]
+            collection = PymongoManager._db[collectionName]
 
             collection.delete_one({"_id": id})
         except:
@@ -128,7 +128,7 @@ class PymongoManager:
     @staticmethod
     def delete_all_by_query(collectionName: str, query: dict) -> None:
         try:
-            collection = PymongoManager.__db[collectionName]
+            collection = PymongoManager._db[collectionName]
 
             collection.delete_many(query)
         except:
@@ -146,7 +146,7 @@ class PymongoManager:
         dir: Literal["ASC", "DESC"] = "ASC",
     ) -> list:
         try:
-            collection = PymongoManager.__db[collectionName]
+            collection = PymongoManager._db[collectionName]
 
             rawData = collection.find({field: {"$gte": start, "$lte": end}})
 

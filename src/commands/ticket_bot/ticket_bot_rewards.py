@@ -18,7 +18,7 @@ from ui.common.single_action import SingleActionView
 
 
 class TicketBotRewards(app_commands.Group, CommandBot):
-    __ITEMS_PER_PAGE = 20
+    _ITEMS_PER_PAGE = 20
 
     def __init__(self, name: str, description: str, allowed_roles: list) -> None:
         super().__init__(name=name, description=description)
@@ -31,7 +31,7 @@ class TicketBotRewards(app_commands.Group, CommandBot):
     async def get_pages(interaction: discord.Interaction, current: str) -> int:
         choices = []
         pages = range(
-            1, ceil(await count_rewards({}) / TicketBotRewards.__ITEMS_PER_PAGE) + 1
+            1, ceil(await count_rewards({}) / TicketBotRewards._ITEMS_PER_PAGE) + 1
         )
 
         for page in pages:
@@ -81,17 +81,17 @@ class TicketBotRewards(app_commands.Group, CommandBot):
     ####################################################################################
     async def handle_list(self, interaction: discord.Interaction, page: int) -> None:
         num_rewards = await count_rewards({})
-        pages = ceil(num_rewards / self.__ITEMS_PER_PAGE)
+        pages = ceil(num_rewards / self._ITEMS_PER_PAGE)
 
         page = max(1, min(pages, page))
 
-        skip = (page - 1) * self.__ITEMS_PER_PAGE
+        skip = (page - 1) * self._ITEMS_PER_PAGE
 
         rewards = await get_many_reward_objects(
             {},
             sort_field="name",
             skip=skip,
-            limit=self.__ITEMS_PER_PAGE,
+            limit=self._ITEMS_PER_PAGE,
         )
 
         # constructing the listing
