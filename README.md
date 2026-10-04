@@ -134,6 +134,17 @@ To run the tests, navigate to the `root` directory and run:
 python -m pytest
 ```
 
+### Install the pre-push test hook
+
+The repository includes a [`.pre-commit-config.yaml`](.pre-commit-config.yaml)
+configuration that runs the full pytest suite before `git push`. Each clone
+must install the local Git hook:
+
+```cmd
+python -m pip install pre-commit
+pre-commit install --hook-type pre-push
+```
+
 ## Project Structure
 
 ```text
