@@ -1,4 +1,4 @@
-# Discord Bots
+# The Rift Discord Bots
 
 This repository hosts multiple Discord bots and bot modules in one Python application:
 
